@@ -1,0 +1,484 @@
+// Spreading-factor policies over repeated LEO passes: moving gateway, path loss, Doppler filter,
+// collisions and duty cycle. Devices transmit only above a minimum elevation.
+#include "leo_doppler.h"
+
+#include "ns3/core-module.h"
+#include "ns3/lorawan-module.h"
+#include "ns3/mobility-helper.h"
+#include "ns3/point-to-point-helper.h"
+#include "ns3/propagation-loss-model.h"
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <iostream>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+using namespace ns3;
+using namespace lorawan;
+
+namespace
+{
+constexpr double kFcHz = 868e6;
+constexpr double kBandwidthHz = 125e3;
+constexpr double kTxPowerDbm = 14;
+constexpr double kIonosphericDb = 7.69; // 6.22 / f^1.5, TR 38.811 6.6.6.1-4, as in ns-3-ntn
+
+enum Policy
+{
+    FIXED_SF12,
+    STOCK_ADR,
+    LINK_ONLY,
+    ELEVATION_AWARE,
+    ELEVATION_AWARE_LDRO10
+};
+
+const char* const kPolicyNames[] = {"fixed_sf12",
+                                    "stock_adr",
+                                    "link_only",
+                                    "elevation_aware",
+                                    "elevation_aware_ldro10"};
+
+double
+ElevationDeg(const Vector& sat, const Vector& device)
+{
+    const leo::Vec3 d{device.x, device.y, device.z};
+    const leo::Vec3 los{sat.x - device.x, sat.y - device.y, sat.z - device.z};
+    return std::asin(leo::Dot(los, d) / (leo::Norm(los) * leo::Norm(d))) * 180.0 / M_PI;
+}
+
+// TR 38.811 rural LOS S-band shadowing, as tabulated in ns-3-ntn. Applied here at 868 MHz.
+double
+ShadowSigmaDb(double elevationDeg)
+{
+    static const std::array<double, 9> table{1.79, 1.14, 1.14, 0.92, 1.42, 1.56, 0.85, 0.72, 0.72};
+    const int index = std::clamp(int(std::lround(elevationDeg / 10.0)) - 1, 0, 8);
+    return table[index];
+}
+
+double
+FsplDb(double distanceM)
+{
+    return 20.0 * std::log10(4.0 * M_PI * distanceM * kFcHz / leo::kLightSpeed);
+}
+
+class LeoLossModel : public PropagationLossModel
+{
+  public:
+    static TypeId GetTypeId()
+    {
+        static TypeId tid = TypeId("LeoLossModel")
+                                .SetParent<PropagationLossModel>()
+                                .AddConstructor<LeoLossModel>();
+        return tid;
+    }
+
+    LeoLossModel()
+    {
+        m_normal = CreateObject<NormalRandomVariable>();
+        m_normal->SetAttribute("Mean", DoubleValue(0.0));
+        m_normal->SetAttribute("Variance", DoubleValue(1.0));
+    }
+
+    void SetTotalGain(double gainDb)
+    {
+        m_gainDb = gainDb;
+    }
+
+  private:
+    double DoCalcRxPower(double txPowerDbm,
+                         Ptr<MobilityModel> a,
+                         Ptr<MobilityModel> b) const override
+    {
+        const Vector pa = a->GetPosition();
+        const Vector pb = b->GetPosition();
+        const bool aIsSat =
+            CalculateDistance(pa, Vector(0, 0, 0)) > CalculateDistance(pb, Vector(0, 0, 0));
+        const double e = aIsSat ? ElevationDeg(pa, pb) : ElevationDeg(pb, pa);
+        // Below the horizon the Earth blocks the link.
+        if (e < 0)
+        {
+            return -300;
+        }
+        const double shadow = ShadowSigmaDb(e) * m_normal->GetValue();
+        return txPowerDbm + m_gainDb - FsplDb(a->GetDistanceFrom(b)) - kIonosphericDb - shadow;
+    }
+
+    int64_t DoAssignStreams(int64_t stream) override
+    {
+        m_normal->SetStream(stream);
+        return 1;
+    }
+
+    double m_gainDb{5};
+    Ptr<NormalRandomVariable> m_normal;
+};
+
+NS_OBJECT_ENSURE_REGISTERED(LeoLossModel);
+
+struct Device
+{
+    leo::Vec3 pos;
+    Ptr<EndDeviceLorawanMac> mac;
+    double nextAllowedS = 0;
+};
+
+struct PacketRecord
+{
+    int device = 0;
+    int sf = 0;
+    int pass = 0;
+    double toa = 0;
+};
+
+struct Stats
+{
+    uint64_t visible = 0;
+    uint64_t skipped = 0;
+    uint64_t blocked = 0;
+    uint64_t usable = 0;
+    uint64_t sent = 0;
+    uint64_t received = 0;
+    uint64_t rejectedDoppler = 0;
+    uint64_t underSensitivity = 0;
+    uint64_t interfered = 0;
+    uint64_t noDemodulator = 0;
+    uint64_t sentLast5 = 0;
+    uint64_t receivedLast5 = 0;
+    double airtimeS = 0;
+    std::array<uint64_t, 13> sentBySf{};
+    std::array<uint64_t, 13> receivedBySf{};
+};
+
+Policy g_policy = ELEVATION_AWARE;
+double g_gainDb = 5;
+double g_marginDb = 3;
+double g_minElevationDeg = 10;
+double g_periodS = 60;
+double g_orbitPeriodS = 0;
+int g_passes = 20;
+int g_appBytes = 23; // 32-byte PHY payload; the module adds 9 header bytes and no 4-byte MIC
+const leo::Orbit* g_orbit = nullptr;
+Ptr<UniformRandomVariable> g_uniform;
+std::vector<Device> g_devices;
+std::unordered_map<uint32_t, int> g_nodeToDevice;
+std::unordered_map<uint64_t, PacketRecord> g_packets;
+std::array<double, 13> g_toa{};
+Stats g_stats;
+
+bool
+Ldro(int sf)
+{
+    return sf >= ClassAEndDeviceLorawanMac::s_ldroMinSf;
+}
+
+// Mean link budget against the gateway sensitivity, with a margin.
+bool
+LinkOk(const Vector& sat, const Vector& device, int sf, double marginDb)
+{
+    const double rx =
+        kTxPowerDbm + g_gainDb - FsplDb(CalculateDistance(sat, device)) - kIonosphericDb;
+    return rx - marginDb >= GatewayLoraPhy::SENSITIVITY[sf - 7];
+}
+
+bool
+DopplerOk(const leo::Vec3& device, int sf, double t)
+{
+    return leo::PacketSurvives(*g_orbit, device, kFcHz, kBandwidthHz, sf, Ldro(sf), t, g_toa[sf]);
+}
+
+// Returns the SF to use, or 0 to skip this attempt.
+int
+ChooseSf(const Device& d, const Vector& sat, const Vector& pos, double t)
+{
+    switch (g_policy)
+    {
+    case FIXED_SF12:
+        return 12;
+    case STOCK_ADR:
+        return d.mac->GetSfFromDataRate(d.mac->GetDataRate());
+    case LINK_ONLY:
+        for (int sf = 7; sf <= 12; ++sf)
+        {
+            if (LinkOk(sat, pos, sf, g_marginDb))
+            {
+                return sf;
+            }
+        }
+        return 0;
+    case ELEVATION_AWARE:
+    case ELEVATION_AWARE_LDRO10:
+        for (int sf = 7; sf <= 12; ++sf)
+        {
+            if (LinkOk(sat, pos, sf, g_marginDb) && DopplerOk(d.pos, sf, t))
+            {
+                return sf;
+            }
+        }
+        return 0;
+    }
+    return 0;
+}
+
+void
+Tick(int i)
+{
+    Device& d = g_devices[i];
+    const double t = Simulator::Now().GetSeconds();
+    const auto s = g_orbit->Position(t);
+    const Vector sat(s.x, s.y, s.z);
+    const Vector pos(d.pos.x, d.pos.y, d.pos.z);
+    if (ElevationDeg(sat, pos) >= g_minElevationDeg)
+    {
+        ++g_stats.visible;
+        const int sf = ChooseSf(d, sat, pos, t);
+        if (sf == 0)
+        {
+            ++g_stats.skipped;
+        }
+        else
+        {
+            // Usable contact: this SF would get through without shadowing or collisions.
+            if (LinkOk(sat, pos, sf, 0) && DopplerOk(d.pos, sf, t))
+            {
+                ++g_stats.usable;
+            }
+            if (t < d.nextAllowedS)
+            {
+                ++g_stats.blocked;
+            }
+            else
+            {
+                d.mac->SetDataRate(12 - sf);
+                d.mac->Send(Create<Packet>(g_appBytes));
+                d.nextAllowedS = t + 100.0 * g_toa[sf] + 0.01;
+            }
+        }
+    }
+    Simulator::Schedule(Seconds(g_periodS), &Tick, i);
+}
+
+void
+OnStartSending(Ptr<const Packet> packet, uint32_t nodeId)
+{
+    const int i = g_nodeToDevice.at(nodeId);
+    const int sf = g_devices[i].mac->GetSfFromDataRate(g_devices[i].mac->GetDataRate());
+    const double t = Simulator::Now().GetSeconds();
+    PacketRecord r;
+    r.device = i;
+    r.sf = sf;
+    r.pass = int(t / g_orbitPeriodS);
+    r.toa = g_toa[sf];
+    g_packets[packet->GetUid()] = r;
+    ++g_stats.sent;
+    ++g_stats.sentBySf[sf];
+    g_stats.airtimeS += r.toa;
+    g_stats.sentLast5 += r.pass >= g_passes - 5;
+}
+
+bool
+DopplerFilter(Ptr<const Packet> packet, Time duration)
+{
+    auto it = g_packets.find(packet->GetUid());
+    if (it == g_packets.end())
+    {
+        return true;
+    }
+    const PacketRecord& r = it->second;
+    const double start = (Simulator::Now() - duration).GetSeconds();
+    const bool ok = leo::PacketSurvives(*g_orbit,
+                                        g_devices[r.device].pos,
+                                        kFcHz,
+                                        kBandwidthHz,
+                                        r.sf,
+                                        Ldro(r.sf),
+                                        start,
+                                        duration.GetSeconds());
+    g_stats.rejectedDoppler += !ok;
+    return ok;
+}
+
+void
+OnReceived(Ptr<const Packet> packet, uint32_t)
+{
+    auto it = g_packets.find(packet->GetUid());
+    if (it != g_packets.end())
+    {
+        ++g_stats.received;
+        ++g_stats.receivedBySf[it->second.sf];
+        g_stats.receivedLast5 += it->second.pass >= g_passes - 5;
+    }
+}
+
+void
+OnUnderSensitivity(Ptr<const Packet>, uint32_t)
+{
+    ++g_stats.underSensitivity;
+}
+
+void
+OnInterfered(Ptr<const Packet>, uint32_t)
+{
+    ++g_stats.interfered;
+}
+
+void
+OnNoDemodulator(Ptr<const Packet>, uint32_t)
+{
+    ++g_stats.noDemodulator;
+}
+} // namespace
+
+int
+main(int argc, char* argv[])
+{
+    int policy = ELEVATION_AWARE;
+    int nDevices = 100;
+    double altitudeKm = 560;
+    double capRadiusKm = 1000;
+
+    CommandLine cmd(__FILE__);
+    cmd.AddValue("policy",
+                 "0 SF12, 1 ADR, 2 link only, 3 elevation-aware, 4 with LDRO on SF10",
+                 policy);
+    cmd.AddValue("nDevices", "Number of end devices", nDevices);
+    cmd.AddValue("gainDb", "Gtx + Grx (dBi)", g_gainDb);
+    cmd.AddValue("passes", "Number of orbits", g_passes);
+    cmd.AddValue("periodS", "Attempt period (s)", g_periodS);
+    cmd.AddValue("marginDb", "Link margin used by the policies (dB)", g_marginDb);
+    cmd.Parse(argc, argv);
+    g_policy = static_cast<Policy>(policy);
+
+    ClassAEndDeviceLorawanMac::s_ldroMinSf = (g_policy == ELEVATION_AWARE_LDRO10) ? 10 : 11;
+    LoraChannel::s_uplinkOnlyToGateways = true;
+    Config::SetDefault("ns3::EndDeviceLorawanMac::ADR", BooleanValue(g_policy == STOCK_ADR));
+
+    const leo::Orbit probe(altitudeKm * 1e3, 0);
+    g_orbitPeriodS = 2 * M_PI / probe.AngularRate();
+    const leo::Orbit orbit(altitudeKm * 1e3, g_orbitPeriodS / 2);
+    g_orbit = &orbit;
+
+    for (int sf = 7; sf <= 12; ++sf)
+    {
+        LoraTxParameters p;
+        p.spreadingFactor = sf;
+        p.bandwidthHz = static_cast<uint32_t>(kBandwidthHz);
+        p.lowDataRateOptimize = Ldro(sf);
+        g_toa[sf] = LoraPhy::GetTimeOnAir(g_appBytes + 9, p).GetSeconds();
+    }
+
+    auto loss = CreateObject<LeoLossModel>();
+    loss->SetTotalGain(g_gainDb);
+    Ptr<PropagationDelayModel> delay = CreateObject<ConstantSpeedPropagationDelayModel>();
+    auto channel = CreateObject<LoraChannel>(loss, delay);
+
+    LoraPhyHelper phy;
+    phy.SetChannel(channel);
+    LorawanMacHelper mac;
+    mac.SetRegion(LorawanMacHelper::EU);
+    LoraHelper helper;
+
+    NodeContainer gateways;
+    gateways.Create(1);
+    auto gwMobility = CreateObject<LeoOrbitMobility>();
+    gwMobility->SetOrbit(orbit);
+    gateways.Get(0)->AggregateObject(gwMobility);
+    phy.SetDeviceType(LoraPhyHelper::GW);
+    mac.SetDeviceType(LorawanMacHelper::GW);
+    helper.Install(phy, mac, gateways);
+
+    // Devices uniform over a spherical cap centred under the ground track.
+    g_uniform = CreateObject<UniformRandomVariable>();
+    g_devices.resize(nDevices);
+    auto edPos = CreateObject<ListPositionAllocator>();
+    for (auto& d : g_devices)
+    {
+        const double theta =
+            (capRadiusKm * 1e3 / leo::kEarthRadiusM) * std::sqrt(g_uniform->GetValue(0, 1));
+        const double alpha = g_uniform->GetValue(0, 2 * M_PI);
+        d.pos = {leo::kEarthRadiusM * std::cos(theta),
+                 leo::kEarthRadiusM * std::sin(theta) * std::cos(alpha),
+                 leo::kEarthRadiusM * std::sin(theta) * std::sin(alpha)};
+        edPos->Add(Vector(d.pos.x, d.pos.y, d.pos.z));
+    }
+    NodeContainer eds;
+    eds.Create(nDevices);
+    MobilityHelper mobEd;
+    mobEd.SetPositionAllocator(edPos);
+    mobEd.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+    mobEd.Install(eds);
+    auto addrGen = CreateObject<LoraDeviceAddressGenerator>(uint8_t(54), uint32_t(1864));
+    phy.SetDeviceType(LoraPhyHelper::ED);
+    mac.SetDeviceType(LorawanMacHelper::ED_A);
+    mac.SetAddressGenerator(addrGen);
+    helper.Install(phy, mac, eds);
+
+    for (int i = 0; i < nDevices; ++i)
+    {
+        auto device = eds.Get(i)->GetDevice(0)->GetObject<LoraNetDevice>();
+        g_devices[i].mac = device->GetMac()->GetObject<EndDeviceLorawanMac>();
+        g_devices[i].mac->SetDataRate(0);
+        g_nodeToDevice[eds.Get(i)->GetId()] = i;
+        device->GetPhy()->TraceConnectWithoutContext("StartSending", MakeCallback(&OnStartSending));
+        Simulator::Schedule(Seconds(g_uniform->GetValue(0, g_periodS)), &Tick, i);
+    }
+
+    auto gwDevice = gateways.Get(0)->GetDevice(0)->GetObject<LoraNetDevice>();
+    auto gwPhy = DynamicCast<SimpleGatewayLoraPhy>(gwDevice->GetPhy());
+    gwPhy->SetReceiveFilter(MakeCallback(&DopplerFilter));
+    gwPhy->TraceConnectWithoutContext("ReceivedPacket", MakeCallback(&OnReceived));
+    gwPhy->TraceConnectWithoutContext("LostPacketBecauseUnderSensitivity",
+                                      MakeCallback(&OnUnderSensitivity));
+    gwPhy->TraceConnectWithoutContext("LostPacketBecauseInterference", MakeCallback(&OnInterfered));
+    gwPhy->TraceConnectWithoutContext("LostPacketBecauseNoMoreReceivers",
+                                      MakeCallback(&OnNoDemodulator));
+
+    Ptr<Node> server = CreateObject<Node>();
+    PointToPointHelper p2p;
+    p2p.SetDeviceAttribute("DataRate", StringValue("5Mbps"));
+    p2p.SetChannelAttribute("Delay", StringValue("2ms"));
+    P2PGwRegistration_t reg;
+    auto c = p2p.Install(server, gateways.Get(0));
+    reg.emplace_back(DynamicCast<PointToPointNetDevice>(c.Get(0)), gateways.Get(0));
+    NetworkServerHelper ns;
+    ns.EnableAdr(g_policy == STOCK_ADR);
+    if (g_policy == STOCK_ADR)
+    {
+        ns.SetAdr("ns3::AdrComponent");
+    }
+    ns.SetGatewaysP2P(reg);
+    ns.SetEndDevices(eds);
+    ns.Install(server);
+    ForwarderHelper fwd;
+    fwd.Install(gateways);
+
+    Simulator::Stop(Seconds(g_orbitPeriodS * g_passes));
+    Simulator::Run();
+
+    int changed = 0;
+    for (const auto& d : g_devices)
+    {
+        changed += d.mac->GetDataRate() != 0;
+    }
+    Simulator::Destroy();
+
+    const Stats& s = g_stats;
+    std::cout << "RUN policy=" << kPolicyNames[policy] << " gain=" << g_gainDb << " n=" << nDevices
+              << " seed=" << RngSeedManager::GetRun() << " passes=" << g_passes
+              << " orbitS=" << g_orbitPeriodS << " visible=" << s.visible
+              << " skipped=" << s.skipped << " blocked=" << s.blocked << " usable=" << s.usable
+              << " sent=" << s.sent << " received=" << s.received
+              << " rejDoppler=" << s.rejectedDoppler << " underSens=" << s.underSensitivity
+              << " interfered=" << s.interfered << " noDemod=" << s.noDemodulator
+              << " sentLast5=" << s.sentLast5 << " recvLast5=" << s.receivedLast5
+              << " airtimeS=" << s.airtimeS << " finalDrNonzero=" << changed;
+    for (int sf = 7; sf <= 12; ++sf)
+    {
+        std::cout << " sentSf" << sf << "=" << s.sentBySf[sf] << " recvSf" << sf << "="
+                  << s.receivedBySf[sf];
+    }
+    std::cout << std::endl;
+    return 0;
+}
