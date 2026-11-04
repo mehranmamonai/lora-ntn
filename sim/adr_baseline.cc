@@ -6,6 +6,7 @@
 #include "ns3/mobility-helper.h"
 #include "ns3/point-to-point-helper.h"
 
+#include <algorithm>
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -168,6 +169,24 @@ main(int argc, char* argv[])
         g_dev[i].finalDr = macs[i]->GetDataRate();
     }
     std::string counts = tracker.CountMacPacketsGlobally(Seconds(0), end);
+    double tMin = end.GetSeconds();
+    double tMax = 0;
+    for (const auto& d : g_dev)
+    {
+        if (d.firstChangeS >= 0)
+        {
+            tMin = std::min(tMin, d.firstChangeS);
+            tMax = std::max(tMax, d.firstChangeS);
+        }
+    }
+    double beforeSent = 0;
+    double beforeRecv = 0;
+    double afterSent = 0;
+    double afterRecv = 0;
+    std::istringstream(tracker.CountMacPacketsGlobally(Seconds(0), Seconds(tMin))) >> beforeSent >>
+        beforeRecv;
+    std::istringstream(tracker.CountMacPacketsGlobally(Seconds(tMax), end)) >> afterSent >>
+        afterRecv;
     Simulator::Destroy();
 
     std::ofstream out(csv);
@@ -184,6 +203,9 @@ main(int argc, char* argv[])
     std::cout << "RUN nDevices=" << nDevices << " periodS=" << periodS << " nPeriods=" << nPeriods
               << " nGateways=" << nGateways << " rngRun=" << RngSeedManager::GetRun()
               << " macSent=" << sent << " macReceived=" << recv << " pdr=" << recv / sent
-              << std::endl;
+              << " tFirstChange=" << tMin << " tLastChange=" << tMax
+              << " beforeSent=" << beforeSent << " beforeRecv=" << beforeRecv
+              << " pdrBefore=" << beforeRecv / beforeSent << " afterSent=" << afterSent
+              << " afterRecv=" << afterRecv << " pdrAfter=" << afterRecv / afterSent << std::endl;
     return 0;
 }
