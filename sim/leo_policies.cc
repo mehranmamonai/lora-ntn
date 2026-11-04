@@ -32,14 +32,16 @@ enum Policy
     STOCK_ADR,
     LINK_ONLY,
     ELEVATION_AWARE,
-    ELEVATION_AWARE_LDRO10
+    ELEVATION_AWARE_LDRO10,
+    UNGATED_SF12 // No ephemeris: transmits at SF12 regardless of where the satellite is
 };
 
 const char* const kPolicyNames[] = {"fixed_sf12",
                                     "stock_adr",
                                     "link_only",
                                     "elevation_aware",
-                                    "elevation_aware_ldro10"};
+                                    "elevation_aware_ldro10",
+                                    "ungated_sf12"};
 
 double
 ElevationDeg(const Vector& sat, const Vector& device)
@@ -158,6 +160,7 @@ double g_marginDb = 3;
 double g_minElevationDeg = 10;
 double g_periodS = 60;
 double g_orbitPeriodS = 0;
+double g_predErrorKm = 0; // Along-track error of the device's satellite prediction
 int g_passes = 20;
 int g_appBytes = 23; // 32-byte PHY payload; the module adds 9 header bytes and no 4-byte MIC
 const leo::Orbit* g_orbit = nullptr;
@@ -172,6 +175,23 @@ bool
 Ldro(int sf)
 {
     return sf >= ClassAEndDeviceLorawanMac::s_ldroMinSf;
+}
+
+// The time at which the true satellite is where the device predicts it to be now. The error has
+// the same size for all devices and changes sign between passes. No random draws are used, so a
+// zero error reproduces the parent experiment exactly.
+double
+PredictedTime(double t)
+{
+    if (g_predErrorKm == 0)
+    {
+        return t;
+    }
+    const auto pass = static_cast<uint32_t>(t / g_orbitPeriodS);
+    const auto run = static_cast<uint32_t>(RngSeedManager::GetRun());
+    const bool ahead = (((pass + 1) * 2654435761U ^ (run * 40503U)) >> 13) & 1U;
+    const double offsetS = g_predErrorKm * 1e3 / g_orbit->Speed();
+    return ahead ? t + offsetS : t - offsetS;
 }
 
 // Mean link budget against the gateway sensitivity, with a margin.
@@ -196,6 +216,7 @@ ChooseSf(const Device& d, const Vector& sat, const Vector& pos, double t)
     switch (g_policy)
     {
     case FIXED_SF12:
+    case UNGATED_SF12:
         return 12;
     case STOCK_ADR:
         return d.mac->GetSfFromDataRate(d.mac->GetDataRate());
@@ -230,10 +251,14 @@ Tick(int i)
     const auto s = g_orbit->Position(t);
     const Vector sat(s.x, s.y, s.z);
     const Vector pos(d.pos.x, d.pos.y, d.pos.z);
-    if (ElevationDeg(sat, pos) >= g_minElevationDeg)
+    // Policies decide from the predicted satellite; the channel and Doppler filter use the true one.
+    const double tPredicted = PredictedTime(t);
+    const auto sp = g_orbit->Position(tPredicted);
+    const Vector satPredicted(sp.x, sp.y, sp.z);
+    if (g_policy == UNGATED_SF12 || ElevationDeg(satPredicted, pos) >= g_minElevationDeg)
     {
         ++g_stats.visible;
-        const int sf = ChooseSf(d, sat, pos, t);
+        const int sf = ChooseSf(d, satPredicted, pos, tPredicted);
         if (sf == 0)
         {
             ++g_stats.skipped;
@@ -241,7 +266,7 @@ Tick(int i)
         else
         {
             // Usable contact: this SF would get through without shadowing or collisions.
-            if (LinkOk(sat, pos, sf, 0) && DopplerOk(d.pos, sf, t))
+            if (ElevationDeg(sat, pos) >= 0 && LinkOk(sat, pos, sf, 0) && DopplerOk(d.pos, sf, t))
             {
                 ++g_stats.usable;
             }
@@ -341,13 +366,14 @@ main(int argc, char* argv[])
 
     CommandLine cmd(__FILE__);
     cmd.AddValue("policy",
-                 "0 SF12, 1 ADR, 2 link only, 3 elevation-aware, 4 with LDRO on SF10",
+                 "0 SF12, 1 ADR, 2 link only, 3 elevation-aware, 4 with LDRO on SF10, 5 ungated SF12",
                  policy);
     cmd.AddValue("nDevices", "Number of end devices", nDevices);
     cmd.AddValue("gainDb", "Gtx + Grx (dBi)", g_gainDb);
     cmd.AddValue("passes", "Number of orbits", g_passes);
     cmd.AddValue("periodS", "Attempt period (s)", g_periodS);
     cmd.AddValue("marginDb", "Link margin used by the policies (dB)", g_marginDb);
+    cmd.AddValue("predErrorKm", "Along-track prediction error (km)", g_predErrorKm);
     cmd.Parse(argc, argv);
     g_policy = static_cast<Policy>(policy);
 
@@ -466,7 +492,8 @@ main(int argc, char* argv[])
 
     const Stats& s = g_stats;
     std::cout << "RUN policy=" << kPolicyNames[policy] << " gain=" << g_gainDb << " n=" << nDevices
-              << " seed=" << RngSeedManager::GetRun() << " passes=" << g_passes
+              << " seed=" << RngSeedManager::GetRun() << " errorKm=" << g_predErrorKm
+              << " passes=" << g_passes
               << " orbitS=" << g_orbitPeriodS << " visible=" << s.visible
               << " skipped=" << s.skipped << " blocked=" << s.blocked << " usable=" << s.usable
               << " sent=" << s.sent << " received=" << s.received
