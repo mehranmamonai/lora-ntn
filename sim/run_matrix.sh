@@ -1,17 +1,20 @@
 #!/usr/bin/env bash
-# Phase 3 checks: analytic Table 5 sweep, then an ns-3 packet-level pass per SF and seed.
+# Phase 4: five SF policies, four network sizes, two antenna gains, five seeds. Smallest runs first.
 set -euo pipefail
-mkdir -p results/pass
-results/bin/doppler_table5 | tee results/table5.txt
+mkdir -p results
 JOBS=$(( $(nproc) > 1 ? $(nproc) - 1 : 1 ))
 run_one() {
-  results/bin/doppler_pass --sf="$1" --RngRun="$2" --csv="results/pass/sf$1_seed$2.csv"
+  results/bin/leo_policies --policy="$1" --gainDb="$2" --nDevices="$3" --RngRun="$4"
 }
 export -f run_one
-for sf in 7 8 9 10 11 12; do
-  for seed in 1 2 3; do
-    echo "$sf $seed"
+for n in 100 500 2000 5000; do
+  for g in 5 10; do
+    for policy in 0 1 2 3 4; do
+      for seed in 1 2 3 4 5; do
+        echo "$policy $g $n $seed"
+      done
+    done
   done
-done | xargs -P "$JOBS" -L 1 bash -c 'run_one "$0" "$1"' | tee results/passes.txt
+done | xargs -P "$JOBS" -L 1 bash -c 'run_one "$0" "$1" "$2" "$3"' | tee results/runs.txt
 echo "SUMMARY"
-python3 scripts/summarize.py results/table5.txt results/passes.txt results/pass
+python3 scripts/summarize.py results/runs.txt | tee results/summary.txt
