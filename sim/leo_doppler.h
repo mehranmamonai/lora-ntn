@@ -164,6 +164,11 @@ class LeoOrbitMobility : public MobilityModel
         m_orbit = orbit;
     }
 
+    Ptr<MobilityModel> Copy() const override
+    {
+        return CreateObject<LeoOrbitMobility>(*this);
+    }
+
   private:
     Vector DoGetPosition() const override
     {
