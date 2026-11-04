@@ -33,7 +33,8 @@ enum Policy
     LINK_ONLY,
     ELEVATION_AWARE,
     ELEVATION_AWARE_LDRO10,
-    UNGATED_SF12 // No ephemeris: transmits at SF12 regardless of where the satellite is
+    UNGATED_SF12, // No ephemeris: transmits at SF12 regardless of where the satellite is
+    SF12_WINDOW   // SF12, only when its own link and Doppler checks pass
 };
 
 const char* const kPolicyNames[] = {"fixed_sf12",
@@ -41,7 +42,8 @@ const char* const kPolicyNames[] = {"fixed_sf12",
                                     "link_only",
                                     "elevation_aware",
                                     "elevation_aware_ldro10",
-                                    "ungated_sf12"};
+                                    "ungated_sf12",
+                                    "sf12_window"};
 
 double
 ElevationDeg(const Vector& sat, const Vector& device)
@@ -163,6 +165,7 @@ double g_periodS = 60;
 double g_orbitPeriodS = 0;
 double g_predErrorKm = 0; // Along-track error of the device's satellite prediction
 bool g_randomPhase = false; // Random start within the duty-cycle interval, once per pass
+bool g_windowPhase = false; // Random start among the times the policy would transmit, once per pass
 int g_passes = 20;
 int g_appBytes = 23; // 32-byte PHY payload; the module adds 9 header bytes and no 4-byte MIC
 const leo::Orbit* g_orbit = nullptr;
@@ -222,6 +225,8 @@ ChooseSf(const Device& d, const Vector& sat, const Vector& pos, double t)
         return 12;
     case STOCK_ADR:
         return d.mac->GetSfFromDataRate(d.mac->GetDataRate());
+    case SF12_WINDOW:
+        return (LinkOk(sat, pos, 12, g_marginDb) && DopplerOk(d.pos, 12, t)) ? 12 : 0;
     case LINK_ONLY:
         for (int sf = 7; sf <= 12; ++sf)
         {
@@ -245,6 +250,71 @@ ChooseSf(const Device& d, const Vector& sat, const Vector& pos, double t)
     return 0;
 }
 
+// One transmission at a chosen moment inside the predicted window.
+void
+SendAt(int i)
+{
+    Device& d = g_devices[i];
+    const double t = Simulator::Now().GetSeconds();
+    if (t + 1e-9 < d.nextAllowedS)
+    {
+        return;
+    }
+    const double tp = PredictedTime(t);
+    const auto sp = g_orbit->Position(tp);
+    const int sf = ChooseSf(d, Vector(sp.x, sp.y, sp.z), Vector(d.pos.x, d.pos.y, d.pos.z), tp);
+    if (sf != 0)
+    {
+        d.mac->SetDataRate(12 - sf);
+        d.mac->Send(Create<Packet>(g_appBytes));
+        d.nextAllowedS = t + 100.0 * g_toa[sf] + 0.01;
+    }
+}
+
+// Draws this pass's first transmission among the predicted times the policy would transmit,
+// limited to the first duty-cycle interval's worth of those times.
+void
+PlanWindow(int i, double t)
+{
+    constexpr double stepS = 5.0;
+    Device& d = g_devices[i];
+    const Vector pos(d.pos.x, d.pos.y, d.pos.z);
+    std::vector<double> usable;
+    size_t limit = 0;
+    for (double tau = t; tau < t + 1200.0; tau += stepS)
+    {
+        const double tp = PredictedTime(tau);
+        const auto sp = g_orbit->Position(tp);
+        const Vector sat(sp.x, sp.y, sp.z);
+        if (ElevationDeg(sat, pos) < g_minElevationDeg)
+        {
+            break;
+        }
+        const int sf = ChooseSf(d, sat, pos, tp);
+        if (sf == 0)
+        {
+            continue;
+        }
+        if (usable.empty())
+        {
+            limit = std::max<size_t>(1, size_t(100.0 * g_toa[sf] / stepS));
+        }
+        usable.push_back(tau);
+        if (usable.size() >= limit)
+        {
+            break;
+        }
+    }
+    if (usable.empty())
+    {
+        return;
+    }
+    const auto index = static_cast<size_t>(g_uniform->GetInteger(0, uint32_t(usable.size() - 1)));
+    const double start = usable[index] + g_uniform->GetValue(0, stepS);
+    d.nextAllowedS = std::max(d.nextAllowedS, start);
+    Simulator::Schedule(Seconds(start - t), &SendAt, i);
+}
+
 void
 Tick(int i)
 {
@@ -260,6 +330,15 @@ Tick(int i)
     if (g_policy == UNGATED_SF12 || ElevationDeg(satPredicted, pos) >= g_minElevationDeg)
     {
         ++g_stats.visible;
+        if (g_windowPhase && g_policy != UNGATED_SF12)
+        {
+            const int windowPass = int(t / g_orbitPeriodS);
+            if (d.phasePass != windowPass)
+            {
+                d.phasePass = windowPass;
+                PlanWindow(i, t);
+            }
+        }
         const int sf = ChooseSf(d, satPredicted, pos, tPredicted);
         if (sf == 0)
         {
@@ -376,7 +455,7 @@ main(int argc, char* argv[])
 
     CommandLine cmd(__FILE__);
     cmd.AddValue("policy",
-                 "0 SF12, 1 ADR, 2 link only, 3 elevation-aware, 4 with LDRO on SF10, 5 ungated SF12",
+                 "0 SF12, 1 ADR, 2 link only, 3 elevation-aware, 4 with LDRO on SF10, 5 ungated SF12, 6 SF12 window",
                  policy);
     cmd.AddValue("nDevices", "Number of end devices", nDevices);
     cmd.AddValue("gainDb", "Gtx + Grx (dBi)", g_gainDb);
@@ -385,6 +464,7 @@ main(int argc, char* argv[])
     cmd.AddValue("marginDb", "Link margin used by the policies (dB)", g_marginDb);
     cmd.AddValue("predErrorKm", "Along-track prediction error (km)", g_predErrorKm);
     cmd.AddValue("randomPhase", "Random transmit start within each pass", g_randomPhase);
+    cmd.AddValue("windowPhase", "Random transmit start inside the predicted window", g_windowPhase);
     cmd.Parse(argc, argv);
     g_policy = static_cast<Policy>(policy);
 
@@ -504,7 +584,7 @@ main(int argc, char* argv[])
     const Stats& s = g_stats;
     std::cout << "RUN policy=" << kPolicyNames[policy] << " gain=" << g_gainDb << " n=" << nDevices
               << " seed=" << RngSeedManager::GetRun() << " errorKm=" << g_predErrorKm
-              << " randomPhase=" << g_randomPhase
+              << " randomPhase=" << g_randomPhase << " windowPhase=" << g_windowPhase
               << " passes=" << g_passes
               << " orbitS=" << g_orbitPeriodS << " visible=" << s.visible
               << " skipped=" << s.skipped << " blocked=" << s.blocked << " usable=" << s.usable
