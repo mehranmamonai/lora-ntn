@@ -21,9 +21,10 @@ mkdir -p "$ROOT" results/bin
   for f in $(grep -rl "NS_LOG_COMPONENT_DEFINE" "$NS3/src/lorawan/model" "$NS3/src/lorawan/helper"); do
     grep -q 'ns3/log.h' "$f" || sed -i '0,/^#include/s//#include "ns3\/log.h"\n#include/' "$f"
   done
+  python3 "$REPO/scripts/patch_lorawan.py" "$NS3"
   cd "$NS3"
   mkdir -p scratch
-  cp "$REPO"/sim/*.cc scratch/
+  cp "$REPO"/sim/*.cc "$REPO"/sim/*.h scratch/
   # Configure on every run so new scratch scenarios are picked up.
   ./ns3 configure --build-profile=optimized --enable-modules lorawan \
     --disable-tests --disable-examples --disable-werror
