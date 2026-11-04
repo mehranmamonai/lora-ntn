@@ -17,6 +17,10 @@ mkdir -p "$ROOT" results/bin
     git clone https://github.com/signetlabdei/lorawan "$NS3/src/lorawan"
     git -C "$NS3/src/lorawan" checkout -q "$LORAWAN_COMMIT"
   fi
+  # lorawan sources use NS_LOG_* through transitive includes, which fails in the optimized profile.
+  for f in $(grep -rl "NS_LOG_COMPONENT_DEFINE" "$NS3/src/lorawan/model" "$NS3/src/lorawan/helper"); do
+    grep -q 'ns3/log.h' "$f" || sed -i '0,/^#include/s//#include "ns3\/log.h"\n#include/' "$f"
+  done
   cd "$NS3"
   if [ ! -f "$ROOT/.configured" ]; then
     ./ns3 configure --build-profile=optimized --enable-modules lorawan \
