@@ -91,6 +91,22 @@ class LeoLossModel : public PropagationLossModel
         m_gainDb = gainDb;
     }
 
+    // Per-packet Rician fading. Variables are created only when enabled, so a run without fading
+    // reproduces the parent exactly.
+    void SetRicianK(double kDb)
+    {
+        const double k = std::pow(10.0, kDb / 10.0);
+        m_losAmplitude = std::sqrt(k / (k + 1));
+        m_scatterStd = std::sqrt(1.0 / (2 * (k + 1)));
+        m_fadingI = CreateObject<NormalRandomVariable>();
+        m_fadingQ = CreateObject<NormalRandomVariable>();
+        for (const auto& v : {m_fadingI, m_fadingQ})
+        {
+            v->SetAttribute("Mean", DoubleValue(0.0));
+            v->SetAttribute("Variance", DoubleValue(1.0));
+        }
+    }
+
   private:
     double DoCalcRxPower(double txPowerDbm,
                          Ptr<MobilityModel> a,
@@ -107,7 +123,15 @@ class LeoLossModel : public PropagationLossModel
             return -300;
         }
         const double shadow = ShadowSigmaDb(e) * m_normal->GetValue();
-        return txPowerDbm + m_gainDb - FsplDb(a->GetDistanceFrom(b)) - kIonosphericDb - shadow;
+        double fadingDb = 0;
+        if (m_fadingI)
+        {
+            const double i = m_losAmplitude + m_scatterStd * m_fadingI->GetValue();
+            const double q = m_scatterStd * m_fadingQ->GetValue();
+            fadingDb = 10.0 * std::log10(i * i + q * q);
+        }
+        return txPowerDbm + m_gainDb - FsplDb(a->GetDistanceFrom(b)) - kIonosphericDb - shadow +
+               fadingDb;
     }
 
     int64_t DoAssignStreams(int64_t stream) override
@@ -118,6 +142,10 @@ class LeoLossModel : public PropagationLossModel
 
     double m_gainDb{5};
     Ptr<NormalRandomVariable> m_normal;
+    double m_losAmplitude{1};
+    double m_scatterStd{0};
+    Ptr<NormalRandomVariable> m_fadingI;
+    Ptr<NormalRandomVariable> m_fadingQ;
 };
 
 NS_OBJECT_ENSURE_REGISTERED(LeoLossModel);
@@ -453,6 +481,7 @@ main(int argc, char* argv[])
     double altitudeKm = 560;
     double capRadiusKm = 1000;
     double crossTrackKm = 0;
+    double ricianKDb = 100; // 100 means no fading
 
     CommandLine cmd(__FILE__);
     cmd.AddValue("policy",
@@ -465,6 +494,7 @@ main(int argc, char* argv[])
     cmd.AddValue("marginDb", "Link margin used by the policies (dB)", g_marginDb);
     cmd.AddValue("predErrorKm", "Along-track prediction error (km)", g_predErrorKm);
     cmd.AddValue("crossTrackKm", "Largest random cross-track offset per pass (km)", crossTrackKm);
+    cmd.AddValue("ricianKDb", "Rician K factor (dB); 100 means no fading", ricianKDb);
     cmd.AddValue("randomPhase", "Random transmit start within each pass", g_randomPhase);
     cmd.AddValue("windowPhase", "Random transmit start inside the predicted window", g_windowPhase);
     cmd.Parse(argc, argv);
@@ -501,6 +531,10 @@ main(int argc, char* argv[])
 
     auto loss = CreateObject<LeoLossModel>();
     loss->SetTotalGain(g_gainDb);
+    if (ricianKDb < 100)
+    {
+        loss->SetRicianK(ricianKDb);
+    }
     Ptr<PropagationDelayModel> delay = CreateObject<ConstantSpeedPropagationDelayModel>();
     auto channel = CreateObject<LoraChannel>(loss, delay);
 
@@ -599,6 +633,7 @@ main(int argc, char* argv[])
               << " seed=" << RngSeedManager::GetRun() << " errorKm=" << g_predErrorKm
               << " randomPhase=" << g_randomPhase << " windowPhase=" << g_windowPhase
               << " crossTrackKm=" << crossTrackKm << " marginDb=" << g_marginDb
+              << " ricianKDb=" << ricianKDb
               << " passes=" << g_passes
               << " orbitS=" << g_orbitPeriodS << " visible=" << s.visible
               << " skipped=" << s.skipped << " blocked=" << s.blocked << " usable=" << s.usable
