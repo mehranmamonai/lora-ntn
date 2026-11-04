@@ -98,6 +98,16 @@ class Orbit
         return fcHz / (1 + v / kLightSpeed * cosBeta) - fcHz;
     }
 
+    // Ground range from the sub-satellite point at a given elevation, Eqs. (1), (3).
+    double GroundRangeM(double elevationDeg) const
+    {
+        const double e = elevationDeg * M_PI / 180.0;
+        const double ratio = (m_h + kEarthRadiusM) / kEarthRadiusM;
+        const double d = kEarthRadiusM *
+                         (std::sqrt(ratio * ratio - std::cos(e) * std::cos(e)) - std::sin(e));
+        return kEarthRadiusM * std::asin(d * std::cos(e) / (m_h + kEarthRadiusM));
+    }
+
     // Total visibility time above a minimum elevation, Eqs. (1), (3), (4).
     double VisibilityS(double minElevationDeg) const
     {

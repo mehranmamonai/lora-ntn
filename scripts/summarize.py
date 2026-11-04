@@ -4,7 +4,6 @@ import sys
 from collections import defaultdict
 
 T_95_DF4 = 2.776
-TX_POWER_W = 0.145  # Assumed SX127x transmit draw at 14 dBm. Airtime only.
 MARGINS = [-2.0, -1.0, 0.0, 1.0, 2.0, 3.0]
 RULE = "elevation_aware"
 LDRO = "elevation_aware_ldro10"
@@ -21,7 +20,7 @@ with open(sys.argv[1]) as f:
         if line.startswith("RUN "):
             d = dict(kv.split("=") for kv in line.split()[1:])
             key = (d["part"], float(d["gain"]), int(d["n"]), d["policy"], float(d["marginDb"]),
-                   float(d["ricianKDb"]))
+                   float(d["channelMode"]))
             groups[key].append({k: (v if k in ("policy", "part") else float(v)) for k, v in d.items()})
 
 
@@ -43,10 +42,10 @@ for key, runs in sorted(groups.items()):
     received = sum(r["received"] for r in runs)
     airtime = sum(r["airtimeS"] for r in runs)
     print(
-        f"RESULT part={part} gain={gain:g} n={n} policy={policy} margin={margin:g} k={k:g} "
+        f"RESULT part={part} gain={gain:g} n={n} policy={policy} margin={margin:g} channel={k:g} "
         f"delivered={mean:.3f}+-{half:.3f} sent_per_dev_pass={sent / sum(denom):.3f} "
         f"pdr={received / sent if sent else 0:.3f} "
-        f"mJ={1000 * TX_POWER_W * airtime / received if received else float('nan'):.0f} "
+        f"airtime_per_delivered_s={airtime / received if received else float('nan'):.2f} "
         f"lost_doppler={sum(r['rejDoppler'] for r in runs) / sent if sent else 0:.3f} "
         f"lost_sens={sum(r['underSens'] for r in runs) / sent if sent else 0:.3f} "
         f"lost_interf={sum(r['interfered'] for r in runs) / sent if sent else 0:.3f} "
@@ -54,7 +53,7 @@ for key, runs in sorted(groups.items()):
         f"dr_nonzero_at_end={st.mean(r['finalDrNonzero'] / r['n'] for r in runs):.3f}"
     )
 
-diff = max(abs(results[("regress", g, 100, p, 3.0, 100.0)][0] - v) for (g, p), v in PARENT.items())
+diff = max(abs(results[("regress", g, 100, p, 3.0, 0.0)][0] - v) for (g, p), v in PARENT.items())
 print(f"L1 parent_max_abs_diff={diff:.4f} holds={diff <= 0.0015}")
 
 
@@ -69,22 +68,22 @@ def scores(k, policy=RULE):
     return {m: st.mean(v) for m, v in per_margin.items()}
 
 
-for k in (100.0, 10.0, 3.0):
+for k in (0.0, 1.0, 2.0):
     for policy in (RULE, LDRO):
         s = scores(k, policy)
-        print(f"SCORE k={k:g} policy={policy} " + " ".join(f"m{m:g}={v:.3f}" for m, v in s.items())
+        print(f"SCORE channel={k:g} policy={policy} " + " ".join(f"m{m:g}={v:.3f}" for m, v in s.items())
               + f" best={max(s, key=s.get):g}")
 
-main = scores(10.0)
+main = scores(1.0)
 locked = max(main, key=main.get)
 gap = main[locked] - main[0.0]
 print(f"L2 locked_margin={locked:g} score={main[locked]:.3f} zero_db_score={main[0.0]:.3f} "
       f"zero_db_confirmed={gap <= 0.02}")
-harsh = scores(3.0)
-print(f"HARSH best_at_k3={max(harsh, key=harsh.get):g} locked_score_at_k3={harsh[locked]:.3f} "
-      f"zero_db_score_at_k3={harsh[0.0]:.3f}")
+harsh = scores(2.0)
+print(f"RAYTRACE_K4 best_margin={max(harsh, key=harsh.get):g} locked_score={harsh[locked]:.3f} "
+      f"zero_db_score={harsh[0.0]:.3f}")
 
-K = 10.0
+K = 1.0
 l3 = []
 for g in (5.0, 10.0):
     for n in (100, 2000, 5000):
@@ -127,10 +126,10 @@ print(f"L5 holds={all(l5) if l5 else 'not_run_at_locked_margin'}")
 
 for g in (5.0, 10.0):
     for n in (100, 2000):
-        for k in (100.0, 10.0, 3.0):
+        for k in (0.0, 1.0, 2.0):
             rule = results[("sweep", g, n, RULE, locked, k)]
             ldro = results[("sweep", g, n, LDRO, locked, k)]
             sf12 = results[("sf12", g, n, "fixed_sf12", 3.0, k)]
-            print(f"LOCKED gain={g:g} n={n} k={k:g} rule={rule[0]:.3f}+-{rule[1]:.3f} "
+            print(f"LOCKED gain={g:g} n={n} channel={k:g} rule={rule[0]:.3f}+-{rule[1]:.3f} "
                   f"ldro={ldro[0]:.3f}+-{ldro[1]:.3f} sf12={sf12[0]:.3f}+-{sf12[1]:.3f} "
                   f"ldro_beats_rule={beats(ldro, rule)} rule_beats_sf12={beats(rule, sf12)}")

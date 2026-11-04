@@ -91,19 +91,19 @@ class LeoLossModel : public PropagationLossModel
         m_gainDb = gainDb;
     }
 
-    // Per-packet Rician fading. Variables are created only when enabled, so a run without fading
-    // reproduces the parent exactly.
-    void SetRicianK(double kDb)
+    // 1: TR 38.811 rural, per-transmission LOS draw, K per elevation (method of Sant'Ana et al.,
+    //    arXiv 2609.07291; values from the ns-3-ntn tables). 2: same, but K fixed at 4 dB from the
+    //    rural ray tracing of Chiu et al., arXiv 2611.03869. Variables are created only when
+    //    enabled, so mode 0 reproduces the parent exactly.
+    void SetChannelMode(int mode)
     {
-        const double k = std::pow(10.0, kDb / 10.0);
-        m_losAmplitude = std::sqrt(k / (k + 1));
-        m_scatterStd = std::sqrt(1.0 / (2 * (k + 1)));
-        m_fadingI = CreateObject<NormalRandomVariable>();
-        m_fadingQ = CreateObject<NormalRandomVariable>();
-        for (const auto& v : {m_fadingI, m_fadingQ})
+        m_mode = mode;
+        m_losDraw = CreateObject<UniformRandomVariable>();
+        for (auto* v : {&m_fadingI, &m_fadingQ, &m_kDraw, &m_nlosShadow})
         {
-            v->SetAttribute("Mean", DoubleValue(0.0));
-            v->SetAttribute("Variance", DoubleValue(1.0));
+            *v = CreateObject<NormalRandomVariable>();
+            (*v)->SetAttribute("Mean", DoubleValue(0.0));
+            (*v)->SetAttribute("Variance", DoubleValue(1.0));
         }
     }
 
@@ -123,15 +123,36 @@ class LeoLossModel : public PropagationLossModel
             return -300;
         }
         const double shadow = ShadowSigmaDb(e) * m_normal->GetValue();
-        double fadingDb = 0;
-        if (m_fadingI)
+        const double base = txPowerDbm + m_gainDb - FsplDb(a->GetDistanceFrom(b)) - kIonosphericDb;
+        if (m_mode == 0)
         {
-            const double i = m_losAmplitude + m_scatterStd * m_fadingI->GetValue();
-            const double q = m_scatterStd * m_fadingQ->GetValue();
-            fadingDb = 10.0 * std::log10(i * i + q * q);
+            return base - shadow;
         }
-        return txPowerDbm + m_gainDb - FsplDb(a->GetDistanceFrom(b)) - kIonosphericDb - shadow +
-               fadingDb;
+        const int row = std::clamp(int(std::lround(e / 10.0)) - 1, 0, 8);
+        static const std::array<double, 9> losProb{0.782, 0.869, 0.919, 0.929, 0.935,
+                                                   0.940, 0.949, 0.952, 0.998};
+        static const std::array<double, 9> nlosSigma{8.93, 9.08, 8.78, 10.25, 10.56,
+                                                     10.74, 10.17, 11.52, 11.52};
+        static const std::array<double, 9> nlosCl{19.52, 18.17, 18.42, 18.28, 18.63,
+                                                  17.68, 16.5, 16.3, 16.3};
+        static const std::array<double, 9> kMean{24.72, 12.31, 8.05, 6.21, 5.04,
+                                                 4.42, 3.92, 3.65, 3.59};
+        static const std::array<double, 9> kStd{5.07, 5.75, 5.46, 5.23, 3.95,
+                                                3.75, 2.56, 1.77, 1.77};
+        if (m_losDraw->GetValue(0, 1) >= losProb[row])
+        {
+            // NLOS: clutter loss, NLOS shadowing and Rayleigh fading.
+            const double i = std::sqrt(0.5) * m_fadingI->GetValue();
+            const double q = std::sqrt(0.5) * m_fadingQ->GetValue();
+            return base - nlosCl[row] - nlosSigma[row] * m_nlosShadow->GetValue() +
+                   10.0 * std::log10(i * i + q * q);
+        }
+        const double kDb = (m_mode == 1) ? kMean[row] + kStd[row] * m_kDraw->GetValue() : 4.0;
+        const double k = std::pow(10.0, kDb / 10.0);
+        const double scatter = std::sqrt(1.0 / (2 * (k + 1)));
+        const double i = std::sqrt(k / (k + 1)) + scatter * m_fadingI->GetValue();
+        const double q = scatter * m_fadingQ->GetValue();
+        return base - shadow + 10.0 * std::log10(i * i + q * q);
     }
 
     int64_t DoAssignStreams(int64_t stream) override
@@ -142,10 +163,12 @@ class LeoLossModel : public PropagationLossModel
 
     double m_gainDb{5};
     Ptr<NormalRandomVariable> m_normal;
-    double m_losAmplitude{1};
-    double m_scatterStd{0};
+    int m_mode{0};
+    Ptr<UniformRandomVariable> m_losDraw;
     Ptr<NormalRandomVariable> m_fadingI;
     Ptr<NormalRandomVariable> m_fadingQ;
+    Ptr<NormalRandomVariable> m_kDraw;
+    Ptr<NormalRandomVariable> m_nlosShadow;
 };
 
 NS_OBJECT_ENSURE_REGISTERED(LeoLossModel);
@@ -481,7 +504,7 @@ main(int argc, char* argv[])
     double altitudeKm = 560;
     double capRadiusKm = 1000;
     double crossTrackKm = 0;
-    double ricianKDb = 100; // 100 means no fading
+    int channelMode = 0;
 
     CommandLine cmd(__FILE__);
     cmd.AddValue("policy",
@@ -494,7 +517,8 @@ main(int argc, char* argv[])
     cmd.AddValue("marginDb", "Link margin used by the policies (dB)", g_marginDb);
     cmd.AddValue("predErrorKm", "Along-track prediction error (km)", g_predErrorKm);
     cmd.AddValue("crossTrackKm", "Largest random cross-track offset per pass (km)", crossTrackKm);
-    cmd.AddValue("ricianKDb", "Rician K factor (dB); 100 means no fading", ricianKDb);
+    cmd.AddValue("channelMode", "0 parent, 1 TR 38.811 rural, 2 with K=4 dB", channelMode);
+    cmd.AddValue("minElevationDeg", "Minimum elevation (deg)", g_minElevationDeg);
     cmd.AddValue("randomPhase", "Random transmit start within each pass", g_randomPhase);
     cmd.AddValue("windowPhase", "Random transmit start inside the predicted window", g_windowPhase);
     cmd.Parse(argc, argv);
@@ -506,6 +530,13 @@ main(int argc, char* argv[])
 
     const leo::Orbit probe(altitudeKm * 1e3, 0);
     g_orbitPeriodS = 2 * M_PI / probe.AngularRate();
+    // A negative offset means: use the footprint radius at the minimum elevation for both the
+    // largest cross-track offset and the device area.
+    if (crossTrackKm < 0)
+    {
+        crossTrackKm = probe.GroundRangeM(g_minElevationDeg) / 1e3;
+        capRadiusKm = crossTrackKm;
+    }
     leo::Orbit orbit(altitudeKm * 1e3, g_orbitPeriodS / 2);
     // Drawn only when enabled, so an offset of zero reproduces the parent exactly.
     if (crossTrackKm > 0)
@@ -531,9 +562,9 @@ main(int argc, char* argv[])
 
     auto loss = CreateObject<LeoLossModel>();
     loss->SetTotalGain(g_gainDb);
-    if (ricianKDb < 100)
+    if (channelMode != 0)
     {
-        loss->SetRicianK(ricianKDb);
+        loss->SetChannelMode(channelMode);
     }
     Ptr<PropagationDelayModel> delay = CreateObject<ConstantSpeedPropagationDelayModel>();
     auto channel = CreateObject<LoraChannel>(loss, delay);
@@ -633,7 +664,8 @@ main(int argc, char* argv[])
               << " seed=" << RngSeedManager::GetRun() << " errorKm=" << g_predErrorKm
               << " randomPhase=" << g_randomPhase << " windowPhase=" << g_windowPhase
               << " crossTrackKm=" << crossTrackKm << " marginDb=" << g_marginDb
-              << " ricianKDb=" << ricianKDb
+              << " channelMode=" << channelMode << " minElevationDeg=" << g_minElevationDeg
+              << " capRadiusKm=" << capRadiusKm
               << " passes=" << g_passes
               << " orbitS=" << g_orbitPeriodS << " visible=" << s.visible
               << " skipped=" << s.skipped << " blocked=" << s.blocked << " usable=" << s.usable
