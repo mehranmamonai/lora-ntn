@@ -7,7 +7,9 @@
 #include "ns3/mobility-model.h"
 #include "ns3/simulator.h"
 
+#include <algorithm>
 #include <cmath>
+#include <vector>
 
 namespace leo
 {
@@ -61,18 +63,24 @@ class Orbit
         return std::sqrt(kGravity / kEarthRadiusM) * std::pow(1 + m_h / kEarthRadiusM, -1.5);
     }
 
+    // Cross-track angle (radians) for each orbit, so successive passes follow different tracks.
+    void SetCrossTrackAngles(const std::vector<double>& angles)
+    {
+        m_crossTrack = angles;
+    }
+
     Vec3 Position(double tS) const
     {
         const double phi = AngularRate() * (tS - m_t0);
         const double r = kEarthRadiusM + m_h;
-        return {r * std::cos(phi), r * std::sin(phi), 0};
+        return Tilt({r * std::cos(phi), r * std::sin(phi), 0}, tS);
     }
 
     Vec3 Velocity(double tS) const
     {
         const double phi = AngularRate() * (tS - m_t0);
         const double v = Speed();
-        return {-v * std::sin(phi), v * std::cos(phi), 0};
+        return Tilt({-v * std::sin(phi), v * std::cos(phi), 0}, tS);
     }
 
     double ElevationDeg(double tS, const Vec3& device) const
@@ -102,8 +110,25 @@ class Orbit
     }
 
   private:
+    // Rotates about the y axis, which moves the overhead point of (R, 0, 0) across the track.
+    // The angle changes at orbit boundaries, when the satellite is on the far side of the Earth.
+    Vec3 Tilt(const Vec3& p, double tS) const
+    {
+        if (m_crossTrack.empty())
+        {
+            return p;
+        }
+        const double period = 2 * M_PI / AngularRate();
+        const int last = static_cast<int>(m_crossTrack.size()) - 1;
+        const int pass = std::clamp(static_cast<int>(tS / period), 0, last);
+        const double c = std::cos(m_crossTrack[pass]);
+        const double s = std::sin(m_crossTrack[pass]);
+        return {p.x * c + p.z * s, p.y, -p.x * s + p.z * c};
+    }
+
     double m_h;
     double m_t0;
+    std::vector<double> m_crossTrack;
 };
 
 // Eq. (10)

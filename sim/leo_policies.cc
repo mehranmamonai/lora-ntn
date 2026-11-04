@@ -452,6 +452,7 @@ main(int argc, char* argv[])
     int nDevices = 100;
     double altitudeKm = 560;
     double capRadiusKm = 1000;
+    double crossTrackKm = 0;
 
     CommandLine cmd(__FILE__);
     cmd.AddValue("policy",
@@ -463,6 +464,7 @@ main(int argc, char* argv[])
     cmd.AddValue("periodS", "Attempt period (s)", g_periodS);
     cmd.AddValue("marginDb", "Link margin used by the policies (dB)", g_marginDb);
     cmd.AddValue("predErrorKm", "Along-track prediction error (km)", g_predErrorKm);
+    cmd.AddValue("crossTrackKm", "Largest random cross-track offset per pass (km)", crossTrackKm);
     cmd.AddValue("randomPhase", "Random transmit start within each pass", g_randomPhase);
     cmd.AddValue("windowPhase", "Random transmit start inside the predicted window", g_windowPhase);
     cmd.Parse(argc, argv);
@@ -474,7 +476,18 @@ main(int argc, char* argv[])
 
     const leo::Orbit probe(altitudeKm * 1e3, 0);
     g_orbitPeriodS = 2 * M_PI / probe.AngularRate();
-    const leo::Orbit orbit(altitudeKm * 1e3, g_orbitPeriodS / 2);
+    leo::Orbit orbit(altitudeKm * 1e3, g_orbitPeriodS / 2);
+    // Drawn only when enabled, so an offset of zero reproduces the parent exactly.
+    if (crossTrackKm > 0)
+    {
+        auto track = CreateObject<UniformRandomVariable>();
+        std::vector<double> angles(g_passes);
+        for (auto& angle : angles)
+        {
+            angle = track->GetValue(-crossTrackKm, crossTrackKm) * 1e3 / leo::kEarthRadiusM;
+        }
+        orbit.SetCrossTrackAngles(angles);
+    }
     g_orbit = &orbit;
 
     for (int sf = 7; sf <= 12; ++sf)
@@ -585,6 +598,7 @@ main(int argc, char* argv[])
     std::cout << "RUN policy=" << kPolicyNames[policy] << " gain=" << g_gainDb << " n=" << nDevices
               << " seed=" << RngSeedManager::GetRun() << " errorKm=" << g_predErrorKm
               << " randomPhase=" << g_randomPhase << " windowPhase=" << g_windowPhase
+              << " crossTrackKm=" << crossTrackKm << " marginDb=" << g_marginDb
               << " passes=" << g_passes
               << " orbitS=" << g_orbitPeriodS << " visible=" << s.visible
               << " skipped=" << s.skipped << " blocked=" << s.blocked << " usable=" << s.usable
