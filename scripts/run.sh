@@ -22,13 +22,11 @@ mkdir -p "$ROOT" results/bin
     grep -q 'ns3/log.h' "$f" || sed -i '0,/^#include/s//#include "ns3\/log.h"\n#include/' "$f"
   done
   cd "$NS3"
-  if [ ! -f "$ROOT/.configured" ]; then
-    ./ns3 configure --build-profile=optimized --enable-modules lorawan \
-      --disable-tests --disable-examples --disable-werror
-    touch "$ROOT/.configured"
-  fi
   mkdir -p scratch
   cp "$REPO"/sim/*.cc scratch/
+  # Configure on every run so new scratch scenarios are picked up.
+  ./ns3 configure --build-profile=optimized --enable-modules lorawan \
+    --disable-tests --disable-examples --disable-werror
   ./ns3 build
   for src in "$REPO"/sim/*.cc; do
     name=$(basename "$src" .cc)

@@ -1,19 +1,21 @@
 #!/usr/bin/env bash
-# Baseline matrix: stock ADR (HistoryRange=20) at two uplink periods, five seeds each.
+# Satellite-altitude validation: 6 altitudes, 2 antenna gains, 20 seeds, 5 degree beam.
 set -euo pipefail
 OUT=results/csv
 mkdir -p "$OUT"
 JOBS=$(( $(nproc) > 1 ? $(nproc) - 1 : 1 ))
 run_one() {
-  results/bin/adr_baseline --nDevices=100 --periodS="$1" --nPeriods=30 --HistoryRange=20 \
-    --RngRun="$2" --csv="$OUT/period$1_hist20_seed$2.csv"
+  results/bin/sat_altitude --altitudeKm="$1" --totalGainDb="$2" --beamwidthDeg=5 --periodS=60 \
+    --nPeriods=20 --RngRun="$3" --csv="$OUT/h$1_g$2_seed$3.csv"
 }
 export -f run_one
 export OUT
-for period in 300 1200; do
-  for seed in 1 2 3 4 5; do
-    echo "$period $seed"
+for h in 200 300 400 500 600 700; do
+  for g in 5 10; do
+    for seed in $(seq 1 20); do
+      echo "$h $g $seed"
+    done
   done
-done | xargs -P "$JOBS" -L 1 bash -c 'run_one "$0" "$1"'
-echo "SUMMARY"
-python3 scripts/summarize.py "$OUT"
+done | xargs -P "$JOBS" -L 1 bash -c 'run_one "$0" "$1" "$2"' > results/runs.txt
+echo "SUMMARY runs=$(wc -l < results/runs.txt)"
+python3 scripts/summarize.py "$OUT" results/runs.txt
