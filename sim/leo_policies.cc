@@ -125,6 +125,7 @@ struct Device
     leo::Vec3 pos;
     Ptr<EndDeviceLorawanMac> mac;
     double nextAllowedS = 0;
+    int phasePass = -1; // Pass in which the random start was last drawn
 };
 
 struct PacketRecord
@@ -161,6 +162,7 @@ double g_minElevationDeg = 10;
 double g_periodS = 60;
 double g_orbitPeriodS = 0;
 double g_predErrorKm = 0; // Along-track error of the device's satellite prediction
+bool g_randomPhase = false; // Random start within the duty-cycle interval, once per pass
 int g_passes = 20;
 int g_appBytes = 23; // 32-byte PHY payload; the module adds 9 header bytes and no 4-byte MIC
 const leo::Orbit* g_orbit = nullptr;
@@ -270,6 +272,14 @@ Tick(int i)
             {
                 ++g_stats.usable;
             }
+            // Draws only when enabled, so fixed timing reproduces the parent exactly.
+            const int pass = int(t / g_orbitPeriodS);
+            if (g_randomPhase && g_policy != UNGATED_SF12 && d.phasePass != pass)
+            {
+                d.phasePass = pass;
+                d.nextAllowedS =
+                    std::max(d.nextAllowedS, t + g_uniform->GetValue(0, 100.0 * g_toa[sf]));
+            }
             if (t < d.nextAllowedS)
             {
                 ++g_stats.blocked;
@@ -374,6 +384,7 @@ main(int argc, char* argv[])
     cmd.AddValue("periodS", "Attempt period (s)", g_periodS);
     cmd.AddValue("marginDb", "Link margin used by the policies (dB)", g_marginDb);
     cmd.AddValue("predErrorKm", "Along-track prediction error (km)", g_predErrorKm);
+    cmd.AddValue("randomPhase", "Random transmit start within each pass", g_randomPhase);
     cmd.Parse(argc, argv);
     g_policy = static_cast<Policy>(policy);
 
@@ -493,6 +504,7 @@ main(int argc, char* argv[])
     const Stats& s = g_stats;
     std::cout << "RUN policy=" << kPolicyNames[policy] << " gain=" << g_gainDb << " n=" << nDevices
               << " seed=" << RngSeedManager::GetRun() << " errorKm=" << g_predErrorKm
+              << " randomPhase=" << g_randomPhase
               << " passes=" << g_passes
               << " orbitS=" << g_orbitPeriodS << " visible=" << s.visible
               << " skipped=" << s.skipped << " blocked=" << s.blocked << " usable=" << s.usable
