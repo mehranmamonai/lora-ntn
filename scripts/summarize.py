@@ -1,24 +1,31 @@
-"""Test sourced receiver sensitivity and latitude against the criteria fixed before the experiment."""
+"""Test the link-only comparison at negative margins against the criteria fixed before the experiment."""
 import statistics as st
 import sys
 from collections import defaultdict
 
 T_95_DF4 = 2.776
 TX_POWER_W = 0.1485  # SX1262 datasheet Table 3-6, p. 17: 45 mA at +14 dBm, 3.3 V. Transmit only.
-MARGINS = [-1.0, 0.0, 1.0, 2.0, 3.0]
+MARGINS = [-4.0, -3.0, -2.0, -1.0, 0.0]
 RULE = "elevation_aware"
 LINK = "link_only"
 SF12 = "fixed_sf12"
-PARENT = {5.0: 0.700, 10.0: 1.727}  # Run c88d8775, N=100, margin 0, TR 38.811 channel.
-SCENARIOS = [(1, 7.69), (1, 0.0), (2, 7.69), (2, 0.0)]
+GAINS = (5.0, 10.0)
+# Parent experiment 02e77a36, seeds 16-20, summary.txt: (policy, margin, gain, n) -> delivered.
+PARENT = {
+    (RULE, -1.0, 5.0, 100): 0.057, (RULE, -1.0, 5.0, 2000): 0.040,
+    (RULE, -1.0, 10.0, 100): 0.641, (RULE, -1.0, 10.0, 2000): 0.163,
+    (LINK, 0.0, 5.0, 100): 0.000, (LINK, 0.0, 5.0, 2000): 0.000,
+    (LINK, 0.0, 10.0, 100): 0.430, (LINK, 0.0, 10.0, 2000): 0.151,
+    (SF12, 3.0, 5.0, 100): 0.018, (SF12, 3.0, 5.0, 2000): 0.004,
+    (SF12, 3.0, 10.0, 100): 0.169, (SF12, 3.0, 10.0, 2000): 0.027,
+}
 
 groups = defaultdict(list)
 with open(sys.argv[1]) as f:
     for line in f:
         if line.startswith("RUN "):
             d = dict(kv.split("=") for kv in line.split()[1:])
-            key = (d["part"], int(d["rxSet"]), float(d["scintDb"]), float(d["gain"]), int(d["n"]),
-                   d["policy"], float(d["marginDb"]))
+            key = (d["part"], float(d["gain"]), int(d["n"]), d["policy"], float(d["marginDb"]))
             groups[key].append({k: (v if k in ("policy", "part") else float(v)) for k, v in d.items()})
 
 
@@ -32,7 +39,7 @@ def beats(a, b):
 
 results = {}
 for key, runs in sorted(groups.items()):
-    part, rx, scint, gain, n, policy, margin = key
+    part, gain, n, policy, margin = key
     denom = [r["n"] * r["passes"] for r in runs]
     mean, half = ci([r["received"] / x for r, x in zip(runs, denom)])
     results[key] = (mean, half)
@@ -40,7 +47,7 @@ for key, runs in sorted(groups.items()):
     received = sum(r["received"] for r in runs)
     airtime = sum(r["airtimeS"] for r in runs)
     print(
-        f"RESULT rx={rx} scint={scint:g} gain={gain:g} n={n} policy={policy} margin={margin:g} part={part} "
+        f"RESULT part={part} gain={gain:g} n={n} policy={policy} margin={margin:g} runs={len(runs)} "
         f"delivered={mean:.3f}+-{half:.3f} sent_per_dev_pass={sent / sum(denom):.3f} "
         f"pdr={received / sent if sent else 0:.3f} "
         f"airtime_per_delivered_s={airtime / received if received else float('nan'):.2f} "
@@ -51,54 +58,51 @@ for key, runs in sorted(groups.items()):
         f"lost_demod={sum(r['noDemod'] for r in runs) / sent if sent else 0:.3f}"
     )
 
-diff = max(abs(results[("regress", 0, 7.69, g, 100, RULE, 0.0)][0] - v) for g, v in PARENT.items())
-print(f"M1 parent_max_abs_diff={diff:.4f} holds={diff <= 0.0015}")
+
+def R(part, g, n, p, m):
+    return results[(part, g, n, p, m)]
 
 
-def R(rx, scint, g, n, p, m):
-    return results[("main", rx, scint, g, n, p, m)]
+diffs = {k: abs(R("search", k[2], k[3], k[0], k[1])[0] - v) for k, v in PARENT.items()}
+worst = max(diffs.values())
+print(f"F1 parent_max_abs_diff={worst:.4f} holds={worst <= 0.0015}")
 
 
-locked = {}
-for rx, scint in SCENARIOS:
+def lock(policy):
     per_margin = defaultdict(list)
-    for g in (5.0, 10.0):
+    for g in GAINS:
         for n in (100, 2000):
-            values = {m: R(rx, scint, g, n, RULE, m)[0] for m in MARGINS}
+            values = {m: R("search", g, n, policy, m)[0] for m in MARGINS}
             best = max(values.values())
             for m, v in values.items():
                 per_margin[m].append(v / best if best else 0)
     scores = {m: st.mean(v) for m, v in per_margin.items()}
-    locked[(rx, scint)] = max(scores, key=scores.get)
-    print(f"M2 rx={rx} scint={scint:g} " + " ".join(f"m{m:g}={v:.3f}" for m, v in scores.items())
-          + f" locked={locked[(rx, scint)]:g}")
+    chosen = max(scores, key=scores.get)
+    print(f"F2 policy={policy} " + " ".join(f"m{m:g}={v:.3f}" for m, v in scores.items())
+          + f" locked={chosen:g} at_sweep_edge={chosen == MARGINS[0]}")
+    return chosen
 
-for rx, scint in SCENARIOS:
-    m = locked[(rx, scint)]
-    label = "PRIMARY" if (rx, scint) == (1, 7.69) else "OTHER"
-    wins = []
-    for g in (5.0, 10.0):
+
+rule_m = lock(RULE)
+link_m = lock(LINK)
+
+
+def compare(tag, label_a, a, label_b, b, g, n):
+    win = beats(a, b)
+    print(f"{tag} gain={g:g} n={n} {label_a}={a[0]:.3f}+-{a[1]:.3f} {label_b}={b[0]:.3f}+-{b[1]:.3f} "
+          f"ratio={a[0] / b[0] if b[0] else float('nan'):.2f} win={win}")
+    return win
+
+
+wins = [compare("F3", "rule", R("confirm", g, n, RULE, rule_m), "sf12", R("confirm", g, n, SF12, 3.0), g, n)
+        for g in GAINS for n in (100, 2000, 5000)]
+print(f"F3 margin={rule_m:g} wins={sum(wins)}/{len(wins)} holds={all(wins)}")
+
+for tag, m_link in (("F4", rule_m), ("F5", link_m)):
+    tested = []
+    for g in GAINS:
         for n in (100, 2000, 5000):
-            key = ("main", rx, scint, g, n, RULE, m)
-            if key in results:
-                a = results[key]
-                b = R(rx, scint, g, n, SF12, 3.0)
-                win = beats(a, b)
-                wins.append(win)
-                print(f"M3 {label} rx={rx} scint={scint:g} margin={m:g} gain={g:g} n={n} "
-                      f"rule={a[0]:.3f}+-{a[1]:.3f} sf12={b[0]:.3f}+-{b[1]:.3f} "
-                      f"ratio={a[0] / b[0] if b[0] else float('nan'):.2f} win={win}")
-    print(f"M3 {label} rx={rx} scint={scint:g} wins={sum(wins)}/{len(wins)} holds={all(wins) if wins else 'not_run'}")
-    m4 = []
-    for g in (5.0, 10.0):
-        for n in (100, 2000):
-            key = ("main", rx, scint, g, n, LINK, m)
-            if key in results:
-                a = R(rx, scint, g, n, RULE, m)
-                b = results[key]
-                win = beats(a, b)
-                if g == 5.0:
-                    m4.append(win)
-                print(f"M4 {label} rx={rx} scint={scint:g} margin={m:g} gain={g:g} n={n} "
-                      f"rule={a[0]:.3f}+-{a[1]:.3f} link={b[0]:.3f}+-{b[1]:.3f} win={win}")
-    print(f"M4 {label} rx={rx} scint={scint:g} holds={all(m4) if m4 else 'not_run_at_locked_margin'}")
+            win = compare(tag, "rule", R("confirm", g, n, RULE, rule_m), "link", R("confirm", g, n, LINK, m_link), g, n)
+            if g == 5.0 and n in (100, 2000):
+                tested.append(win)
+    print(f"{tag} rule_margin={rule_m:g} link_margin={m_link:g} wins={sum(tested)}/{len(tested)} holds={all(tested)}")
