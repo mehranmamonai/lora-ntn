@@ -525,6 +525,7 @@ main(int argc, char* argv[])
     cmd.AddValue("scintDb", "Ionospheric scintillation loss (dB)", g_ionosphericDb);
     cmd.AddValue("randomPhase", "Random transmit start within each pass", g_randomPhase);
     cmd.AddValue("windowPhase", "Random transmit start inside the predicted window", g_windowPhase);
+    cmd.AddValue("dopplerLimits", "0 Asad Ullah Eqs. 10-11, 1 measured SF12 limit", leo::g_dopplerLimits);
     cmd.Parse(argc, argv);
     g_policy = static_cast<Policy>(policy);
     if (rxSet != 0)
@@ -676,6 +677,7 @@ main(int argc, char* argv[])
               << " crossTrackKm=" << crossTrackKm << " marginDb=" << g_marginDb
               << " channelMode=" << channelMode << " minElevationDeg=" << g_minElevationDeg
               << " rxSet=" << rxSet << " scintDb=" << g_ionosphericDb
+              << " dopplerLimits=" << leo::g_dopplerLimits
               << " capRadiusKm=" << capRadiusKm
               << " passes=" << g_passes
               << " orbitS=" << g_orbitPeriodS << " visible=" << s.visible
