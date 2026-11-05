@@ -1,26 +1,24 @@
-"""Select the locked margin and test the baseline-lock rules fixed before the experiment."""
+"""Test sourced receiver sensitivity and latitude against the criteria fixed before the experiment."""
 import statistics as st
 import sys
 from collections import defaultdict
 
 T_95_DF4 = 2.776
-MARGINS = [-2.0, -1.0, 0.0, 1.0, 2.0, 3.0]
+TX_POWER_W = 0.1485  # SX1262 datasheet Table 3-6, p. 17: 45 mA at +14 dBm, 3.3 V. Transmit only.
+MARGINS = [-1.0, 0.0, 1.0, 2.0, 3.0]
 RULE = "elevation_aware"
-LDRO = "elevation_aware_ldro10"
-
-# Varied geometry, N=100, 3 dB margin, seeds 6-10, from run d0518038.
-PARENT = {
-    (5.0, "fixed_sf12"): 0.365, (5.0, "link_only"): 0.182, (5.0, RULE): 0.276, (5.0, LDRO): 0.276,
-    (10.0, "fixed_sf12"): 0.753, (10.0, "link_only"): 1.659, (10.0, RULE): 2.003, (10.0, LDRO): 2.170,
-}
+LINK = "link_only"
+SF12 = "fixed_sf12"
+PARENT = {5.0: 0.700, 10.0: 1.727}  # Run c88d8775, N=100, margin 0, TR 38.811 channel.
+SCENARIOS = [(1, 7.69), (1, 0.0), (2, 7.69), (2, 0.0)]
 
 groups = defaultdict(list)
 with open(sys.argv[1]) as f:
     for line in f:
         if line.startswith("RUN "):
             d = dict(kv.split("=") for kv in line.split()[1:])
-            key = (d["part"], float(d["gain"]), int(d["n"]), d["policy"], float(d["marginDb"]),
-                   float(d["channelMode"]))
+            key = (d["part"], int(d["rxSet"]), float(d["scintDb"]), float(d["gain"]), int(d["n"]),
+                   d["policy"], float(d["marginDb"]))
             groups[key].append({k: (v if k in ("policy", "part") else float(v)) for k, v in d.items()})
 
 
@@ -34,7 +32,7 @@ def beats(a, b):
 
 results = {}
 for key, runs in sorted(groups.items()):
-    part, gain, n, policy, margin, k = key
+    part, rx, scint, gain, n, policy, margin = key
     denom = [r["n"] * r["passes"] for r in runs]
     mean, half = ci([r["received"] / x for r, x in zip(runs, denom)])
     results[key] = (mean, half)
@@ -42,94 +40,65 @@ for key, runs in sorted(groups.items()):
     received = sum(r["received"] for r in runs)
     airtime = sum(r["airtimeS"] for r in runs)
     print(
-        f"RESULT part={part} gain={gain:g} n={n} policy={policy} margin={margin:g} channel={k:g} "
+        f"RESULT rx={rx} scint={scint:g} gain={gain:g} n={n} policy={policy} margin={margin:g} part={part} "
         f"delivered={mean:.3f}+-{half:.3f} sent_per_dev_pass={sent / sum(denom):.3f} "
         f"pdr={received / sent if sent else 0:.3f} "
         f"airtime_per_delivered_s={airtime / received if received else float('nan'):.2f} "
+        f"tx_mJ_per_delivered={1000 * TX_POWER_W * airtime / received if received else float('nan'):.0f} "
         f"lost_doppler={sum(r['rejDoppler'] for r in runs) / sent if sent else 0:.3f} "
         f"lost_sens={sum(r['underSens'] for r in runs) / sent if sent else 0:.3f} "
         f"lost_interf={sum(r['interfered'] for r in runs) / sent if sent else 0:.3f} "
-        f"lost_demod={sum(r['noDemod'] for r in runs) / sent if sent else 0:.3f} "
-        f"dr_nonzero_at_end={st.mean(r['finalDrNonzero'] / r['n'] for r in runs):.3f}"
+        f"lost_demod={sum(r['noDemod'] for r in runs) / sent if sent else 0:.3f}"
     )
 
-diff = max(abs(results[("regress", g, 100, p, 3.0, 0.0)][0] - v) for (g, p), v in PARENT.items())
-print(f"L1 parent_max_abs_diff={diff:.4f} holds={diff <= 0.0015}")
+diff = max(abs(results[("regress", 0, 7.69, g, 100, RULE, 0.0)][0] - v) for g, v in PARENT.items())
+print(f"M1 parent_max_abs_diff={diff:.4f} holds={diff <= 0.0015}")
 
 
-def scores(k, policy=RULE):
+def R(rx, scint, g, n, p, m):
+    return results[("main", rx, scint, g, n, p, m)]
+
+
+locked = {}
+for rx, scint in SCENARIOS:
     per_margin = defaultdict(list)
     for g in (5.0, 10.0):
         for n in (100, 2000):
-            values = {m: results[("sweep", g, n, policy, m, k)][0] for m in MARGINS}
+            values = {m: R(rx, scint, g, n, RULE, m)[0] for m in MARGINS}
             best = max(values.values())
             for m, v in values.items():
-                per_margin[m].append(v / best)
-    return {m: st.mean(v) for m, v in per_margin.items()}
+                per_margin[m].append(v / best if best else 0)
+    scores = {m: st.mean(v) for m, v in per_margin.items()}
+    locked[(rx, scint)] = max(scores, key=scores.get)
+    print(f"M2 rx={rx} scint={scint:g} " + " ".join(f"m{m:g}={v:.3f}" for m, v in scores.items())
+          + f" locked={locked[(rx, scint)]:g}")
 
-
-for k in (0.0, 1.0, 2.0):
-    for policy in (RULE, LDRO):
-        s = scores(k, policy)
-        print(f"SCORE channel={k:g} policy={policy} " + " ".join(f"m{m:g}={v:.3f}" for m, v in s.items())
-              + f" best={max(s, key=s.get):g}")
-
-main = scores(1.0)
-locked = max(main, key=main.get)
-gap = main[locked] - main[0.0]
-print(f"L2 locked_margin={locked:g} score={main[locked]:.3f} zero_db_score={main[0.0]:.3f} "
-      f"zero_db_confirmed={gap <= 0.02}")
-harsh = scores(2.0)
-print(f"RAYTRACE_K4 best_margin={max(harsh, key=harsh.get):g} locked_score={harsh[locked]:.3f} "
-      f"zero_db_score={harsh[0.0]:.3f}")
-
-K = 1.0
-l3 = []
-for g in (5.0, 10.0):
-    for n in (100, 2000, 5000):
-        part = "large" if n == 5000 else "sweep"
-        key = (part, g, n, RULE, locked, K)
-        if key in results:
-            rule = results[key]
-            sf12 = results[("sf12", g, n, "fixed_sf12", 3.0, K)]
-            win = beats(rule, sf12)
-            l3.append(win)
-            print(f"L3 gain={g:g} n={n} rule={rule[0]:.3f}+-{rule[1]:.3f} sf12={sf12[0]:.3f}+-{sf12[1]:.3f} "
-                  f"ratio={rule[0] / sf12[0]:.2f} win={win}")
-print(f"L3 wins={sum(l3)}/{len(l3)} holds={all(l3) if l3 else 'not_run'}")
-
-l4 = []
-for n in (100, 2000):
-    key = ("sweep", 5.0, n, "link_only", locked, K)
-    if key in results:
-        rule = results[("sweep", 5.0, n, RULE, locked, K)]
-        link = results[key]
-        win = beats(rule, link)
-        l4.append(win)
-        print(f"L4 n={n} rule={rule[0]:.3f}+-{rule[1]:.3f} link={link[0]:.3f}+-{link[1]:.3f} win={win}")
-print(f"L4 holds={all(l4) if l4 else 'not_run_at_locked_margin'}")
-
-l5 = []
-for g in (5.0, 10.0):
-    for n in (100, 500):
-        key = ("long", g, n, RULE, locked, K)
-        adr = results[("long", g, n, "stock_adr", 3.0, K)]
-        moved = st.mean(r["finalDrNonzero"] / r["n"] for r in groups[("long", g, n, "stock_adr", 3.0, K)])
-        if key in results:
-            rule = results[key]
-            win = beats(rule, adr)
-            if g == 10.0:
-                l5.append(win)
-            print(f"L5 gain={g:g} n={n} rule={rule[0]:.3f}+-{rule[1]:.3f} adr={adr[0]:.3f}+-{adr[1]:.3f} "
-                  f"adr_moved={moved:.3f} win={win}")
-print(f"L5 holds={all(l5) if l5 else 'not_run_at_locked_margin'}")
-
-for g in (5.0, 10.0):
-    for n in (100, 2000):
-        for k in (0.0, 1.0, 2.0):
-            rule = results[("sweep", g, n, RULE, locked, k)]
-            ldro = results[("sweep", g, n, LDRO, locked, k)]
-            sf12 = results[("sf12", g, n, "fixed_sf12", 3.0, k)]
-            print(f"LOCKED gain={g:g} n={n} channel={k:g} rule={rule[0]:.3f}+-{rule[1]:.3f} "
-                  f"ldro={ldro[0]:.3f}+-{ldro[1]:.3f} sf12={sf12[0]:.3f}+-{sf12[1]:.3f} "
-                  f"ldro_beats_rule={beats(ldro, rule)} rule_beats_sf12={beats(rule, sf12)}")
+for rx, scint in SCENARIOS:
+    m = locked[(rx, scint)]
+    label = "PRIMARY" if (rx, scint) == (1, 7.69) else "OTHER"
+    wins = []
+    for g in (5.0, 10.0):
+        for n in (100, 2000, 5000):
+            key = ("main", rx, scint, g, n, RULE, m)
+            if key in results:
+                a = results[key]
+                b = R(rx, scint, g, n, SF12, 3.0)
+                win = beats(a, b)
+                wins.append(win)
+                print(f"M3 {label} rx={rx} scint={scint:g} margin={m:g} gain={g:g} n={n} "
+                      f"rule={a[0]:.3f}+-{a[1]:.3f} sf12={b[0]:.3f}+-{b[1]:.3f} "
+                      f"ratio={a[0] / b[0] if b[0] else float('nan'):.2f} win={win}")
+    print(f"M3 {label} rx={rx} scint={scint:g} wins={sum(wins)}/{len(wins)} holds={all(wins) if wins else 'not_run'}")
+    m4 = []
+    for g in (5.0, 10.0):
+        for n in (100, 2000):
+            key = ("main", rx, scint, g, n, LINK, m)
+            if key in results:
+                a = R(rx, scint, g, n, RULE, m)
+                b = results[key]
+                win = beats(a, b)
+                if g == 5.0:
+                    m4.append(win)
+                print(f"M4 {label} rx={rx} scint={scint:g} margin={m:g} gain={g:g} n={n} "
+                      f"rule={a[0]:.3f}+-{a[1]:.3f} link={b[0]:.3f}+-{b[1]:.3f} win={win}")
+    print(f"M4 {label} rx={rx} scint={scint:g} holds={all(m4) if m4 else 'not_run_at_locked_margin'}")

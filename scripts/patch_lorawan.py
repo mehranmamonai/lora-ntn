@@ -100,4 +100,13 @@ if "s_uplinkOnlyToGateways" not in text:
     text = (text[:first_include] + '#include "end-device-lora-phy.h"\n#include "gateway-lora-phy.h"\n'
             + text[first_include:])
     ch_c.write_text(text)
+# Writable gateway sensitivity, so scenarios can use documented receiver values.
+gw_h = model / "gateway-lora-phy.h"
+gw_c = model / "gateway-lora-phy.cc"
+text = gw_h.read_text()
+if "static const double SENSITIVITY[6]" in text:
+    gw_h.write_text(text.replace("static const double SENSITIVITY[6]", "static double SENSITIVITY[6]"))
+text = gw_c.read_text()
+if "const double GatewayLoraPhy::SENSITIVITY[6]" in text:
+    gw_c.write_text(text.replace("const double GatewayLoraPhy::SENSITIVITY[6]", "double GatewayLoraPhy::SENSITIVITY[6]"))
 print("lorawan patches applied")

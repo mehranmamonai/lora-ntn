@@ -24,7 +24,8 @@ namespace
 constexpr double kFcHz = 868e6;
 constexpr double kBandwidthHz = 125e3;
 constexpr double kTxPowerDbm = 14;
-constexpr double kIonosphericDb = 7.69; // 6.22 / f^1.5, TR 38.811 6.6.6.1-4, as in ns-3-ntn
+// TR 38.811 Eq. 6.6-13 with Pfluc of about 1.1 dB for latitude up to 20 deg; 0 dB for 20-60 deg (p. 56).
+double g_ionosphericDb = 7.69;
 
 enum Policy
 {
@@ -123,7 +124,7 @@ class LeoLossModel : public PropagationLossModel
             return -300;
         }
         const double shadow = ShadowSigmaDb(e) * m_normal->GetValue();
-        const double base = txPowerDbm + m_gainDb - FsplDb(a->GetDistanceFrom(b)) - kIonosphericDb;
+        const double base = txPowerDbm + m_gainDb - FsplDb(a->GetDistanceFrom(b)) - g_ionosphericDb;
         if (m_mode == 0)
         {
             return base - shadow;
@@ -255,7 +256,7 @@ bool
 LinkOk(const Vector& sat, const Vector& device, int sf, double marginDb)
 {
     const double rx =
-        kTxPowerDbm + g_gainDb - FsplDb(CalculateDistance(sat, device)) - kIonosphericDb;
+        kTxPowerDbm + g_gainDb - FsplDb(CalculateDistance(sat, device)) - g_ionosphericDb;
     return rx - marginDb >= GatewayLoraPhy::SENSITIVITY[sf - 7];
 }
 
@@ -505,6 +506,7 @@ main(int argc, char* argv[])
     double capRadiusKm = 1000;
     double crossTrackKm = 0;
     int channelMode = 0;
+    int rxSet = 0; // 0 ns-3 module, 1 Sant'Ana et al. Table I, 2 SX1301 datasheet Table 12
 
     CommandLine cmd(__FILE__);
     cmd.AddValue("policy",
@@ -519,10 +521,18 @@ main(int argc, char* argv[])
     cmd.AddValue("crossTrackKm", "Largest random cross-track offset per pass (km)", crossTrackKm);
     cmd.AddValue("channelMode", "0 parent, 1 TR 38.811 rural, 2 with K=4 dB", channelMode);
     cmd.AddValue("minElevationDeg", "Minimum elevation (deg)", g_minElevationDeg);
+    cmd.AddValue("rxSet", "Gateway sensitivity set", rxSet);
+    cmd.AddValue("scintDb", "Ionospheric scintillation loss (dB)", g_ionosphericDb);
     cmd.AddValue("randomPhase", "Random transmit start within each pass", g_randomPhase);
     cmd.AddValue("windowPhase", "Random transmit start inside the predicted window", g_windowPhase);
     cmd.Parse(argc, argv);
     g_policy = static_cast<Policy>(policy);
+    if (rxSet != 0)
+    {
+        static const double sets[2][6] = {{-123, -126, -129, -132, -134.5, -137},
+                                          {-126.5, -129, -131.5, -134, -136.5, -139.5}};
+        std::copy(sets[rxSet - 1], sets[rxSet - 1] + 6, GatewayLoraPhy::SENSITIVITY);
+    }
 
     ClassAEndDeviceLorawanMac::s_ldroMinSf = (g_policy == ELEVATION_AWARE_LDRO10) ? 10 : 11;
     LoraChannel::s_uplinkOnlyToGateways = true;
@@ -665,6 +675,7 @@ main(int argc, char* argv[])
               << " randomPhase=" << g_randomPhase << " windowPhase=" << g_windowPhase
               << " crossTrackKm=" << crossTrackKm << " marginDb=" << g_marginDb
               << " channelMode=" << channelMode << " minElevationDeg=" << g_minElevationDeg
+              << " rxSet=" << rxSet << " scintDb=" << g_ionosphericDb
               << " capRadiusKm=" << capRadiusKm
               << " passes=" << g_passes
               << " orbitS=" << g_orbitPeriodS << " visible=" << s.visible
