@@ -156,11 +156,14 @@ DynamicLimitHz(double bandwidthHz, int sf, bool ldro)
 }
 
 // 0: Eqs. (10)-(11) for every SF. 1: measured limits for SF12 at 125 kHz, Eqs. (10)-(11) otherwise.
+// 2: as 1, with the SF12 rate limit read as 0.33 ppm/s. 3: as 1, with no dynamic limit for SF10
+// without LDRO. 4: 2 and 3 together. Modes 2-4 bound unmeasured assumptions; they are not measurements.
 inline int g_dopplerLimits = 0;
 // Zadorozhny et al., IEEE Access 2022: Table 2, PDF p. 8 (shift, SX1278 datasheet) and PDF p. 16
 // (rate, 0.33 ppm/s from Doroshkin et al., IEEE Access 2019, Table 2, measured at 434 MHz).
 constexpr double kSf12MaxShiftHz = 21835.0;
 constexpr double kSf12MaxRateHzPerS = 144.0;
+constexpr double kSf12MaxRatePpmPerS = 0.33;
 
 // Eqs. (12)-(14): true if the packet survives Doppler.
 inline bool
@@ -175,10 +178,15 @@ PacketSurvives(const Orbit& orbit,
 {
     const double fStart = orbit.DopplerHz(tStartS, device, fcHz);
     const double fEnd = orbit.DopplerHz(tStartS + toaS, device, fcHz);
-    if (g_dopplerLimits == 1 && sf == 12 && bandwidthHz == 125e3)
+    if (g_dopplerLimits >= 1 && sf == 12 && bandwidthHz == 125e3)
     {
-        return std::abs(fStart) < kSf12MaxShiftHz &&
-               std::abs(fStart - fEnd) / toaS < kSf12MaxRateHzPerS;
+        const bool ppm = g_dopplerLimits == 2 || g_dopplerLimits == 4;
+        const double maxRate = ppm ? kSf12MaxRatePpmPerS * 1e-6 * fcHz : kSf12MaxRateHzPerS;
+        return std::abs(fStart) < kSf12MaxShiftHz && std::abs(fStart - fEnd) / toaS < maxRate;
+    }
+    if ((g_dopplerLimits == 3 || g_dopplerLimits == 4) && sf == 10 && !ldro)
+    {
+        return std::abs(fStart) < StaticLimitHz(bandwidthHz);
     }
     return std::abs(fStart) < StaticLimitHz(bandwidthHz) &&
            std::abs(fStart - fEnd) < DynamicLimitHz(bandwidthHz, sf, ldro);
