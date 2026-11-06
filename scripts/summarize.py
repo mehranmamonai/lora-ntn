@@ -1,25 +1,27 @@
-"""Test the sensitivity to unmeasured Doppler limits against the criteria fixed before the experiment."""
+"""Test the upper bound on load control against the criteria fixed before the experiment."""
 import statistics as st
 import sys
 from collections import defaultdict
 
 T_95_DF4 = 2.776
 TX_POWER_W = 0.1485  # SX1262 datasheet Table 3-6, p. 17: 45 mA at +14 dBm, 3.3 V. Transmit only.
-MARGINS = [-4.0, -3.0, -2.0, -1.0, 0.0]
+PS = [1.0, 0.5, 0.25, 0.125, 0.0625]
 RULE = "elevation_aware"
 LINK = "link_only"
-SF12 = "fixed_sf12"
-NS = (100, 2000, 5000)
-MODE_GAINS = {1: (5.0, 10.0), 2: (5.0, 10.0), 3: (10.0,)}
-MODE_NAMES = {1: "sf12_144HzPerS", 2: "sf12_0.33ppmPerS", 3: "sf12_144HzPerS_sf10_free"}
-# Parent experiment 85386008, primary scenario, seeds 21-25: (policy, margin, gain, n) -> delivered.
+GAINS = (5.0, 10.0)
+NS = (2000, 5000)
+SCINTS = (7.69, 0.0)
+READINGS = {1: "R1", 5: "R2", 2: "R3", 3: "R4"}
+# Experiment 85386008, set 1, seeds 21-25: (policy, scint, gain, n) -> delivered at its locked margin.
 PARENT = {
-    (RULE, -2.0, 5.0, 100): 0.102, (RULE, -2.0, 5.0, 2000): 0.059, (RULE, -2.0, 5.0, 5000): 0.029,
-    (RULE, -2.0, 10.0, 100): 0.605, (RULE, -2.0, 10.0, 2000): 0.181, (RULE, -2.0, 10.0, 5000): 0.063,
-    (LINK, -2.0, 5.0, 100): 0.075, (LINK, -2.0, 5.0, 2000): 0.041, (LINK, -2.0, 5.0, 5000): 0.022,
-    (LINK, -2.0, 10.0, 100): 0.380, (LINK, -2.0, 10.0, 2000): 0.176, (LINK, -2.0, 10.0, 5000): 0.075,
-    (SF12, 3.0, 5.0, 100): 0.040, (SF12, 3.0, 5.0, 2000): 0.007, (SF12, 3.0, 5.0, 5000): 0.001,
-    (SF12, 3.0, 10.0, 100): 0.327, (SF12, 3.0, 10.0, 2000): 0.039, (SF12, 3.0, 10.0, 5000): 0.009,
+    (RULE, 7.69, 5.0, 2000): 0.059, (RULE, 7.69, 5.0, 5000): 0.029,
+    (RULE, 7.69, 10.0, 2000): 0.181, (RULE, 7.69, 10.0, 5000): 0.063,
+    (LINK, 7.69, 5.0, 2000): 0.041, (LINK, 7.69, 5.0, 5000): 0.022,
+    (LINK, 7.69, 10.0, 2000): 0.176, (LINK, 7.69, 10.0, 5000): 0.075,
+    (RULE, 0.0, 5.0, 2000): 0.338, (RULE, 0.0, 5.0, 5000): 0.137,
+    (RULE, 0.0, 10.0, 2000): 1.175, (RULE, 0.0, 10.0, 5000): 0.619,
+    (LINK, 0.0, 5.0, 2000): 0.348, (LINK, 0.0, 5.0, 5000): 0.129,
+    (LINK, 0.0, 10.0, 2000): 1.111, (LINK, 0.0, 10.0, 5000): 0.579,
 }
 
 groups = defaultdict(list)
@@ -27,7 +29,8 @@ with open(sys.argv[1]) as f:
     for line in f:
         if line.startswith("RUN "):
             d = dict(kv.split("=") for kv in line.split()[1:])
-            key = (d["part"], int(d["dopplerLimits"]), float(d["gain"]), int(d["n"]), d["policy"], float(d["marginDb"]))
+            key = (d["part"], float(d["scintDb"]), int(d["dopplerLimits"]), float(d["gain"]), int(d["n"]),
+                   d["policy"], float(d["txProb"]))
             groups[key].append({k: (v if k in ("policy", "part") else float(v)) for k, v in d.items()})
 
 
@@ -40,74 +43,66 @@ def beats(a, b):
 
 
 results = {}
+extras = {}
 for key, runs in sorted(groups.items()):
-    part, mode, gain, n, policy, margin = key
+    part, scint, mode, gain, n, policy, p = key
     denom = [r["n"] * r["passes"] for r in runs]
-    mean, half = ci([r["received"] / x for r, x in zip(runs, denom)])
-    results[key] = (mean, half)
+    results[key] = ci([r["received"] / x for r, x in zip(runs, denom)])
     sent = sum(r["sent"] for r in runs)
     received = sum(r["received"] for r in runs)
     airtime = sum(r["airtimeS"] for r in runs)
+    jain = st.mean(r["jain"] for r in runs)
+    served = st.mean(r["served"] / r["n"] for r in runs)
+    air_per = airtime / received if received else float("nan")
+    extras[key] = (jain, served, air_per)
     print(
-        f"RESULT part={part} mode={mode} gain={gain:g} n={n} policy={policy} margin={margin:g} runs={len(runs)} "
-        f"delivered={mean:.3f}+-{half:.3f} sent_per_dev_pass={sent / sum(denom):.3f} "
-        f"pdr={received / sent if sent else 0:.3f} "
-        f"airtime_per_delivered_s={airtime / received if received else float('nan'):.2f} "
-        f"tx_mJ_per_delivered={1000 * TX_POWER_W * airtime / received if received else float('nan'):.0f} "
+        f"RESULT part={part} scint={scint:g} reading={READINGS[mode]} gain={gain:g} n={n} policy={policy} p={p:g} "
+        f"runs={len(runs)} delivered={results[key][0]:.3f}+-{results[key][1]:.3f} "
+        f"sent_per_dev_pass={sent / sum(denom):.3f} pdr={received / sent if sent else 0:.3f} "
+        f"airtime_per_delivered_s={air_per:.2f} tx_mJ_per_delivered={1000 * TX_POWER_W * air_per:.0f} "
+        f"jain={jain:.3f} served={served:.3f} "
         f"lost_doppler={sum(r['rejDoppler'] for r in runs) / sent if sent else 0:.3f} "
         f"lost_sens={sum(r['underSens'] for r in runs) / sent if sent else 0:.3f} "
         f"lost_interf={sum(r['interfered'] for r in runs) / sent if sent else 0:.3f} "
-        f"lost_demod={sum(r['noDemod'] for r in runs) / sent if sent else 0:.3f} "
-        f"sf12_share={sum(r['sentSf12'] for r in runs) / sent if sent else 0:.3f} "
-        f"sf10_share={sum(r['sentSf10'] for r in runs) / sent if sent else 0:.3f}"
+        f"lost_demod={sum(r['noDemod'] for r in runs) / sent if sent else 0:.3f}"
     )
 
 
-def R(part, mode, g, n, p, m):
-    return results[(part, mode, g, n, p, m)]
+def R(part, scint, mode, g, n, policy, p):
+    return results[(part, scint, mode, g, n, policy, p)]
 
 
-worst = max(abs(R("confirm", 1, k[2], k[3], k[0], k[1])[0] - v) for k, v in PARENT.items())
-print(f"H1 parent_max_abs_diff={worst:.4f} holds={worst <= 0.0015}")
+worst = max(abs(R("confirm", k[1], 1, k[2], k[3], k[0], 1.0)[0] - v) for k, v in PARENT.items())
+print(f"J1 parent_max_abs_diff={worst:.4f} holds={worst <= 0.0015}")
 
 
-def lock(mode, policy):
-    per_margin = defaultdict(list)
-    for g in MODE_GAINS[mode]:
-        for n in (100, 2000):
-            values = {m: R("search", mode, g, n, policy, m)[0] for m in MARGINS}
-            best = max(values.values())
-            for m, v in values.items():
-                per_margin[m].append(v / best if best else 0)
-    scores = {m: st.mean(v) for m, v in per_margin.items()}
-    chosen = max(scores, key=scores.get)
-    print(f"H2 mode={mode} ({MODE_NAMES[mode]}) policy={policy} " + " ".join(f"m{m:g}={v:.3f}" for m, v in scores.items())
-          + f" locked={chosen:g} at_sweep_edge={chosen == MARGINS[0]}")
-    return chosen
+def analyse(policy, modes, tag):
+    wins = 0
+    cells = 0
+    chosen_count = defaultdict(int)
+    for scint in SCINTS:
+        for mode in modes:
+            for g in GAINS:
+                for n in NS:
+                    cells += 1
+                    search = {p: R("search", scint, mode, g, n, policy, p)[0] for p in PS}
+                    chosen = max(PS, key=lambda p: search[p])
+                    chosen_count[chosen] += 1
+                    a = R("confirm", scint, mode, g, n, policy, chosen)
+                    b = R("confirm", scint, mode, g, n, policy, 1.0)
+                    win = chosen != 1.0 and beats(a, b)
+                    wins += win
+                    ja, sa, aa = extras[("confirm", scint, mode, g, n, policy, chosen)]
+                    jb, sb, ab = extras[("confirm", scint, mode, g, n, policy, 1.0)]
+                    ratio = a[0] / b[0] if b[0] else float("nan")
+                    print(f"{tag} scint={scint:g} {READINGS[mode]} gain={g:g} n={n} chosen_p={chosen:g} "
+                          f"best={a[0]:.3f}+-{a[1]:.3f} p1={b[0]:.3f}+-{b[1]:.3f} ratio={ratio:.2f} win={win} "
+                          f"jain={ja:.3f}/{jb:.3f} served={sa:.3f}/{sb:.3f} air_per_delivered={aa:.2f}/{ab:.2f}")
+    print(f"{tag} policy={policy} wins={wins}/{cells} chosen_p_counts=" +
+          ",".join(f"{p:g}:{chosen_count[p]}" for p in PS))
+    return wins, cells
 
 
-def compare(mode, label, a, b, g, n):
-    win = beats(a, b)
-    ratio = a[0] / b[0] if b[0] else float("nan")
-    print(f"M{mode} gain={g:g} n={n} rule={a[0]:.3f}+-{a[1]:.3f} {label}={b[0]:.3f}+-{b[1]:.3f} ratio={ratio:.2f} win={win}")
-    return win
-
-
-for mode, tag, test_gain in ((1, "H3", 5.0), (2, "H4", 5.0), (3, "H5", 10.0)):
-    rule_m, link_m = lock(mode, RULE), lock(mode, LINK)
-    tested = []
-    for g in MODE_GAINS[mode]:
-        for n in NS:
-            win = compare(mode, "link", R("confirm", mode, g, n, RULE, rule_m), R("confirm", mode, g, n, LINK, link_m), g, n)
-            if g == test_gain and n in (100, 2000):
-                tested.append(win)
-            compare(mode, "sf12", R("confirm", mode, g, n, RULE, rule_m), R("confirm", mode, g, n, SF12, 3.0), g, n)
-    print(f"{tag} mode={mode} rule_margin={rule_m:g} link_margin={link_m:g} gain={test_gain:g} "
-          f"wins={sum(tested)}/{len(tested)} holds={all(tested)}")
-
-same = []
-for g in (5.0, 10.0):
-    a, b = R("check", 4, g, 100, RULE, -2.0), R("check", 4, g, 100, LINK, -2.0)
-    same.append(a == b)
-    print(f"H6 gain={g:g} rule={a[0]:.3f}+-{a[1]:.3f} link={b[0]:.3f}+-{b[1]:.3f} identical={a == b}")
-print(f"H6 holds={all(same)}")
+wins, cells = analyse(LINK, (1, 5, 2, 3), "J2")
+print(f"J2 gate wins={wins}/{cells} needed=16 holds={wins >= 16}")
+analyse(RULE, (1, 5), "J4")

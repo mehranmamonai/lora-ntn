@@ -205,6 +205,7 @@ struct Stats
     uint64_t sentLast5 = 0;
     uint64_t receivedLast5 = 0;
     double airtimeS = 0;
+    uint64_t thinned = 0;
     std::array<uint64_t, 13> sentBySf{};
     std::array<uint64_t, 13> receivedBySf{};
 };
@@ -214,6 +215,8 @@ double g_gainDb = 5;
 double g_marginDb = 3;
 double g_minElevationDeg = 10;
 double g_periodS = 60;
+double g_txProb = 1; // Per-attempt transmit probability
+std::vector<uint64_t> g_receivedByDevice;
 double g_orbitPeriodS = 0;
 double g_predErrorKm = 0; // Along-track error of the device's satellite prediction
 bool g_randomPhase = false; // Random start within the duty-cycle interval, once per pass
@@ -302,6 +305,19 @@ ChooseSf(const Device& d, const Vector& sat, const Vector& pos, double t)
     return 0;
 }
 
+// Draws only below 1, so p = 1 reproduces earlier experiments exactly.
+bool
+AdmittedByLoadControl()
+{
+    if (g_txProb >= 1)
+    {
+        return true;
+    }
+    const bool admitted = g_uniform->GetValue(0, 1) < g_txProb;
+    g_stats.thinned += !admitted;
+    return admitted;
+}
+
 // One transmission at a chosen moment inside the predicted window.
 void
 SendAt(int i)
@@ -315,7 +331,7 @@ SendAt(int i)
     const double tp = PredictedTime(t);
     const auto sp = g_orbit->Position(tp);
     const int sf = ChooseSf(d, Vector(sp.x, sp.y, sp.z), Vector(d.pos.x, d.pos.y, d.pos.z), tp);
-    if (sf != 0)
+    if (sf != 0 && AdmittedByLoadControl())
     {
         d.mac->SetDataRate(12 - sf);
         d.mac->Send(Create<Packet>(g_appBytes));
@@ -415,7 +431,7 @@ Tick(int i)
             {
                 ++g_stats.blocked;
             }
-            else
+            else if (AdmittedByLoadControl())
             {
                 d.mac->SetDataRate(12 - sf);
                 d.mac->Send(Create<Packet>(g_appBytes));
@@ -474,6 +490,7 @@ OnReceived(Ptr<const Packet> packet, uint32_t)
     {
         ++g_stats.received;
         ++g_stats.receivedBySf[it->second.sf];
+        ++g_receivedByDevice[it->second.device];
         g_stats.receivedLast5 += it->second.pass >= g_passes - 5;
     }
 }
@@ -525,7 +542,8 @@ main(int argc, char* argv[])
     cmd.AddValue("scintDb", "Ionospheric scintillation loss (dB)", g_ionosphericDb);
     cmd.AddValue("randomPhase", "Random transmit start within each pass", g_randomPhase);
     cmd.AddValue("windowPhase", "Random transmit start inside the predicted window", g_windowPhase);
-    cmd.AddValue("dopplerLimits", "0 Asad Ullah Eqs. 10-11, 1 measured SF12 limit", leo::g_dopplerLimits);
+    cmd.AddValue("dopplerLimits", "Doppler limit mode, see leo_doppler.h", leo::g_dopplerLimits);
+    cmd.AddValue("txProb", "Per-attempt transmit probability", g_txProb);
     cmd.Parse(argc, argv);
     g_policy = static_cast<Policy>(policy);
     if (rxSet != 0)
@@ -621,6 +639,7 @@ main(int argc, char* argv[])
     mac.SetAddressGenerator(addrGen);
     helper.Install(phy, mac, eds);
 
+    g_receivedByDevice.assign(nDevices, 0);
     for (int i = 0; i < nDevices; ++i)
     {
         auto device = eds.Get(i)->GetDevice(0)->GetObject<LoraNetDevice>();
@@ -671,13 +690,24 @@ main(int argc, char* argv[])
     Simulator::Destroy();
 
     const Stats& s = g_stats;
+    double sumReceived = 0;
+    double sumSquared = 0;
+    int served = 0;
+    for (const uint64_t r : g_receivedByDevice)
+    {
+        sumReceived += double(r);
+        sumSquared += double(r) * double(r);
+        served += r > 0;
+    }
+    const double jain = sumSquared > 0 ? sumReceived * sumReceived / (nDevices * sumSquared) : 0;
     std::cout << "RUN policy=" << kPolicyNames[policy] << " gain=" << g_gainDb << " n=" << nDevices
               << " seed=" << RngSeedManager::GetRun() << " errorKm=" << g_predErrorKm
               << " randomPhase=" << g_randomPhase << " windowPhase=" << g_windowPhase
               << " crossTrackKm=" << crossTrackKm << " marginDb=" << g_marginDb
               << " channelMode=" << channelMode << " minElevationDeg=" << g_minElevationDeg
               << " rxSet=" << rxSet << " scintDb=" << g_ionosphericDb
-              << " dopplerLimits=" << leo::g_dopplerLimits
+              << " dopplerLimits=" << leo::g_dopplerLimits << " txProb=" << g_txProb
+              << " thinned=" << s.thinned << " jain=" << jain << " served=" << served
               << " capRadiusKm=" << capRadiusKm
               << " passes=" << g_passes
               << " orbitS=" << g_orbitPeriodS << " visible=" << s.visible
