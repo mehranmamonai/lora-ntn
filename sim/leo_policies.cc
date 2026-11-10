@@ -544,7 +544,20 @@ main(int argc, char* argv[])
     cmd.AddValue("windowPhase", "Random transmit start inside the predicted window", g_windowPhase);
     cmd.AddValue("dopplerLimits", "Doppler limit mode, see leo_doppler.h", leo::g_dopplerLimits);
     cmd.AddValue("txProb", "Per-attempt transmit probability", g_txProb);
+    int collision = 1;
+    cmd.AddValue("collision", "1 Goursaud (ns-3 default), 2 Croce et al. 2018 Table II", collision);
     cmd.Parse(argc, argv);
+    if (collision == 2)
+    {
+        // Croce et al., IEEE Comms Letters 2018, Table II (PDF p. 4): SIR thresholds measured on an
+        // SX1272. Rows wanted SF7-12, columns interferer SF7-12, same orientation as ns-3 uses.
+        LoraInterferenceHelper::collisionSnirGoursaud = {{1, -8, -9, -9, -9, -9},
+                                                         {-11, 1, -11, -12, -13, -13},
+                                                         {-15, -13, 1, -13, -14, -15},
+                                                         {-19, -18, -17, 1, -17, -18},
+                                                         {-22, -22, -21, -20, 1, -20},
+                                                         {-25, -25, -25, -24, -23, 1}};
+    }
     g_policy = static_cast<Policy>(policy);
     if (rxSet != 0)
     {
@@ -707,6 +720,7 @@ main(int argc, char* argv[])
               << " channelMode=" << channelMode << " minElevationDeg=" << g_minElevationDeg
               << " rxSet=" << rxSet << " scintDb=" << g_ionosphericDb
               << " dopplerLimits=" << leo::g_dopplerLimits << " txProb=" << g_txProb
+              << " collision=" << collision
               << " thinned=" << s.thinned << " jain=" << jain << " served=" << served
               << " capRadiusKm=" << capRadiusKm
               << " passes=" << g_passes
