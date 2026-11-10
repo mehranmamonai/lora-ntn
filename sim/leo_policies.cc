@@ -545,9 +545,15 @@ main(int argc, char* argv[])
     cmd.AddValue("dopplerLimits", "Doppler limit mode, see leo_doppler.h", leo::g_dopplerLimits);
     cmd.AddValue("txProb", "Per-attempt transmit probability", g_txProb);
     int collision = 1;
-    cmd.AddValue("collision", "1 Goursaud (ns-3 default), 2 Croce et al. 2018 Table II", collision);
+    cmd.AddValue("collision", "1 Goursaud (ns-3 default), 2 Croce et al. 2018 Table II, 3 Croce plus receiver locking (Bor et al. 2016)", collision);
     cmd.Parse(argc, argv);
-    if (collision == 2)
+    if (collision == 3)
+    {
+        // C3: the C2 thresholds plus the receiver-locking rule of Bor et al. 2016 (PDF p. 5,
+        // Fig. 3 and Eq. 10), added to LoraInterferenceHelper by scripts/patch_lorawan.py.
+        LoraInterferenceHelper::s_lockRule = true;
+    }
+    if (collision == 2 || collision == 3)
     {
         // Croce et al., IEEE Comms Letters 2018, Table II (PDF p. 4): SIR thresholds measured on an
         // SX1272. Rows wanted SF7-12, columns interferer SF7-12, same orientation as ns-3 uses.
@@ -720,7 +726,7 @@ main(int argc, char* argv[])
               << " channelMode=" << channelMode << " minElevationDeg=" << g_minElevationDeg
               << " rxSet=" << rxSet << " scintDb=" << g_ionosphericDb
               << " dopplerLimits=" << leo::g_dopplerLimits << " txProb=" << g_txProb
-              << " collision=" << collision
+              << " collision=" << collision << " lockLost=" << LoraInterferenceHelper::s_lockLost
               << " thinned=" << s.thinned << " jain=" << jain << " served=" << served
               << " capRadiusKm=" << capRadiusKm
               << " passes=" << g_passes
