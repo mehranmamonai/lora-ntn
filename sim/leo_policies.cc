@@ -11,10 +11,18 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include <iostream>
+#include <set>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 using namespace ns3;
 using namespace lorawan;
@@ -230,6 +238,149 @@ std::unordered_map<uint32_t, int> g_nodeToDevice;
 std::unordered_map<uint64_t, PacketRecord> g_packets;
 std::array<double, 13> g_toa{};
 Stats g_stats;
+
+// Per-pass counters. Observed: what a satellite gateway sees in received packets. Truth: for
+// analysis only, never sent to the controller.
+struct PassRecord
+{
+    uint64_t received = 0;
+    std::array<uint64_t, 13> receivedBySf{};
+    std::set<int> devicesHeard;
+    double rssiSumDbm = 0;
+    double rssiMinDbm = 0;
+    uint64_t rssiCount = 0;
+    uint64_t sent = 0;
+    uint64_t rejectedDoppler = 0;
+    uint64_t underSensitivity = 0;
+    uint64_t interfered = 0;
+    uint64_t noDemodulator = 0;
+    double txProb = 1;
+    double marginDb = 0;
+};
+
+std::vector<PassRecord> g_pass;
+
+int
+PassAt(double t)
+{
+    return std::clamp(int(t / g_orbitPeriodS), 0, int(g_pass.size()) - 1);
+}
+
+// External controller, started only when --controller is given. One JSON line each way per pass.
+struct Controller
+{
+    pid_t pid = -1;
+    FILE* toChild = nullptr;
+    FILE* fromChild = nullptr;
+};
+
+Controller g_controller;
+
+void
+StartController(const std::string& command)
+{
+    int down[2];
+    int up[2];
+    if (pipe(down) != 0 || pipe(up) != 0)
+    {
+        NS_FATAL_ERROR("Could not create controller pipes");
+    }
+    const pid_t pid = fork();
+    if (pid < 0)
+    {
+        NS_FATAL_ERROR("Could not start the controller");
+    }
+    if (pid == 0)
+    {
+        dup2(down[0], STDIN_FILENO);
+        dup2(up[1], STDOUT_FILENO);
+        close(down[1]);
+        close(up[0]);
+        execl("/bin/sh", "sh", "-c", command.c_str(), static_cast<char*>(nullptr));
+        _exit(127);
+    }
+    close(down[0]);
+    close(up[1]);
+    g_controller.pid = pid;
+    g_controller.toChild = fdopen(down[1], "w");
+    g_controller.fromChild = fdopen(up[0], "r");
+}
+
+void
+StopController()
+{
+    if (g_controller.pid < 0)
+    {
+        return;
+    }
+    fclose(g_controller.toChild);
+    fclose(g_controller.fromChild);
+    int status = 0;
+    waitpid(g_controller.pid, &status, 0);
+    g_controller.pid = -1;
+}
+
+// Reads a number following "key": in a one-line JSON reply.
+double
+JsonNumber(const std::string& line, const std::string& key)
+{
+    const auto at = line.find("\"" + key + "\"");
+    if (at == std::string::npos)
+    {
+        NS_FATAL_ERROR("Controller reply lacks " << key << ": " << line);
+    }
+    const auto colon = line.find(':', at);
+    return std::strtod(line.c_str() + colon + 1, nullptr);
+}
+
+// The only message the controller receives. Holds gateway-observable fields only.
+std::string
+ObservationJson(int pass)
+{
+    const PassRecord& r = g_pass[pass];
+    std::ostringstream o;
+    o.precision(10);
+    o << "{\"pass\":" << pass << ",\"received\":" << r.received << ",\"received_by_sf\":{";
+    for (int sf = 7; sf <= 12; ++sf)
+    {
+        o << "\"" << sf << "\":" << r.receivedBySf[sf] << (sf < 12 ? "," : "");
+    }
+    o << "},\"devices_heard\":" << r.devicesHeard.size() << ",\"rssi_mean_dbm\":";
+    if (r.rssiCount > 0)
+    {
+        o << r.rssiSumDbm / double(r.rssiCount) << ",\"rssi_min_dbm\":" << r.rssiMinDbm;
+    }
+    else
+    {
+        o << "null,\"rssi_min_dbm\":null";
+    }
+    o << "}";
+    return o.str();
+}
+
+// At each pass boundary: report the finished pass, apply the reply to the next pass.
+void
+ControlStep(int finishedPass)
+{
+    const std::string observation = ObservationJson(finishedPass);
+    std::cout << "OBS " << observation << std::endl;
+    fprintf(g_controller.toChild, "%s\n", observation.c_str());
+    fflush(g_controller.toChild);
+    char buffer[4096];
+    if (!fgets(buffer, sizeof(buffer), g_controller.fromChild))
+    {
+        NS_FATAL_ERROR("Controller closed its output at pass " << finishedPass);
+    }
+    const std::string reply(buffer);
+    g_txProb = JsonNumber(reply, "p");
+    g_marginDb = JsonNumber(reply, "margin_db");
+    if (g_txProb < 0 || g_txProb > 1)
+    {
+        NS_FATAL_ERROR("Controller returned p outside [0, 1]: " << reply);
+    }
+    g_pass[finishedPass + 1].txProb = g_txProb;
+    g_pass[finishedPass + 1].marginDb = g_marginDb;
+}
 
 bool
 Ldro(int sf)
@@ -458,6 +609,7 @@ OnStartSending(Ptr<const Packet> packet, uint32_t nodeId)
     ++g_stats.sentBySf[sf];
     g_stats.airtimeS += r.toa;
     g_stats.sentLast5 += r.pass >= g_passes - 5;
+    ++g_pass[PassAt(t)].sent;
 }
 
 bool
@@ -479,6 +631,7 @@ DopplerFilter(Ptr<const Packet> packet, Time duration)
                                         start,
                                         duration.GetSeconds());
     g_stats.rejectedDoppler += !ok;
+    g_pass[PassAt(Simulator::Now().GetSeconds())].rejectedDoppler += !ok;
     return ok;
 }
 
@@ -492,25 +645,49 @@ OnReceived(Ptr<const Packet> packet, uint32_t)
         ++g_stats.receivedBySf[it->second.sf];
         ++g_receivedByDevice[it->second.device];
         g_stats.receivedLast5 += it->second.pass >= g_passes - 5;
+        PassRecord& p = g_pass[PassAt(Simulator::Now().GetSeconds())];
+        ++p.received;
+        ++p.receivedBySf[it->second.sf];
+        p.devicesHeard.insert(it->second.device);
     }
+}
+
+// The gateway PHY attaches the receive power only after its ReceivedPacket trace fires, just before
+// handing the packet to the MAC, so the power is read from the MAC trace instead.
+void
+OnGatewayMacReceived(Ptr<const Packet> packet)
+{
+    LoraTag tag;
+    if (!packet->PeekPacketTag(tag))
+    {
+        return;
+    }
+    PassRecord& p = g_pass[PassAt(Simulator::Now().GetSeconds())];
+    const double rssi = tag.GetReceivePower();
+    p.rssiMinDbm = p.rssiCount == 0 ? rssi : std::min(p.rssiMinDbm, rssi);
+    p.rssiSumDbm += rssi;
+    ++p.rssiCount;
 }
 
 void
 OnUnderSensitivity(Ptr<const Packet>, uint32_t)
 {
     ++g_stats.underSensitivity;
+    ++g_pass[PassAt(Simulator::Now().GetSeconds())].underSensitivity;
 }
 
 void
 OnInterfered(Ptr<const Packet>, uint32_t)
 {
     ++g_stats.interfered;
+    ++g_pass[PassAt(Simulator::Now().GetSeconds())].interfered;
 }
 
 void
 OnNoDemodulator(Ptr<const Packet>, uint32_t)
 {
     ++g_stats.noDemodulator;
+    ++g_pass[PassAt(Simulator::Now().GetSeconds())].noDemodulator;
 }
 } // namespace
 
@@ -546,7 +723,13 @@ main(int argc, char* argv[])
     cmd.AddValue("txProb", "Per-attempt transmit probability", g_txProb);
     int collision = 1;
     cmd.AddValue("collision", "1 Goursaud (ns-3 default), 2 Croce et al. 2018 Table II", collision);
+    std::string controller;
+    cmd.AddValue("controller",
+                 "External per-pass controller command, words separated by commas (ns-3 cuts option "
+                 "values at spaces); empty for none",
+                 controller);
     cmd.Parse(argc, argv);
+    std::replace(controller.begin(), controller.end(), ',', ' ');
     if (collision == 2)
     {
         // Croce et al., IEEE Comms Letters 2018, Table II (PDF p. 4): SIR thresholds measured on an
@@ -672,6 +855,8 @@ main(int argc, char* argv[])
     gwPhy->TraceConnectWithoutContext("LostPacketBecauseInterference", MakeCallback(&OnInterfered));
     gwPhy->TraceConnectWithoutContext("LostPacketBecauseNoMoreReceivers",
                                       MakeCallback(&OnNoDemodulator));
+    gwDevice->GetMac()->TraceConnectWithoutContext("ReceivedPacket",
+                                                   MakeCallback(&OnGatewayMacReceived));
 
     Ptr<Node> server = CreateObject<Node>();
     PointToPointHelper p2p;
@@ -692,8 +877,35 @@ main(int argc, char* argv[])
     ForwarderHelper fwd;
     fwd.Install(gateways);
 
+    g_pass.assign(g_passes, PassRecord{});
+    g_pass[0].txProb = g_txProb;
+    g_pass[0].marginDb = g_marginDb;
+    if (!controller.empty())
+    {
+        StartController(controller);
+        for (int k = 1; k < g_passes; ++k)
+        {
+            Simulator::Schedule(Seconds(k * g_orbitPeriodS), &ControlStep, k - 1);
+        }
+    }
+
     Simulator::Stop(Seconds(g_orbitPeriodS * g_passes));
     Simulator::Run();
+    if (!controller.empty())
+    {
+        // The last pass is reported too, so the controller sees every pass; its reply is unused.
+        std::cout << "OBS " << ObservationJson(g_passes - 1) << std::endl;
+        StopController();
+        for (int k = 0; k < g_passes; ++k)
+        {
+            const PassRecord& r = g_pass[k];
+            std::cout << "PASS pass=" << k << " p=" << r.txProb << " marginDb=" << r.marginDb
+                      << " sent=" << r.sent << " received=" << r.received
+                      << " rejDoppler=" << r.rejectedDoppler << " underSens=" << r.underSensitivity
+                      << " interfered=" << r.interfered << " noDemod=" << r.noDemodulator
+                      << std::endl;
+        }
+    }
 
     int changed = 0;
     for (const auto& d : g_devices)
@@ -720,7 +932,7 @@ main(int argc, char* argv[])
               << " channelMode=" << channelMode << " minElevationDeg=" << g_minElevationDeg
               << " rxSet=" << rxSet << " scintDb=" << g_ionosphericDb
               << " dopplerLimits=" << leo::g_dopplerLimits << " txProb=" << g_txProb
-              << " collision=" << collision
+              << " collision=" << collision << " controller=" << (controller.empty() ? 0 : 1)
               << " thinned=" << s.thinned << " jain=" << jain << " served=" << served
               << " capRadiusKm=" << capRadiusKm
               << " passes=" << g_passes

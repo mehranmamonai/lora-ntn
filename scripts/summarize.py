@@ -1,141 +1,103 @@
-"""Test the efficiency gate under the measured collision model against the criteria fixed before the run.
-Usage: summarize.py new_runs.txt parent_runs.txt [parent_runs.txt ...]. Parent runs are collision model C1."""
-import math
+"""Test the Stage 3 control loop against the criteria fixed before the run.
+Usage: summarize.py runs.txt cases_dir"""
+import json
+import os
 import statistics as st
 import sys
 from collections import defaultdict
 
-T_95_DF4 = 2.776
-PS_LOW = [0.5, 0.25, 0.125, 0.0625]
-GAINS = (5.0, 10.0)
-SCINTS = (7.69, 0.0)
-LOCK = {7.69: -2.0, 0.0: 0.0}
-MODES = (1, 5, 2, 3)
-READINGS = {1: "R1", 5: "R2", 2: "R3", 3: "R4"}
-NS = (100, 500, 2000, 5000)
+OBSERVABLE = {"pass", "received", "received_by_sf", "devices_heard", "rssi_mean_dbm", "rssi_min_dbm"}
+COMPARED = ["sent", "received", "airtimeS", "visible", "skipped", "blocked", "usable", "rejDoppler",
+            "underSens", "interfered", "noDemod", "thinned", "served", "jain"] + \
+           [f"{k}Sf{sf}" for sf in range(7, 13) for k in ("sent", "recv")]
 
 
-def load(path):
-    rows = []
-    with open(path) as f:
-        for line in f:
-            if line.startswith("RUN "):
-                d = dict(kv.split("=") for kv in line.split()[1:])
-                if d["policy"] == "link_only":
-                    d.setdefault("collision", "1")
-                    rows.append(d)
-    return rows
+def fields(line):
+    return dict(kv.split("=", 1) for kv in line.split()[1:])
 
 
-def case(d):
-    return (float(d["gain"]), int(d["n"]), int(d["seed"]), float(d["marginDb"]), float(d["scintDb"]),
-            int(d["dopplerLimits"]), float(d["txProb"]))
+runs = [fields(line) for line in open(sys.argv[1]) if line.startswith("RUN ")]
+cases_dir = sys.argv[2]
 
 
-new_rows = load(sys.argv[1])
-parent_rows = [d for path in sys.argv[2:] for d in load(path)]
-
-# L1: C1 cases repeat the parents exactly.
-parent_index = {case(d): d for d in parent_rows if d["part"] != "regress"}
-regress = [d for d in new_rows if d["part"] == "regress"]
-found = [parent_index.get(case(d)) for d in regress]
-same = all(b is not None and a["collision"] == "1" and a["received"] == b["received"] and a["sent"] == b["sent"]
-           and a["airtimeS"] == b["airtimeS"] for a, b in zip(regress, found))
-print(f"L1 cases={len(regress)} found={sum(b is not None for b in found)} exact_match={same}")
+def log_lines(case_id, prefix):
+    with open(os.path.join(cases_dir, case_id + ".log")) as f:
+        return [line[len(prefix):].strip() for line in f if line.startswith(prefix)]
 
 
-def ci(values):
-    return st.mean(values), T_95_DF4 * st.stdev(values) / len(values) ** 0.5
+# S1: the constant controller reproduces runs without the loop exactly.
+pairs = defaultdict(dict)
+for r in runs:
+    if r["part"] == "s1":
+        pairs[r["case"].rsplit("-", 1)[0]][r["kind"]] = r
+mismatches = []
+for key, pair in sorted(pairs.items()):
+    if set(pair) != {"none", "const"}:
+        mismatches.append((key, "missing run"))
+        continue
+    diff = [f for f in COMPARED if pair["none"][f] != pair["const"][f]]
+    if diff:
+        mismatches.append((key, diff))
+for key, why in mismatches[:10]:
+    print(f"S1 mismatch {key} {why}")
+s1 = len(pairs) == 256 and not mismatches
+print(f"S1 cases={len(pairs)} expected=256 mismatches={len(mismatches)} holds={s1}")
+
+# S2: observations sum to the run totals and hold only observable fields.
+s2_bad = []
+rssi_low = []
+for r in runs:
+    if r["kind"] == "none":
+        continue
+    obs = [json.loads(x) for x in log_lines(r["case"], "OBS ")]
+    if len(obs) != int(r["passes"]):
+        s2_bad.append((r["case"], f"{len(obs)} observations for {r['passes']} passes"))
+        continue
+    if any(set(o) != OBSERVABLE for o in obs):
+        s2_bad.append((r["case"], "fields"))
+    if sum(o["received"] for o in obs) != int(r["received"]):
+        s2_bad.append((r["case"], "received total"))
+    for sf in range(7, 13):
+        if sum(o["received_by_sf"][str(sf)] for o in obs) != int(r[f"recvSf{sf}"]):
+            s2_bad.append((r["case"], f"SF{sf} total"))
+    if sum(o["devices_heard"] > o["received"] for o in obs):
+        s2_bad.append((r["case"], "devices above packets"))
+    rssi_low += [o["rssi_min_dbm"] for o in obs if o["rssi_min_dbm"] is not None]
+for case, why in s2_bad[:10]:
+    print(f"S2 problem {case} {why}")
+s2 = not s2_bad
+checked = sum(r["kind"] != "none" for r in runs)
+print(f"S2 runs_checked={checked} problems={len(s2_bad)} holds={s2}")
+if rssi_low:
+    print(f"S2 report: lowest received signal {min(rssi_low):.1f} dBm, median of per-pass minima "
+          f"{st.median(rssi_low):.1f} dBm")
 
 
-def build(rows):
-    groups = defaultdict(list)
-    for d in rows:
-        if d["part"] == "regress":
-            continue
-        key = (d["part"], float(d["scintDb"]), int(d["dopplerLimits"]), float(d["gain"]), int(d["n"]),
-               float(d["marginDb"]), float(d["txProb"]))
-        groups[key].append(d)
-    out = {}
-    for key, runs in groups.items():
-        delivered = ci([float(r["received"]) / (float(r["n"]) * float(r["passes"])) for r in runs])
-        per_seed = [float(r["airtimeS"]) / float(r["received"]) if float(r["received"]) else math.inf for r in runs]
-        airtime = ci(per_seed) if all(math.isfinite(x) for x in per_seed) else (math.inf, 0.0)
-        sent = sum(float(r["sent"]) for r in runs)
-        interf = sum(float(r["interfered"]) for r in runs) / sent if sent else 0.0
-        out[key] = (delivered, airtime, interf, len(runs))
-    return out
+# S3: scripted controllers act from pass 10 and not before.
+def per_pass(kind):
+    run = next(r for r in runs if r["part"] == "s3" and r["kind"] == kind)
+    return {int(f["pass"]): f for f in map(lambda x: dict(kv.split("=") for kv in x.split()),
+                                             log_lines(run["case"], "PASS "))}
 
 
-c2 = build([d for d in new_rows if d["collision"] == "2"])
-c1 = build(parent_rows)
-for key in sorted(c2):
-    part, scint, mode, g, n, m, p = key
-    (dv, air, interf, runs) = c2[key]
-    print(f"RESULT collision=C2 part={part} scint={scint:g} reading={READINGS[mode]} gain={g:g} n={n} margin={m:g} "
-          f"p={p:g} runs={runs} delivered={dv[0]:.3f}+-{dv[1]:.3f} air_per_delivered={air[0]:.2f}+-{air[1]:.2f} "
-          f"lost_interf={interf:.3f}")
+base, p0, m3 = per_pass("const"), per_pass("p0"), per_pass("m3")
+same_before_p0 = all(base[k]["sent"] == p0[k]["sent"] and base[k]["received"] == p0[k]["received"] for k in range(10))
+zero_after = all(int(p0[k]["sent"]) == 0 for k in range(10, 20))
+same_before_m3 = all(base[k]["sent"] == m3[k]["sent"] and base[k]["received"] == m3[k]["received"] for k in range(10))
+changes_after = any(base[k]["sent"] != m3[k]["sent"] for k in range(10, 20))
+settings_ok = all(float(p0[k]["p"]) == (0.0 if k >= 10 else 1.0) for k in range(20)) and \
+    all(float(m3[k]["marginDb"]) == (3.0 if k >= 10 else 0.0) for k in range(20))
+s3 = same_before_p0 and zero_after and same_before_m3 and changes_after and settings_ok
+print(f"S3 p0_same_before={same_before_p0} p0_zero_from_10={zero_after} m3_same_before={same_before_m3} "
+      f"m3_changes_from_10={changes_after} settings_logged={settings_ok} holds={s3}")
+print("S3 report sent per pass, const vs p0 vs m3: " + " ".join(
+    f"{k}:{base[k]['sent']}/{p0[k]['sent']}/{m3[k]['sent']}" for k in range(8, 13)))
 
-
-def M(part, scint, mode, g, n, p):
-    return c2[(part, scint, mode, g, n, LOCK[scint], p)]
-
-
-def clearly_below(a, b):
-    return a[0] + a[1] < b[0] - b[1]
-
-
-wins = 0
-by_reading = defaultdict(int)
-for scint in SCINTS:
-    for mode in MODES:
-        for g in GAINS:
-            base = M("search", scint, mode, g, 5000, 1.0)
-            ok = [p for p in PS_LOW if not clearly_below(M("search", scint, mode, g, 5000, p)[0], base[0])
-                  and math.isfinite(M("search", scint, mode, g, 5000, p)[1][0])]
-            if not ok:
-                print(f"L2 scint={scint:g} {READINGS[mode]} gain={g:g} no_candidate win=False")
-                continue
-            chosen = min(ok, key=lambda p: M("search", scint, mode, g, 5000, p)[1][0])
-            a = M("confirm", scint, mode, g, 5000, chosen)
-            b = M("confirm", scint, mode, g, 5000, 1.0)
-            cheaper = a[1][0] + a[1][1] < b[1][0] - b[1][1]
-            win = cheaper and not clearly_below(a[0], b[0])
-            wins += win
-            by_reading[mode] += win
-            print(f"L2 scint={scint:g} {READINGS[mode]} gain={g:g} p={chosen:g} "
-                  f"delivered={a[0][0]:.3f}+-{a[0][1]:.3f} vs {b[0][0]:.3f}+-{b[0][1]:.3f} "
-                  f"air={a[1][0]:.2f}+-{a[1][1]:.2f} vs {b[1][0]:.2f}+-{b[1][1]:.2f} "
-                  f"air_ratio={a[1][0] / b[1][0]:.2f} win={win}")
-l2 = wins >= 8
-print(f"L2 wins={wins}/16 needed=8 holds={l2}")
-print("L5 " + " ".join(f"{READINGS[m]}={by_reading[m]}/4" for m in MODES))
-
-serves_all = []
-for p in PS_LOW:
-    counts = {}
-    for n in NS:
-        counts[n] = sum(
-            not clearly_below(M("confirm", s, mode, g, n, p)[0], M("confirm", s, mode, g, n, 1.0)[0])
-            for s in SCINTS for mode in MODES for g in GAINS)
-    serves = all(c >= 12 for c in counts.values())
-    if serves:
-        serves_all.append(p)
-    print(f"L3 p={p:g} not_clearly_worse " + " ".join(f"n{n}={counts[n]}/16" for n in NS) + f" serves_all={serves}")
-l3 = not serves_all
-print(f"L3 holds={l3}")
-print(f"GATE_C2 L2={l2} L3={l3} passes={l2 and l3}")
-
-for scint in SCINTS:
-    for mode in MODES:
-        for g in GAINS:
-            for n in NS:
-                key = ("confirm", scint, mode, g, n, LOCK[scint], 1.0)
-                if key not in c1:
-                    print(f"L4 scint={scint:g} {READINGS[mode]} gain={g:g} n={n} c1_missing")
-                    continue
-                a, b = c1[key], c2[key]
-                print(f"L4 scint={scint:g} {READINGS[mode]} gain={g:g} n={n} "
-                      f"delivered_c1={a[0][0]:.3f}+-{a[0][1]:.3f} delivered_c2={b[0][0]:.3f}+-{b[0][1]:.3f} "
-                      f"ratio={b[0][0] / a[0][0] if a[0][0] else float('nan'):.2f} "
-                      f"interf_c1={a[2]:.3f} interf_c2={b[2]:.3f}")
+# S4: run-time overhead of the loop.
+ratios = defaultdict(list)
+for key, pair in pairs.items():
+    if set(pair) == {"none", "const"}:
+        ratios[int(pair["none"]["n"])].append(float(pair["const"]["wallS"]) / float(pair["none"]["wallS"]))
+for n in sorted(ratios):
+    print(f"S4 n={n} wall_ratio_median={st.median(ratios[n]):.3f} max={max(ratios[n]):.3f}")
+print(f"GATE S1={s1} S2={s2} S3={s3} passes={s1 and s2 and s3}")
