@@ -236,6 +236,7 @@ double g_exploreProb = 0;
 double g_beaconTxProb = 1;
 double g_beaconMarginDb = 0;
 double g_beaconThetaDeg = 90;
+bool g_instantSettings = false; // Controlled policy: apply settings to all devices at once, no beacon
 std::vector<uint64_t> g_receivedByDevice;
 double g_orbitPeriodS = 0;
 double g_predErrorKm = 0; // Along-track error of the device's satellite prediction
@@ -417,6 +418,16 @@ ControlStep(int finishedPass)
         g_beaconTxProb = p;
         g_beaconMarginDb = margin;
         g_beaconThetaDeg = theta;
+        if (g_instantSettings)
+        {
+            // Test of beacon reach: every device gets the new settings at the pass boundary.
+            for (auto& d : g_devices)
+            {
+                d.txProb = p;
+                d.marginDb = margin;
+                d.thetaDeg = theta;
+            }
+        }
     }
     else
     {
@@ -847,6 +858,8 @@ main(int argc, char* argv[])
     cmd.AddValue("exploreProb", "Controlled policy: probability of SF12 above the cut-off", g_exploreProb);
     bool beacons = true;
     cmd.AddValue("beacons", "Controlled policy: deliver settings by beacon (1) or not at all (0)", beacons);
+    cmd.AddValue("instantSettings", "Controlled policy: apply settings to every device at the pass boundary",
+                 g_instantSettings);
     int collision = 1;
     cmd.AddValue("collision",
                  "1 Goursaud (ns-3 default), 2 Croce et al. 2018 Table II, 3 Croce plus receiver "
