@@ -1,0 +1,257 @@
+\documentclass[journal]{IEEEtran}
+% Target: IEEE Internet of Things Journal, at most 8 published pages, aim 7.5.
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{cite}
+\usepackage{url}
+
+% Draft-only: a framed box standing in for a figure that is not generated yet.
+\newcommand{\figplaceholder}[2]{\fbox{\parbox[c][#1][c]{0.94\linewidth}{\centering\small\textit{#2}}}}
+
+\begin{document}
+
+\title{Gateway-Only SF12 Doppler Control for\\ Direct-to-Satellite LoRaWAN}
+
+\author{Author names and affiliations to be added%
+\thanks{Manuscript draft, November 2026.}}
+
+\markboth{IEEE Internet of Things Journal (draft)}{Gateway-Only SF12 Doppler Control for Direct-to-Satellite LoRaWAN}
+
+\maketitle
+
+\begin{abstract}
+Direct-to-satellite LoRaWAN lets unmodified Internet of Things devices reach a low Earth orbit gateway, but at 868~MHz the Doppler rate near zenith can exceed what a spreading factor (SF)~12 receiver tolerates. Devices that choose their SF from the link budget alone then lose packets at high elevation. We ask whether a controller at the satellite gateway, using only the reception statistics the network already has, can remove part of this loss without harming delivery. We implement a per-pass control loop in a full-stack ns-3 LoRaWAN model of a 560~km orbit with 3GPP TR~38.811 channels, and evaluate it under three collision models and four literature-based readings of the unmeasured SF12 Doppler-rate limit. The controller learns one elevation above which SF12 is withheld and distributes it in Class~B beacons. It converges within two passes, never lowers delivery in any of 192 scenarios, and clearly lowers the Doppler-loss share in 24 of the 34 scenarios where the loss occurs, for example from 13.0\% to 11.2\%. An oracle that knows the true limit still delivers 1.3 to 1.5 times as much. Updating every device instantly closes only 1\% of that gap, so beacon reach is not the limit; a single elevation threshold is, because the Doppler rate depends on pass geometry. We also report a negative result: thinning the offered load from gateway counters never avoided harm under measured collision thresholds.
+\end{abstract}
+
+\begin{IEEEkeywords}
+LoRaWAN, direct-to-satellite IoT, low Earth orbit, Doppler, spreading factor, network control, ns-3.
+\end{IEEEkeywords}
+
+\section{Introduction}
+\IEEEPARstart{L}{oRaWAN} devices can reach a gateway carried by a low Earth orbit (LEO) satellite without any change to their radio, which makes direct-to-satellite IoT attractive for sensors far from terrestrial coverage~\cite{alvarez2022,asadullah2024}. The link is long and short-lived: a satellite at 560~km is visible for a few minutes per pass, and devices often need the slowest data rate, SF12, to close the link budget.
+
+At high elevation, SF12 runs into a second limit. The Doppler shift changes fastest when the satellite passes overhead, and LoRa demodulation tolerates only a bounded Doppler \emph{rate} at long symbol times. Flight tests at 436.7~MHz saw no Doppler loss at SF12 and 125~kHz up to about 143~Hz/s~\cite{zadorozhny2022}, and laboratory tests put the SF12 limit near 144~Hz/s~\cite{doroshkin2019}. At 868~MHz the peak rate on a 560~km orbit roughly doubles to about 273~Hz/s, so SF12 packets sent near zenith may be lost. Whether they are depends on a limit that has not been measured at 868~MHz: an emulation study at that frequency reports loss already near 93~Hz/s~\cite{colombo2022}, while reading the laboratory limit as 0.33~ppm/s instead of a fixed rate leaves no loss at all~\cite{doroshkin2019}.
+
+A device cannot see this problem on its own, but the network can. The gateway records the SF, timing and signal strength of every packet it receives~\cite{sx1301}, so a shortfall of SF12 receptions at high elevation shows up in its counters. This suggests a network-side controller in the style of the O-RAN non-real-time loop~\cite{tarchi2026}: observe after each pass, decide, and send new settings to devices in the next Class~B beacon~\cite{lorawanL2}.
+
+This paper tests that idea in a full-stack simulation. Its contributions are:
+\begin{enumerate}
+\item A per-pass control loop for direct-to-satellite LoRaWAN, implemented in ns-3, that learns an SF12 elevation cut-off from aggregated reception counts and distributes it in Class~B beacons. It needs no device-side computation and no ground truth about Doppler or losses.
+\item An evaluation across 192 scenarios, three collision models (one analytical, one measured, one measured with receiver locking~\cite{goursaud2015,croce2018,bor2016}) and four readings of the SF12 Doppler-rate limit, with pass criteria fixed before each run. The controller never lowers delivery, and clearly lowers Doppler loss in 24 of the 34 scenarios where the loss occurs.
+\item A diagnosis of what remains. Instant delivery of settings to every device closes only 1\% of the gap to an oracle, so beacon reach is not the limit; the single elevation threshold is.
+\item A negative result: under measured collision thresholds, no rule that thins load from gateway counters avoided harm.
+\end{enumerate}
+
+Section~\ref{sec:related} reviews related work. Section~\ref{sec:model} describes the system model and Section~\ref{sec:controller} the controller. Section~\ref{sec:method} gives the evaluation method, Section~\ref{sec:results} the results, and Section~\ref{sec:discussion} the limitations.
+
+\section{Related Work}\label{sec:related}
+\emph{Uplink policies for direct-to-satellite LoRa.} Alvarez et al.~\cite{alvarez2022} compare uplink policies that use the satellite trajectory: transmitting only during the pass, choosing the lowest SF that closes the link at the current distance, and skipping transmissions with a probability carried in a beacon. Their trajectory-based SF choice is our link-only baseline; their policies do not model Doppler limits. Tondo et al.~\cite{tondo2024} schedule multi-channel access and omit Doppler, citing flight tests that saw little impact.
+
+\emph{Doppler.} Asad Ullah et al.~\cite{asadullah2024} derive static and dynamic Doppler limits for LoRa and report losses at high elevation. Flight tests at 436.7~MHz contradict their dynamic limit at SF12 and 125~kHz, measuring no Doppler loss up to about 143~Hz/s~\cite{zadorozhny2022}, consistent with laboratory tests~\cite{doroshkin2019}. The only 868~MHz SF12 data we found is an SDR emulation~\cite{colombo2022}. Maleki et al.~\cite{maleki2026} use reinforcement learning to choose SF, bandwidth, coding rate and timing per device with a Doppler loss model; their evaluation is analytical and assumes coordination is available.
+
+\emph{Load control.} Herreria-Alonso et al.~\cite{herreria2023} adapt each device's transmit probability from its own success rate. Vogelgesang et al.~\cite{vogelgesang2021} broadcast a transmit probability in Class~B beacons that maximizes expected successes when the number of contending devices is known, and leave its estimation open. FSMA~\cite{fsma2026} lets the gateway signal a free channel so that weak devices filter themselves.
+
+Our work differs in three ways: control is per pass and uses only network-side observations, the evaluation runs a full LoRaWAN stack with measured collision thresholds, and every result is reported across the range of Doppler limits the literature allows.
+
+\section{System Model}\label{sec:model}
+
+\subsection{Orbit, Link and Channel}
+A satellite in a 560~km circular orbit~\cite{asadullah2024} carries a LoRaWAN gateway. Devices on the ground send 32-byte frames at 14~dBm on the three default EU868 channels at 125~kHz, one attempt per 60~s and at most 1\% duty cycle~\cite{traspadini2025,casals2017,lorawanRP}. Table~\ref{tab:params} lists the parameters. The total antenna gain is 5 or 10~dBi~\cite{traspadini2025}. Devices transmit only above 20$^\circ$ elevation~\cite{tr38811,santana2026}.
+
+The channel follows the rural model of 3GPP TR~38.811~\cite{tr38811}: elevation-dependent line-of-sight probability, shadow fading and clutter loss, and Rician fading in line of sight. We apply the S-band values at 868~MHz, as Sant'Ana et al.~\cite{santana2026} do; this is an extrapolation. Ionospheric scintillation adds 7.69~dB at low latitude (up to 20$^\circ$) and nothing at mid-latitude~\cite{tr38811}. Gateway sensitivity runs from $-123$~dBm at SF7 to $-137$~dBm at SF12~\cite{santana2026,herreria2023}.
+
+\begin{table}[t]
+\centering
+\caption{Simulation parameters}\label{tab:params}
+\begin{tabular}{@{}ll@{}}
+\toprule
+Parameter & Value \\
+\midrule
+Orbit & 560 km circular \\
+Carrier, bandwidth & 868.1 MHz, 125 kHz \\
+Transmit power, payload & 14 dBm, 32 bytes (PHY) \\
+Attempt period, duty cycle & 60 s, 1\% \\
+Total antenna gain & 5 or 10 dBi \\
+Minimum elevation & 20$^\circ$ \\
+Channel & TR 38.811 rural \\
+Scintillation & 7.69 dB (low lat.), 0 dB (mid lat.) \\
+Gateway sensitivity, SF7--SF12 & $-123$ to $-137$ dBm \\
+Gateway demodulators & 8 \\
+Beacon & 128 s, SF9, 869.525 MHz, 500 mW e.r.p. \\
+Devices & 100, 500, 2000, 5000 \\
+Passes per run & 20 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Doppler Limits}
+For each packet the simulator computes the Doppler shift and its rate over the packet's time on air from the orbit geometry~\cite{asadullah2024}. A packet is lost if the shift exceeds the static limit of 25\% of the bandwidth~\cite{asadullah2024,zadorozhny2022}, or if the rate exceeds the dynamic limit for its SF. SF11 and SF12 use low data rate optimization, as the radio requires at 125~kHz~\cite{sx1276}.
+
+The SF12 dynamic limit at 868~MHz has not been measured, so we carry four readings:
+\begin{itemize}
+\item \textbf{R1}: 144~Hz/s, the laboratory limit at 434~MHz~\cite{doroshkin2019}, applied as a fixed rate.
+\item \textbf{R2}: 93~Hz/s, the rate at which the 868~MHz emulation first shows loss~\cite{colombo2022}.
+\item \textbf{R3}: 0.33~ppm/s, the same laboratory limit read in relative terms. At 868~MHz this is about 286~Hz/s, above the 273~Hz/s peak, so SF12 has no Doppler loss.
+\item \textbf{R4}: R1 without any dynamic limit at SF10.
+\end{itemize}
+Under R1--R3, SF10 (which runs without low data rate optimization) keeps the analytical limit of~\cite{asadullah2024}. No flight or laboratory data exists for it, so R4 removes it.
+
+\subsection{Collision Models}
+Collision outcomes at high load depend strongly on the capture model, and measured thresholds differ from the ns-3 default by more than 10~dB~\cite{croce2018}. We therefore run every scenario under three models:
+\begin{itemize}
+\item \textbf{C1}: the Goursaud table~\cite{goursaud2015}, the ns-3 default; a same-SF packet survives if it is 6~dB stronger.
+\item \textbf{C2}: thresholds measured on an SX1272~\cite{croce2018}; same SF needs about 1~dB, and cross-SF interferers are tolerated only 8 to 25~dB stronger.
+\item \textbf{C3}: C2 plus receiver locking~\cite{bor2016,rahmadhani2018}; a packet is lost if a detectable same-SF packet on the same channel started more than three symbols earlier and is still on the air.
+\end{itemize}
+At 5000 devices, C2 delivers 1.57 to 2.07 times as many packets as C1, so high-load results are reported as ranges across models.
+
+\subsection{Simulator}
+We extend the ns-3 LoRaWAN module~\cite{ns3lorawan} with the orbit, channel and Doppler models above, a writable gateway sensitivity table, uplink-only delivery to the gateway, and the C2 and C3 interference rules. The controller runs as a separate process that exchanges one JSON line per pass with the simulator. With a controller that returns constant settings, all 256 test runs reproduce the uncontrolled runs exactly.
+
+\section{Network-Side SF12 Control}\label{sec:controller}
+
+\subsection{Control Loop}
+Fig.~\ref{fig:loop} shows the loop. After each pass the network reports what a LoRaWAN gateway can observe~\cite{sx1301}: received packets per SF, distinct devices heard, mean and minimum received power, and the count of SF11 and SF12 receptions in seven 10$^\circ$ elevation bins from 20$^\circ$ to 90$^\circ$. Binning by elevation assumes the network server knows each static device's location, as is common for fixed sensors, and the satellite's own position; the controller receives only the aggregated counts. It returns the settings for the next pass. It never sees the true Doppler or losses at the device.
+
+\begin{figure}[t]
+\centering
+\figplaceholder{3.6cm}{Fig.~1 (to be drawn): devices $\rightarrow$ satellite gateway $\rightarrow$ per-pass report $\rightarrow$ controller $\rightarrow$ cut-off in Class~B beacon $\rightarrow$ devices.}
+\caption{Per-pass control loop. Only aggregated network observations enter the controller; settings reach a device only through a beacon it receives.}
+\label{fig:loop}
+\end{figure}
+
+\subsection{Cut-Off Rule}
+Let $n^{(11)}_b$ and $n^{(12)}_b$ be the SF11 and SF12 receptions accumulated in elevation bin $b\in\{0,\dots,6\}$, where bin $b$ covers $[20+10b,\,30+10b)$ degrees, and let
+\begin{equation}
+s_b=\frac{n^{(12)}_b}{n^{(11)}_b+n^{(12)}_b},\qquad
+s_{\mathrm{ref}}=\frac{\sum_{b=0}^{1}n^{(12)}_b}{\sum_{b=0}^{1}\bigl(n^{(11)}_b+n^{(12)}_b\bigr)}
+\end{equation}
+be the SF12 share in bin $b$ and in the reference band from 20$^\circ$ to 40$^\circ$, where Doppler rates are low. The cut-off is
+\begin{equation}\label{eq:cutoff}
+\theta=20^\circ+10^\circ\cdot\min\{\,b\ge2:\ n^{(11)}_b+n^{(12)}_b\ge5,\ s_b<\tfrac12 s_{\mathrm{ref}}\,\},
+\end{equation}
+or $90^\circ$ if no bin qualifies or the reference band holds fewer than five packets. The rule detects the elevation above which SF12 packets stop arriving in the proportion seen at low elevation. A device that would choose SF12 above $\theta$ skips that attempt, except with probability 0.1, which keeps SF12 observations coming from above the cut-off.
+
+\subsection{Setting Distribution}
+The satellite sends a Class~B beacon every 128~s at SF9 on 869.525~MHz in implicit mode with a 10-symbol preamble~\cite{lorawanL2,lorawanRP}, carrying the current cut-off. Its time on air is 152.6~ms, a 0.12\% duty cycle. We assume 500~mW e.r.p., the limit for the 869.4--869.65~MHz short-range band~\cite{erc7003}; a satellite downlink would be licensed separately. A device keeps its last received setting. At low latitude, 43\% of devices hear at least one beacon per run; at mid-latitude all do.
+
+\subsection{Baselines}
+\emph{Link-only} chooses the lowest SF whose link budget closes at the current distance, the trajectory-based policy of~\cite{alvarez2022}. The \emph{elevation-aware oracle} also requires each packet to pass the true Doppler limit of the running reading, and skips the attempt otherwise. It needs knowledge no real system has and bounds what Doppler-aware SF choice can achieve.
+
+\section{Evaluation Method}\label{sec:method}
+A scenario combines a collision model (C1--C3), a Doppler reading (R1--R4), a latitude (low, mid), an antenna gain (5, 10~dBi) and a device count (100 to 5000), giving 192 scenarios. Each run covers 20 passes. The link margin was tuned once per latitude ($-2$~dB low, 0~dB mid). Controller design choices were tuned on seeds 16--20 and tested on seeds 21--30; the oracle was run on seeds 21--25. We report means with 95\% $t$-intervals and call a difference \emph{clear} when the intervals do not overlap. Pass criteria for every experiment were fixed before it ran.
+
+The main metric is delivered packets per device per pass. The Doppler-loss share is the fraction of transmitted packets lost to the Doppler limit.
+
+\section{Results}\label{sec:results}
+
+\subsection{Headroom for Doppler-Aware SF Choice}
+We first ask whether knowing the Doppler limit helps at all. Fig.~\ref{fig:headroom} compares the oracle with link-only. The oracle is clearly better in 73 of 192 scenarios and clearly worse in 7, and the split hardly changes across collision models (C1: 25 and 2, C2: 27 and 2, C3: 21 and 3 of 64 each). The Doppler reading decides the size of the gain: the median delivery ratio is 1.08 to 1.17 under R1, 1.09 to 1.19 under R2, 1.03 under R3 and 1.00 under R4. The headroom therefore exists only if the SF12 limit at 868~MHz is as tight as R1 or R2.
+
+\begin{figure}[t]
+\centering
+\figplaceholder{3.4cm}{Fig.~2 (to be generated): stacked bars per collision model, scenarios where the oracle is clearly better / overlapping / clearly worse than link-only (25/37/2, 27/35/2, 21/40/3).}
+\caption{Elevation-aware oracle versus link-only across 192 scenarios, by collision model (seeds 21--25).}
+\label{fig:headroom}
+\end{figure}
+
+\subsection{Controller Performance}
+The controller lowered delivery in none of the 192 scenarios. It sets a cut-off only at low latitude with 5~dBi, where SF12 is used at high elevation. At mid-latitude with 5~dBi, SF12 is received only between 20$^\circ$ and 30$^\circ$, and at 10~dBi the cut-off is not triggered either; there it stays at 90$^\circ$ and the controller matches link-only exactly.
+
+Where Doppler loss occurs, the controller learns quickly. In the C3, R1, 500-device scenario, all five seeds run pass~0 without a cut-off, three set one after pass~1, and all hold 50$^\circ$ from pass~2 on (Fig.~\ref{fig:doppler}b). The Doppler-loss share falls from 13.4\% on pass~0 to between 7.5\% and 12\% afterwards.
+
+Across R1, R2 and R4 at low latitude and 5~dBi, the Doppler-loss share is clearly lower in 24 of the 34 scenarios with Doppler loss (Fig.~\ref{fig:doppler}a), for example from 13.0\% to 11.2\% in C3, R1 with 100 devices. In the other ten the mean is lower but the intervals overlap; these are mostly 5000-device scenarios, where collisions dominate, and R2 with 100 devices. Elsewhere, residual Doppler losses of up to 18\% come from SF10 under the analytical limit and disappear under R4, so an SF12 cut-off cannot address them.
+
+\begin{figure}[t]
+\centering
+\figplaceholder{5.2cm}{Fig.~3 (to be generated): (a) Doppler-loss share, link-only vs controller, low latitude, 5 dBi, R1 and R2, by collision model and device count; (b) Doppler-loss share per pass, mean of five seeds, C3, R1, 500 devices.}
+\caption{(a) Doppler-loss share at low latitude and 5~dBi; filled markers mark clear reductions (10 seeds). (b) Learning of the cut-off over passes.}
+\label{fig:doppler}
+\end{figure}
+
+\subsection{What Limits the Controller}
+The oracle still delivers more: at low latitude with 5~dBi the controller reaches 0.65 to 0.76 of oracle delivery under R1, R2 and R4. Two causes are plausible. Only 43\% of devices hear a beacon at low latitude, so most devices may never learn the cut-off; or one elevation threshold may be too coarse.
+
+We tested the first cause directly by applying the controller's settings to every device at each pass boundary, with beacons off. With criteria fixed in advance, instant delivery would count as the limit if it was clearly better in at least 27 of the 36 low-latitude 5~dBi scenarios. It was clearly better in none, and closed a median of 1\% of the gap to the oracle (range $-3\%$ to 20\%; Fig.~\ref{fig:limit}). At 10~dBi, where no cut-off is learned, it changed no scenario, as expected.
+
+The cause is the threshold. The Doppler rate a device sees at a given elevation depends on how close the pass comes to zenith. Over the pass geometries in our runs, any single elevation threshold misclassifies 13.3\% of SF12 decisions under R1 and 30.0\% under R2: it either withholds SF12 from packets that would survive or allows it for packets that will not. Closing the gap needs a rule on Doppler rate, which a device could compute from published ephemeris and its own position.
+
+A learning controller does not fix this from network data alone. A contextual bandit that chose a Doppler-rate threshold per pass did no harm but performed worse than the elevation rule in all 36 target scenarios, because the reward differences between thresholds (a few packets per pass) were far smaller than the variation between passes.
+
+\begin{figure}[t]
+\centering
+\figplaceholder{4.2cm}{Fig.~4 (to be generated): delivered packets per device per pass, C3, low latitude, 5 dBi, R1 and R2, by device count: link-only, controller via beacons, controller with instant delivery, oracle; 95\% intervals.}
+\caption{Delivery with beacon and instant setting distribution against the oracle (controller seeds 21--30, oracle seeds 21--25).}
+\label{fig:limit}
+\end{figure}
+
+\subsection{Negative Result: Load Control}
+The network also sees how many devices it hears, which suggests thinning the offered load with a broadcast transmit probability~\cite{vogelgesang2021,alvarez2022}. With the true number of devices known, a fixed probability lowered airtime per delivered packet without clearly lowering delivery in 11 of 16 high-load scenarios under C1, but in only 5 of 16 under C2 and 7 of 16 under C3. Rules that estimated the load from gateway counts did worse: $p=k/\hat n$ cut delivery to 0.15--0.22 of link-only in its worst tuning scenario, and every threshold of a two-level rule cost at least 13\% of delivery somewhere. The only regime in which thinning helped under all three collision models was mid-latitude, 5~dBi and 5000 devices, where airtime per delivered packet fell to 0.29--0.56 of link-only. The value of load control in this setting thus rests on the collision model, and gateway counters are too coarse to apply it safely.
+
+\section{Discussion and Limitations}\label{sec:discussion}
+\emph{Unmeasured limits.} The size of every Doppler result depends on the SF12 limit at 868~MHz. Under R3 there is no loss to remove, and the controller correctly does nothing. A measurement of SF12 and SF10 Doppler-rate tolerance at 868~MHz on a gateway-class receiver would settle which reading applies.
+
+\emph{Gateway receiver.} C2 and C3 come from single-receiver SX1272 measurements~\cite{croce2018,bor2016}. A satellite gateway would use a multi-demodulator chip such as the SX1301~\cite{sx1301}, for which no capture measurement is available.
+
+\emph{Other simplifications.} The beacon power is the terrestrial short-range limit, assumed for the satellite. Device oscillator offset is not modeled; a few kilohertz at 868~MHz could matter near the SF12 static limit. Per-pass control runs on the non-real-time timescale of O-RAN rApps~\cite{tarchi2026}, not the near-real-time timescale of xApps. All results come from simulation.
+
+\section{Conclusion}
+The network can see SF12 Doppler loss in its own reception counts and act on it. A per-pass controller that learns one elevation cut-off and sends it in Class~B beacons never harmed delivery across 192 scenarios and clearly reduced Doppler loss in 24 of the 34 where it occurs. Its gain is capped by the coarseness of a single elevation threshold, not by beacon reach. Thinning load from gateway counters did not survive measured collision thresholds. Future work should measure the SF12 Doppler-rate limit at 868~MHz and test device-side Doppler-rate rules driven by ephemeris.
+
+% References: entries marked [verify] still need their full bibliographic details checked against the source.
+\begin{thebibliography}{99}
+
+\bibitem{alvarez2022} G.~\'Alvarez, J.~A. Fraire, K.~A. Hassan, S.~C\'espedes, and D.~Pesch, ``Uplink transmission policies for LoRa-based direct-to-satellite IoT,'' \emph{IEEE Access}, 2022. [verify]
+
+\bibitem{asadullah2024} M.~Asad~Ullah \emph{et al.}, Doppler analysis of LoRa for LEO satellite IoT, 2024. [verify title and venue]
+
+\bibitem{zadorozhny2022} A.~M. Zadorozhny \emph{et al.}, ``First flight-testing of LoRa modulation in satellite radio communications in low-Earth orbit,'' \emph{IEEE Access}, 2022. [verify]
+
+\bibitem{doroshkin2019} A.~A. Doroshkin \emph{et al.}, ``Experimental study of LoRa modulation immunity to Doppler effect in CubeSat radio communications,'' \emph{IEEE Access}, 2019. [verify]
+
+\bibitem{colombo2022} Colombo \emph{et al.}, LoRa satellite Doppler emulation at 868~MHz, IEEE, 2022, doi:10.1109/MN55117.2022.9887761. [verify title and venue]
+
+\bibitem{sx1301} Semtech, \emph{SX1301 Datasheet}, v2.4.
+
+\bibitem{sx1276} Semtech, \emph{SX1276/77/78/79 Datasheet}.
+
+\bibitem{tarchi2026} D.~Tarchi \emph{et al.}, O-RAN timescales for non-terrestrial networks, arXiv:2603.23252, 2026. [verify]
+
+\bibitem{lorawanL2} LoRa Alliance, \emph{LoRaWAN L2 1.0.4 Specification}, 2020.
+
+\bibitem{lorawanRP} LoRa Alliance, \emph{LoRaWAN Regional Parameters v1.0.2}.
+
+\bibitem{goursaud2015} C.~Goursaud and J.-M. Gorce, ``Dedicated networks for IoT: PHY/MAC state of the art and challenges,'' \emph{EAI Endorsed Trans. Internet of Things}, 2015.
+
+\bibitem{croce2018} D.~Croce, M.~Gucciardo, S.~Mangione, G.~Santaromita, and I.~Tinnirello, ``Impact of LoRa imperfect orthogonality: Analysis of link-level performance,'' \emph{IEEE Commun. Lett.}, 2018.
+
+\bibitem{bor2016} M.~C. Bor, U.~Roedig, T.~Voigt, and J.~M. Alonso, ``Do LoRa low-power wide-area networks scale?'' in \emph{Proc. ACM MSWiM}, 2016.
+
+\bibitem{rahmadhani2018} A.~Rahmadhani and F.~Kuipers, ``When LoRaWAN frames collide,'' in \emph{Proc. ACM WiNTECH}, 2018.
+
+\bibitem{tondo2024} F.~A. Tondo \emph{et al.}, multi-channel scheduling for direct-to-satellite LoRa, 2024. [verify]
+
+\bibitem{maleki2026} Maleki \emph{et al.}, reinforcement learning for Doppler-aware LoRa satellite access, 2026. [verify]
+
+\bibitem{herreria2023} S.~Herreria-Alonso \emph{et al.}, adaptive Aloha for LoRa satellite IoT, 2023. [verify]
+
+\bibitem{vogelgesang2021} K.~Vogelgesang \emph{et al.}, ``Uplink transmission probability functions for LoRa-based direct-to-satellite IoT: A case study,'' in \emph{Proc. IEEE GLOBECOM}, 2021, doi:10.1109/GLOBECOM46510.2021.9685152. [verify]
+
+\bibitem{fsma2026} FSMA: free-channel signalling for LoRa satellite access, in \emph{Proc. ACM MobiHoc}, 2026, arXiv:2510.02800. [verify]
+
+\bibitem{traspadini2025} Traspadini \emph{et al.}, 2025. [verify]
+
+\bibitem{casals2017} L.~Casals, B.~Mir, R.~Vidal, and C.~Gomez, ``Modeling the energy performance of LoRaWAN,'' \emph{Sensors}, 2017.
+
+\bibitem{tr38811} 3GPP, ``Study on New Radio (NR) to support non-terrestrial networks,'' TR 38.811 V15.1.0.
+
+\bibitem{santana2026} Sant'Ana \emph{et al.}, 2026. [verify]
+
+\bibitem{erc7003} CEPT, ``ERC Recommendation 70-03 relating to the use of short range devices,'' Feb. 2022.
+
+\bibitem{ns3lorawan} D.~Magrin \emph{et al.}, ns-3 LoRaWAN module, \url{https://github.com/signetlabdei/lorawan}, commit e45b4af.
+
+\end{thebibliography}
+
+\end{document}
