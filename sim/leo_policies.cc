@@ -43,7 +43,8 @@ enum Policy
     ELEVATION_AWARE,
     ELEVATION_AWARE_LDRO10,
     UNGATED_SF12, // No ephemeris: transmits at SF12 regardless of where the satellite is
-    SF12_WINDOW   // SF12, only when its own link and Doppler checks pass
+    SF12_WINDOW,  // SF12, only when its own link and Doppler checks pass
+    CONTROLLED    // Link-only with per-device margin, SF12 elevation cut-off and p from beacons
 };
 
 const char* const kPolicyNames[] = {"fixed_sf12",
@@ -52,7 +53,8 @@ const char* const kPolicyNames[] = {"fixed_sf12",
                                     "elevation_aware",
                                     "elevation_aware_ldro10",
                                     "ungated_sf12",
-                                    "sf12_window"};
+                                    "sf12_window",
+                                    "controlled"};
 
 double
 ElevationDeg(const Vector& sat, const Vector& device)
@@ -188,6 +190,10 @@ struct Device
     Ptr<EndDeviceLorawanMac> mac;
     double nextAllowedS = 0;
     int phasePass = -1; // Pass in which the random start was last drawn
+    // Settings of the controlled policy, as last received in a beacon.
+    double marginDb = 0;
+    double txProb = 1;
+    double thetaDeg = 90;
 };
 
 struct PacketRecord
@@ -224,6 +230,12 @@ double g_marginDb = 3;
 double g_minElevationDeg = 10;
 double g_periodS = 60;
 double g_txProb = 1; // Per-attempt transmit probability
+// Controlled policy: exploration probability for SF12 above the cut-off, and the settings the
+// satellite currently broadcasts in its beacons.
+double g_exploreProb = 0;
+double g_beaconTxProb = 1;
+double g_beaconMarginDb = 0;
+double g_beaconThetaDeg = 90;
 std::vector<uint64_t> g_receivedByDevice;
 double g_orbitPeriodS = 0;
 double g_predErrorKm = 0; // Along-track error of the device's satellite prediction
@@ -249,6 +261,14 @@ struct PassRecord
     double rssiSumDbm = 0;
     double rssiMinDbm = 0;
     uint64_t rssiCount = 0;
+    // Received SF11 and SF12 packets in 10-degree elevation bins from 20 to 90 deg, and packets
+    // received within 1 dB of the gateway's own sensitivity. Both are gateway-observable.
+    std::array<uint64_t, 7> sf11ByElevation{};
+    std::array<uint64_t, 7> sf12ByElevation{};
+    uint64_t nearSensitivity = 0;
+    double thetaDeg = 90;
+    uint64_t beaconsHeard = 0;
+    uint64_t beaconsMissed = 0;
     uint64_t sent = 0;
     uint64_t rejectedDoppler = 0;
     uint64_t underSensitivity = 0;
@@ -354,6 +374,17 @@ ObservationJson(int pass)
     {
         o << "null,\"rssi_min_dbm\":null";
     }
+    o << ",\"near_sensitivity\":" << r.nearSensitivity;
+    for (const auto& [key, bins] : {std::make_pair("sf11_by_elevation", &r.sf11ByElevation),
+                                    std::make_pair("sf12_by_elevation", &r.sf12ByElevation)})
+    {
+        o << ",\"" << key << "\":[";
+        for (size_t b = 0; b < bins->size(); ++b)
+        {
+            o << (*bins)[b] << (b + 1 < bins->size() ? "," : "");
+        }
+        o << "]";
+    }
     o << "}";
     return o.str();
 }
@@ -372,14 +403,28 @@ ControlStep(int finishedPass)
         NS_FATAL_ERROR("Controller closed its output at pass " << finishedPass);
     }
     const std::string reply(buffer);
-    g_txProb = JsonNumber(reply, "p");
-    g_marginDb = JsonNumber(reply, "margin_db");
-    if (g_txProb < 0 || g_txProb > 1)
+    const double p = JsonNumber(reply, "p");
+    const double margin = JsonNumber(reply, "margin_db");
+    const double theta = reply.find("\"theta_deg\"") == std::string::npos ? 90 : JsonNumber(reply, "theta_deg");
+    if (p < 0 || p > 1)
     {
         NS_FATAL_ERROR("Controller returned p outside [0, 1]: " << reply);
     }
-    g_pass[finishedPass + 1].txProb = g_txProb;
-    g_pass[finishedPass + 1].marginDb = g_marginDb;
+    if (g_policy == CONTROLLED)
+    {
+        // Reaches devices only through beacons.
+        g_beaconTxProb = p;
+        g_beaconMarginDb = margin;
+        g_beaconThetaDeg = theta;
+    }
+    else
+    {
+        g_txProb = p;
+        g_marginDb = margin;
+    }
+    g_pass[finishedPass + 1].txProb = p;
+    g_pass[finishedPass + 1].marginDb = margin;
+    g_pass[finishedPass + 1].thetaDeg = theta;
 }
 
 bool
@@ -452,19 +497,36 @@ ChooseSf(const Device& d, const Vector& sat, const Vector& pos, double t)
             }
         }
         return 0;
+    case CONTROLLED:
+        for (int sf = 7; sf <= 12; ++sf)
+        {
+            if (LinkOk(sat, pos, sf, d.marginDb))
+            {
+                // Above the learned cut-off SF12 is skipped, except for exploration. Draws only
+                // when exploring, so frozen settings reproduce link-only exactly.
+                if (sf == 12 && ElevationDeg(sat, pos) > d.thetaDeg &&
+                    !(g_exploreProb > 0 && g_uniform->GetValue(0, 1) < g_exploreProb))
+                {
+                    return 0;
+                }
+                return sf;
+            }
+        }
+        return 0;
     }
     return 0;
 }
 
 // Draws only below 1, so p = 1 reproduces earlier experiments exactly.
 bool
-AdmittedByLoadControl()
+AdmittedByLoadControl(const Device& d)
 {
-    if (g_txProb >= 1)
+    const double p = g_policy == CONTROLLED ? d.txProb : g_txProb;
+    if (p >= 1)
     {
         return true;
     }
-    const bool admitted = g_uniform->GetValue(0, 1) < g_txProb;
+    const bool admitted = g_uniform->GetValue(0, 1) < p;
     g_stats.thinned += !admitted;
     return admitted;
 }
@@ -482,7 +544,7 @@ SendAt(int i)
     const double tp = PredictedTime(t);
     const auto sp = g_orbit->Position(tp);
     const int sf = ChooseSf(d, Vector(sp.x, sp.y, sp.z), Vector(d.pos.x, d.pos.y, d.pos.z), tp);
-    if (sf != 0 && AdmittedByLoadControl())
+    if (sf != 0 && AdmittedByLoadControl(d))
     {
         d.mac->SetDataRate(12 - sf);
         d.mac->Send(Create<Packet>(g_appBytes));
@@ -582,7 +644,7 @@ Tick(int i)
             {
                 ++g_stats.blocked;
             }
-            else if (AdmittedByLoadControl())
+            else if (AdmittedByLoadControl(d))
             {
                 d.mac->SetDataRate(12 - sf);
                 d.mac->Send(Create<Packet>(g_appBytes));
@@ -649,6 +711,19 @@ OnReceived(Ptr<const Packet> packet, uint32_t)
         ++p.received;
         ++p.receivedBySf[it->second.sf];
         p.devicesHeard.insert(it->second.device);
+        // The gateway knows each packet's arrival time and its own orbit, hence the elevation.
+        const int sf = it->second.sf;
+        if (sf == 11 || sf == 12)
+        {
+            const auto s = g_orbit->Position(Simulator::Now().GetSeconds());
+            const auto& dp = g_devices[it->second.device].pos;
+            const double e = ElevationDeg(Vector(s.x, s.y, s.z), Vector(dp.x, dp.y, dp.z));
+            const int bin = std::clamp(int((e - 20) / 10), 0, 6);
+            if (e >= 20)
+            {
+                ++(sf == 11 ? p.sf11ByElevation : p.sf12ByElevation)[bin];
+            }
+        }
     }
 }
 
@@ -667,6 +742,52 @@ OnGatewayMacReceived(Ptr<const Packet> packet)
     p.rssiMinDbm = p.rssiCount == 0 ? rssi : std::min(p.rssiMinDbm, rssi);
     p.rssiSumDbm += rssi;
     ++p.rssiCount;
+    const int sf = tag.GetSpreadingFactor();
+    if (sf >= 7 && sf <= 12 && rssi < GatewayLoraPhy::SENSITIVITY[sf - 7] + 1)
+    {
+        ++p.nearSensitivity;
+    }
+}
+
+// Beacon every 128 s (LoRaWAN L2 v1.0.4, PDF p. 59) at SF9. A device adopts the broadcast settings
+// only if the downlink reaches the SX1276 SF9 sensitivity of -129 dBm (datasheet PDF p. 20);
+// otherwise it keeps its last settings (beaconless operation, L2 PDF p. 57). Satellite power is
+// 500 mW e.r.p. (ERC 70-03 band h1.7), 29.15 dBm e.i.r.p., with no device antenna gain.
+constexpr double kBeaconPeriodS = 128;
+constexpr double kBeaconEirpDbm = 29.15;
+constexpr double kDeviceSf9SensitivityDbm = -129;
+Ptr<NormalRandomVariable> g_beaconShadow;
+
+void
+Beacon()
+{
+    const double t = Simulator::Now().GetSeconds();
+    const auto s = g_orbit->Position(t);
+    const Vector sat(s.x, s.y, s.z);
+    PassRecord& p = g_pass[PassAt(t)];
+    for (auto& d : g_devices)
+    {
+        const Vector pos(d.pos.x, d.pos.y, d.pos.z);
+        const double e = ElevationDeg(sat, pos);
+        if (e < g_minElevationDeg)
+        {
+            continue;
+        }
+        const double rx = kBeaconEirpDbm - FsplDb(CalculateDistance(sat, pos)) - g_ionosphericDb -
+                          ShadowSigmaDb(e) * g_beaconShadow->GetValue();
+        if (rx >= kDeviceSf9SensitivityDbm)
+        {
+            d.txProb = g_beaconTxProb;
+            d.marginDb = g_beaconMarginDb;
+            d.thetaDeg = g_beaconThetaDeg;
+            ++p.beaconsHeard;
+        }
+        else
+        {
+            ++p.beaconsMissed;
+        }
+    }
+    Simulator::Schedule(Seconds(kBeaconPeriodS), &Beacon);
 }
 
 void
@@ -721,6 +842,9 @@ main(int argc, char* argv[])
     cmd.AddValue("windowPhase", "Random transmit start inside the predicted window", g_windowPhase);
     cmd.AddValue("dopplerLimits", "Doppler limit mode, see leo_doppler.h", leo::g_dopplerLimits);
     cmd.AddValue("txProb", "Per-attempt transmit probability", g_txProb);
+    cmd.AddValue("exploreProb", "Controlled policy: probability of SF12 above the cut-off", g_exploreProb);
+    bool beacons = true;
+    cmd.AddValue("beacons", "Controlled policy: deliver settings by beacon (1) or not at all (0)", beacons);
     int collision = 1;
     cmd.AddValue("collision",
                  "1 Goursaud (ns-3 default), 2 Croce et al. 2018 Table II, 3 Croce plus receiver "
@@ -897,6 +1021,24 @@ main(int argc, char* argv[])
             Simulator::Schedule(Seconds(k * g_orbitPeriodS), &ControlStep, k - 1);
         }
     }
+    // Controlled policy: every device starts from the run's settings; beacons then deliver changes.
+    if (g_policy == CONTROLLED)
+    {
+        g_beaconTxProb = g_txProb;
+        g_beaconMarginDb = g_marginDb;
+        for (auto& d : g_devices)
+        {
+            d.txProb = g_txProb;
+            d.marginDb = g_marginDb;
+            d.thetaDeg = 90;
+        }
+        if (beacons)
+        {
+            // Created after every other random variable, so its stream leaves theirs unchanged.
+            g_beaconShadow = CreateObject<NormalRandomVariable>();
+            Simulator::Schedule(Seconds(0), &Beacon);
+        }
+    }
 
     Simulator::Stop(Seconds(g_orbitPeriodS * g_passes));
     Simulator::Run();
@@ -909,10 +1051,11 @@ main(int argc, char* argv[])
         {
             const PassRecord& r = g_pass[k];
             std::cout << "PASS pass=" << k << " p=" << r.txProb << " marginDb=" << r.marginDb
-                      << " sent=" << r.sent << " received=" << r.received
-                      << " rejDoppler=" << r.rejectedDoppler << " underSens=" << r.underSensitivity
-                      << " interfered=" << r.interfered << " noDemod=" << r.noDemodulator
-                      << std::endl;
+                      << " thetaDeg=" << r.thetaDeg << " sent=" << r.sent
+                      << " received=" << r.received << " rejDoppler=" << r.rejectedDoppler
+                      << " underSens=" << r.underSensitivity << " interfered=" << r.interfered
+                      << " noDemod=" << r.noDemodulator << " beaconsHeard=" << r.beaconsHeard
+                      << " beaconsMissed=" << r.beaconsMissed << std::endl;
         }
     }
 
@@ -942,6 +1085,15 @@ main(int argc, char* argv[])
               << " rxSet=" << rxSet << " scintDb=" << g_ionosphericDb
               << " dopplerLimits=" << leo::g_dopplerLimits << " txProb=" << g_txProb
               << " collision=" << collision << " lockLost=" << LoraInterferenceHelper::s_lockLost
+              << " exploreProb=" << g_exploreProb << " beacons=" << beacons;
+    uint64_t heard = 0;
+    uint64_t missed = 0;
+    for (const auto& r : g_pass)
+    {
+        heard += r.beaconsHeard;
+        missed += r.beaconsMissed;
+    }
+    std::cout << " beaconsHeard=" << heard << " beaconsMissed=" << missed
               << " controller=" << (controller.empty() ? 0 : 1)
               << " thinned=" << s.thinned << " jain=" << jain << " served=" << served
               << " capRadiusKm=" << capRadiusKm
