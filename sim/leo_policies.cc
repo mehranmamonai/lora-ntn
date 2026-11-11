@@ -194,6 +194,7 @@ struct Device
     double marginDb = 0;
     double txProb = 1;
     double thetaDeg = 90;
+    double rateLimitHzPerS = 1e9; // SF12 Doppler-rate threshold; 1e9 = none
 };
 
 struct PacketRecord
@@ -236,6 +237,8 @@ double g_exploreProb = 0;
 double g_beaconTxProb = 1;
 double g_beaconMarginDb = 0;
 double g_beaconThetaDeg = 90;
+double g_beaconRateLimit = 1e9;
+bool g_sf12RateRule = false; // Controlled policy: skip SF12 by predicted Doppler rate, not elevation
 std::vector<uint64_t> g_receivedByDevice;
 double g_orbitPeriodS = 0;
 double g_predErrorKm = 0; // Along-track error of the device's satellite prediction
@@ -267,6 +270,9 @@ struct PassRecord
     std::array<uint64_t, 7> sf12ByElevation{};
     uint64_t nearSensitivity = 0;
     double thetaDeg = 90;
+    double rateLimitHzPerS = 1e9;
+    // Received SF12 packets by mean Doppler rate over the packet, bin edges 0, 60, 93, 144, 200, 286 Hz/s.
+    std::array<uint64_t, 6> sf12ByRate{};
     uint64_t beaconsHeard = 0;
     uint64_t beaconsMissed = 0;
     uint64_t sent = 0;
@@ -386,7 +392,12 @@ ObservationJson(int pass)
         }
         o << "]";
     }
-    o << "}";
+    o << ",\"sf12_by_rate\":[";
+    for (size_t b = 0; b < r.sf12ByRate.size(); ++b)
+    {
+        o << r.sf12ByRate[b] << (b + 1 < r.sf12ByRate.size() ? "," : "");
+    }
+    o << "]}";
     return o.str();
 }
 
@@ -407,6 +418,8 @@ ControlStep(int finishedPass)
     const double p = JsonNumber(reply, "p");
     const double margin = JsonNumber(reply, "margin_db");
     const double theta = reply.find("\"theta_deg\"") == std::string::npos ? 90 : JsonNumber(reply, "theta_deg");
+    const double rateLimit =
+        reply.find("\"rate_limit_hz_s\"") == std::string::npos ? 1e9 : JsonNumber(reply, "rate_limit_hz_s");
     if (p < 0 || p > 1)
     {
         NS_FATAL_ERROR("Controller returned p outside [0, 1]: " << reply);
@@ -417,6 +430,7 @@ ControlStep(int finishedPass)
         g_beaconTxProb = p;
         g_beaconMarginDb = margin;
         g_beaconThetaDeg = theta;
+        g_beaconRateLimit = rateLimit;
     }
     else
     {
@@ -426,6 +440,7 @@ ControlStep(int finishedPass)
     g_pass[finishedPass + 1].txProb = p;
     g_pass[finishedPass + 1].marginDb = margin;
     g_pass[finishedPass + 1].thetaDeg = theta;
+    g_pass[finishedPass + 1].rateLimitHzPerS = rateLimit;
 }
 
 bool
@@ -464,6 +479,13 @@ bool
 DopplerOk(const leo::Vec3& device, int sf, double t)
 {
     return leo::PacketSurvives(*g_orbit, device, kFcHz, kBandwidthHz, sf, Ldro(sf), t, g_toa[sf]);
+}
+
+double
+Sf12RateHzPerS(const leo::Vec3& device, double t)
+{
+    return std::abs(g_orbit->DopplerHz(t + g_toa[12], device, kFcHz) - g_orbit->DopplerHz(t, device, kFcHz)) /
+           g_toa[12];
 }
 
 // Returns the SF to use, or 0 to skip this attempt.
@@ -505,7 +527,9 @@ ChooseSf(const Device& d, const Vector& sat, const Vector& pos, double t)
             {
                 // Above the learned cut-off SF12 is skipped, except for exploration. Draws only
                 // when exploring, so frozen settings reproduce link-only exactly.
-                if (sf == 12 && ElevationDeg(sat, pos) > d.thetaDeg &&
+                const bool skip12 = g_sf12RateRule ? Sf12RateHzPerS(d.pos, t) > d.rateLimitHzPerS
+                                                   : ElevationDeg(sat, pos) > d.thetaDeg;
+                if (sf == 12 && skip12 &&
                     !(g_exploreProb > 0 && g_uniform->GetValue(0, 1) < g_exploreProb))
                 {
                     return 0;
@@ -715,6 +739,15 @@ OnReceived(Ptr<const Packet> packet, uint32_t)
         g_everHeard.insert(it->second.device);
         // The gateway knows each packet's arrival time and its own orbit, hence the elevation.
         const int sf = it->second.sf;
+        if (sf == 12)
+        {
+            // The gateway knows each packet's timing, its own orbit and the device location.
+            const double rate = Sf12RateHzPerS(g_devices[it->second.device].pos,
+                                               Simulator::Now().GetSeconds() - g_toa[12]);
+            static const std::array<double, 5> edges{60, 93, 144, 200, 286};
+            const auto bin = std::upper_bound(edges.begin(), edges.end(), rate) - edges.begin();
+            ++p.sf12ByRate[bin];
+        }
         if (sf == 11 || sf == 12)
         {
             const auto s = g_orbit->Position(Simulator::Now().GetSeconds());
@@ -782,6 +815,7 @@ Beacon()
             d.txProb = g_beaconTxProb;
             d.marginDb = g_beaconMarginDb;
             d.thetaDeg = g_beaconThetaDeg;
+            d.rateLimitHzPerS = g_beaconRateLimit;
             ++p.beaconsHeard;
         }
         else
@@ -845,6 +879,8 @@ main(int argc, char* argv[])
     cmd.AddValue("dopplerLimits", "Doppler limit mode, see leo_doppler.h", leo::g_dopplerLimits);
     cmd.AddValue("txProb", "Per-attempt transmit probability", g_txProb);
     cmd.AddValue("exploreProb", "Controlled policy: probability of SF12 above the cut-off", g_exploreProb);
+    cmd.AddValue("sf12RateRule", "Controlled policy: skip SF12 by predicted Doppler rate (1) or elevation (0)",
+                 g_sf12RateRule);
     bool beacons = true;
     cmd.AddValue("beacons", "Controlled policy: deliver settings by beacon (1) or not at all (0)", beacons);
     int collision = 1;
@@ -1033,6 +1069,7 @@ main(int argc, char* argv[])
             d.txProb = g_txProb;
             d.marginDb = g_marginDb;
             d.thetaDeg = 90;
+            d.rateLimitHzPerS = 1e9;
         }
         if (beacons)
         {
@@ -1053,7 +1090,7 @@ main(int argc, char* argv[])
         {
             const PassRecord& r = g_pass[k];
             std::cout << "PASS pass=" << k << " p=" << r.txProb << " marginDb=" << r.marginDb
-                      << " thetaDeg=" << r.thetaDeg << " sent=" << r.sent
+                      << " thetaDeg=" << r.thetaDeg << " rateLimit=" << r.rateLimitHzPerS << " sent=" << r.sent
                       << " received=" << r.received << " rejDoppler=" << r.rejectedDoppler
                       << " underSens=" << r.underSensitivity << " interfered=" << r.interfered
                       << " noDemod=" << r.noDemodulator << " beaconsHeard=" << r.beaconsHeard

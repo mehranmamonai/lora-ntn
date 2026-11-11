@@ -6,21 +6,27 @@ Modes: 'constant' returns fixed values; 'scripted' changes them from a given pas
 'adaptive' applies the Stage 4 rules, using only gateway-observable fields."""
 import argparse
 import json
+import random
 import sys
 
+from bandit_context import ARMS, arm_key, context_key
+
 OBSERVABLE = {"pass", "received", "received_by_sf", "devices_heard", "rssi_mean_dbm", "rssi_min_dbm",
-              "near_sensitivity", "sf11_by_elevation", "sf12_by_elevation", "devices_heard_total"}
+              "near_sensitivity", "sf11_by_elevation", "sf12_by_elevation", "devices_heard_total",
+              "sf12_by_rate"}
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--p", type=float, required=True)
 parser.add_argument("--margin", type=float, required=True)
 parser.add_argument("--p-from", default="", help="PASS:VALUE, new p for every pass from PASS on")
 parser.add_argument("--margin-from", default="", help="PASS:VALUE, new margin for every pass from PASS on")
-parser.add_argument("--mode", choices=["constant", "scripted", "adaptive"], default="")
+parser.add_argument("--mode", choices=["constant", "scripted", "adaptive", "bandit"], default="")
 parser.add_argument("--k", type=float, default=0, help="adaptive: p = min(1, k / estimated devices); 0 = off")
 parser.add_argument("--adapt-margin", type=int, default=0)
 parser.add_argument("--h", type=float, default=0,
                     help="adaptive two-level load rule: p = 1/2 once distinct devices heard so far exceed H; 0 = off")
+parser.add_argument("--train-seed", type=int, default=-1, help="bandit training: random arm each pass")
+parser.add_argument("--qtable", default="", help="bandit test: Q-table from train_bandit.py")
 args = parser.parse_args()
 mode = args.mode or ("scripted" if args.p_from or args.margin_from else "constant")
 
@@ -36,6 +42,19 @@ p_change, margin_change = change(args.p_from), change(args.margin_from)
 p, margin, theta = args.p, args.margin, 90.0
 sf11 = [0] * 7
 sf12 = [0] * 7
+rate_cumulative = [0] * 6
+rate_limit = None
+rng = random.Random(args.train_seed)
+qtable = json.load(open(args.qtable)) if args.qtable else {}
+
+
+def best_arm(key):
+    """Highest mean reward among arms with at least 10 samples; no threshold if none qualify."""
+    options = [(m, a) for a, (m, n) in qtable.get(key, {}).items() if n >= 10]
+    if not options:
+        return None
+    choice = max(options)[1]
+    return None if choice == "none" else float(choice)
 
 
 def learn_theta():
@@ -84,4 +103,11 @@ while True:
             p = 1.0 if estimated <= 0 else min(1.0, args.k / estimated)
         if args.h > 0:
             p = 0.5 if obs.get("devices_heard_total", 0) > args.h else 1.0
-    print(json.dumps({"p": p, "margin_db": margin, "theta_deg": theta}), flush=True)
+    elif mode == "bandit":
+        rate_cumulative = [a + b for a, b in zip(rate_cumulative, obs.get("sf12_by_rate", [0] * 6))]
+        key = context_key(rate_cumulative, obs.get("devices_heard_total", 0))
+        rate_limit = rng.choice(ARMS) if args.train_seed >= 0 else best_arm(key)
+    reply = {"p": p, "margin_db": margin, "theta_deg": theta}
+    if mode == "bandit":
+        reply["rate_limit_hz_s"] = 1e9 if rate_limit is None else rate_limit
+    print(json.dumps(reply), flush=True)
