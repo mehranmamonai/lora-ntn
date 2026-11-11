@@ -5,9 +5,9 @@
 \usepackage{booktabs}
 \usepackage{cite}
 \usepackage{url}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
 
-% Draft-only: a framed box standing in for a figure that is not generated yet.
-\newcommand{\figplaceholder}[2]{\fbox{\parbox[c][#1][c]{0.94\linewidth}{\centering\small\textit{#2}}}}
 
 \begin{document}
 
@@ -117,8 +117,18 @@ Fig.~\ref{fig:loop} shows the loop. After each pass the network reports what a L
 
 \begin{figure}[t]
 \centering
-\figplaceholder{3.6cm}{Fig.~1 (to be drawn): devices $\rightarrow$ satellite gateway $\rightarrow$ per-pass report $\rightarrow$ controller $\rightarrow$ cut-off in Class~B beacon $\rightarrow$ devices.}
-\caption{Per-pass control loop. Only aggregated network observations enter the controller; settings reach a device only through a beacon it receives.}
+\begin{tikzpicture}[font=\sffamily\scriptsize, >={Stealth[length=4pt]},
+  box/.style={draw, rounded corners=2pt, align=center, minimum width=2.3cm, minimum height=0.95cm, fill=black!4}]
+\node[box] (dev) {\textbf{Devices}\\ SF by link budget;\\ no SF12 above $\theta$};
+\node[box, right=1.05cm of dev] (gw) {\textbf{Satellite gateway}\\ 8 demodulators};
+\node[box, below=0.75cm of gw] (ctl) {\textbf{Controller}\\ once per pass};
+\node[box, below=0.75cm of dev] (bcn) {\textbf{Class B beacon}\\ 128 s, SF9};
+\draw[->] (dev) -- node[above]{uplinks} (gw);
+\draw[->] (gw) -- node[right, align=left]{counts by SF\\ and elevation} (ctl);
+\draw[->] (ctl) -- node[above]{cut-off $\theta$} (bcn);
+\draw[->] (bcn) -- node[left, align=right]{43\% of devices\\ (low latitude)} (dev);
+\end{tikzpicture}
+\caption{\textbf{Only aggregated network observations enter the controller.} After each pass the gateway reports reception counts; the controller returns the SF12 cut-off $\theta$, which reaches a device only through a beacon it receives.}
 \label{fig:loop}
 \end{figure}
 
@@ -152,24 +162,24 @@ We first ask whether knowing the Doppler limit helps at all. Fig.~\ref{fig:headr
 
 \begin{figure}[t]
 \centering
-\figplaceholder{3.4cm}{Fig.~2 (to be generated): stacked bars per collision model, scenarios where the oracle is clearly better / overlapping / clearly worse than link-only (25/37/2, 27/35/2, 21/40/3).}
-\caption{Elevation-aware oracle versus link-only across 192 scenarios, by collision model (seeds 21--25).}
+\includegraphics[width=\linewidth]{figs/fig_headroom.pdf}
+\caption{\textbf{Knowing the Doppler limit helps under every collision model.} Scenarios in which the elevation-aware oracle delivers clearly more, comparably, or clearly less than link-only, out of 64 per collision model (seeds 21--25; ``clearly'' means non-overlapping 95\% intervals).}
 \label{fig:headroom}
 \end{figure}
 
 \subsection{Controller Performance}
 The controller lowered delivery in none of the 192 scenarios. It sets a cut-off only at low latitude with 5~dBi, where SF12 is used at high elevation. At mid-latitude with 5~dBi, SF12 is received only between 20$^\circ$ and 30$^\circ$, and at 10~dBi the cut-off is not triggered either; there it stays at 90$^\circ$ and the controller matches link-only exactly.
 
-Where Doppler loss occurs, the controller learns quickly. In the C3, R1, 500-device scenario, all five seeds run pass~0 without a cut-off, three set one after pass~1, and all hold 50$^\circ$ from pass~2 on (Fig.~\ref{fig:doppler}b). The Doppler-loss share falls from 13.4\% on pass~0 to between 7.5\% and 12\% afterwards.
+Where Doppler loss occurs, the controller learns quickly. In the C3, R1, 500-device scenario, all five seeds run pass~0 without a cut-off, three set one after pass~1, and all hold 50$^\circ$ from pass~2 on (Fig.~\ref{fig:doppler}c). The Doppler-loss share falls from 13.4\% on pass~0 to between 7.5\% and 12\% afterwards.
 
-Across R1, R2 and R4 at low latitude and 5~dBi, the Doppler-loss share is clearly lower in 24 of the 34 scenarios with Doppler loss (Fig.~\ref{fig:doppler}a), for example from 13.0\% to 11.2\% in C3, R1 with 100 devices. In the other ten the mean is lower but the intervals overlap; these are mostly 5000-device scenarios, where collisions dominate, and R2 with 100 devices. Elsewhere, residual Doppler losses of up to 18\% come from SF10 under the analytical limit and disappear under R4, so an SF12 cut-off cannot address them.
+Across R1, R2 and R4 at low latitude and 5~dBi, the Doppler-loss share is clearly lower in 24 of the 34 scenarios with Doppler loss (Fig.~\ref{fig:doppler}a,~b), for example from 13.0\% to 11.2\% in C3, R1 with 100 devices. In the other ten the mean is lower but the intervals overlap; these are mostly 5000-device scenarios, where collisions dominate, and R2 with 100 devices. Elsewhere, residual Doppler losses of up to 18\% come from SF10 under the analytical limit and disappear under R4, so an SF12 cut-off cannot address them.
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
-\figplaceholder{5.2cm}{Fig.~3 (to be generated): (a) Doppler-loss share, link-only vs controller, low latitude, 5 dBi, R1 and R2, by collision model and device count; (b) Doppler-loss share per pass, mean of five seeds, C3, R1, 500 devices.}
-\caption{(a) Doppler-loss share at low latitude and 5~dBi; filled markers mark clear reductions (10 seeds). (b) Learning of the cut-off over passes.}
+\includegraphics[width=\linewidth]{figs/fig_doppler.pdf}
+\caption{\textbf{The controller lowers Doppler loss at low latitude and learns its cut-off within two passes.} (a, b) Doppler-loss share of link-only and the controller at low latitude and 5~dBi under R1 and R2; mean of 10 seeds with 95\% intervals; open markers overlap link-only. R4 equals R1 in this setting and is omitted; C1 with 5000 devices under R1 was outside the test scope. (c) Doppler-loss share per pass for C3, R1, 500 devices; mean of 5 seeds, band is the 95\% interval; shading marks the passes before all seeds hold 50$^\circ$.}
 \label{fig:doppler}
-\end{figure}
+\end{figure*}
 
 \subsection{What Limits the Controller}
 The oracle still delivers more: at low latitude with 5~dBi the controller reaches 0.65 to 0.76 of oracle delivery under R1, R2 and R4. Two causes are plausible. Only 43\% of devices hear a beacon at low latitude, so most devices may never learn the cut-off; or one elevation threshold may be too coarse.
@@ -180,12 +190,12 @@ The cause is the threshold. The Doppler rate a device sees at a given elevation 
 
 A learning controller does not fix this from network data alone. A contextual bandit that chose a Doppler-rate threshold per pass did no harm but performed worse than the elevation rule in all 36 target scenarios, because the reward differences between thresholds (a few packets per pass) were far smaller than the variation between passes.
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
-\figplaceholder{4.2cm}{Fig.~4 (to be generated): delivered packets per device per pass, C3, low latitude, 5 dBi, R1 and R2, by device count: link-only, controller via beacons, controller with instant delivery, oracle; 95\% intervals.}
-\caption{Delivery with beacon and instant setting distribution against the oracle (controller seeds 21--30, oracle seeds 21--25).}
+\includegraphics[width=\linewidth]{figs/fig_limit.pdf}
+\caption{\textbf{Instant delivery of settings gains nothing over beacons; the gap to the oracle remains.} Delivered packets per device per pass for C3 at low latitude and 5~dBi under (a) R1 and (b) R2. Link-only and both controller variants: 10 seeds; oracle: 5 seeds; whiskers are 95\% intervals.}
 \label{fig:limit}
-\end{figure}
+\end{figure*}
 
 \subsection{Negative Result: Load Control}
 The network also sees how many devices it hears, which suggests thinning the offered load with a broadcast transmit probability~\cite{vogelgesang2021,alvarez2022}. With the true number of devices known, a fixed probability lowered airtime per delivered packet without clearly lowering delivery in 11 of 16 high-load scenarios under C1, but in only 5 of 16 under C2 and 7 of 16 under C3. Rules that estimated the load from gateway counts did worse: $p=k/\hat n$ cut delivery to 0.15--0.22 of link-only in its worst tuning scenario, and every threshold of a two-level rule cost at least 13\% of delivery somewhere. The only regime in which thinning helped under all three collision models was mid-latitude, 5~dBi and 5000 devices, where airtime per delivered packet fell to 0.29--0.56 of link-only. The value of load control in this setting thus rests on the collision model, and gateway counters are too coarse to apply it safely.
