@@ -87,7 +87,13 @@ Passes per run & 20 \\
 \end{table}
 
 \subsection{Doppler Limits}
-For each packet the simulator computes the Doppler shift and its rate over the packet's time on air from the orbit geometry~\cite{asadullah2024}. A packet is lost if the shift exceeds the static limit of 25\% of the bandwidth~\cite{asadullah2024,zadorozhny2022}, or if the rate exceeds the dynamic limit for its SF. SF11 and SF12 use low data rate optimization, as the radio requires at 125~kHz~\cite{sx1276}.
+For a device at slant range $\rho(t)$ from the satellite, the Doppler shift and its rate are
+\begin{equation}\label{eq:doppler}
+f_D(t)=-\frac{f_c}{c}\,\dot\rho(t),\qquad \dot f_D(t)=-\frac{f_c}{c}\,\ddot\rho(t),
+\end{equation}
+with carrier frequency $f_c$ and speed of light $c$~\cite{asadullah2024}. The shift is largest at low elevation and the rate is largest at the point of closest approach, so the two limits bite at opposite ends of a pass. Both scale with $f_c$. For our 560~km orbit the peak rate on a zenith pass is 137~Hz/s at 436.7~MHz, within 5\% of the 143--144~Hz/s reported for the flight orbit~\cite{zadorozhny2022,asadullah2024}, and 273~Hz/s at 868.1~MHz. The largest shift, at 20$^\circ$ elevation, is 19.0~kHz at 868.1~MHz.
+
+For each packet the simulator evaluates \eqref{eq:doppler} over the packet's time on air. A packet is lost if the shift exceeds the static limit of 25\% of the bandwidth~\cite{asadullah2024,zadorozhny2022}, or if the rate exceeds the dynamic limit for its SF. With 31.25~kHz at 125~kHz bandwidth, the static limit does not bind above 20$^\circ$ in our scenarios, so all Doppler losses are rate losses. SF11 and SF12 use low data rate optimization, as the radio requires at 125~kHz~\cite{sx1276}.
 
 The SF12 dynamic limit at 868~MHz has not been measured, so we carry four readings:
 \begin{itemize}
@@ -151,7 +157,7 @@ The satellite sends a Class~B beacon every 128~s at SF9 on 869.525~MHz in implic
 \emph{Link-only} chooses the lowest SF whose link budget closes at the current distance, the trajectory-based policy of~\cite{alvarez2022}. The \emph{elevation-aware oracle} also requires each packet to pass the true Doppler limit of the running reading, and skips the attempt otherwise. It needs knowledge no real system has and bounds what Doppler-aware SF choice can achieve.
 
 \section{Evaluation Method}\label{sec:method}
-A scenario combines a collision model (C1--C3), a Doppler reading (R1--R4), a latitude (low, mid), an antenna gain (5, 10~dBi) and a device count (100 to 5000), giving 192 scenarios. Each run covers 20 passes. The link margin was tuned once per latitude ($-2$~dB low, 0~dB mid). Controller design choices were tuned on seeds 16--20 and tested on seeds 21--30; the oracle was run on seeds 21--25. We report means with 95\% $t$-intervals and call a difference \emph{clear} when the intervals do not overlap. Pass criteria for every experiment were fixed before it ran.
+A scenario combines a collision model (C1--C3), a Doppler reading (R1--R4), a latitude (low, mid), an antenna gain (5, 10~dBi) and a device count (100 to 5000), giving 192 scenarios. Each run covers 20 passes. The link margin was tuned once per latitude ($-2$~dB low, 0~dB mid) and then held fixed for all policies. The cut-off rule \eqref{eq:cutoff} was fixed by design before any run. Candidate additions to the controller, namely load rules and link-margin adaptation, were tried on tuning seeds 16--20 and kept only if they did not lower delivery in any tuning scenario; none was kept. All reported results use the separate test seeds 21--30, and the oracle was run on seeds 21--25. We report means with 95\% $t$-intervals and call a difference \emph{clear} when the intervals do not overlap. Pass criteria for every experiment were fixed before it ran.
 
 The main metric is delivered packets per device per pass. The Doppler-loss share is the fraction of transmitted packets lost to the Doppler limit.
 
@@ -182,11 +188,38 @@ Across R1, R2 and R4 at low latitude and 5~dBi, the Doppler-loss share is clearl
 \end{figure*}
 
 \subsection{What Limits the Controller}
-The oracle still delivers more: at low latitude with 5~dBi the controller reaches 0.65 to 0.76 of oracle delivery under R1, R2 and R4. Two causes are plausible. Only 43\% of devices hear a beacon at low latitude, so most devices may never learn the cut-off; or one elevation threshold may be too coarse.
+The oracle still delivers more (Table~\ref{tab:c3}): at low latitude with 5~dBi the controller reaches 0.65 to 0.76 of oracle delivery under R1, R2 and R4, compared on the same seeds 21--25.
+
+\begin{table}[t]
+\centering
+\caption{Delivery and Doppler loss under C3, low latitude, 5~dBi}\label{tab:c3}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llccccc@{}}
+\toprule
+ & & \multicolumn{3}{c}{Packets per device per pass} & \multicolumn{2}{c}{Doppler loss (\%)} \\
+\cmidrule(lr){3-5}\cmidrule(l){6-7}
+ & $N$ & Link-only & Controller & Oracle & Link-only & Controller \\
+\midrule
+R1 & 100  & 0.075 & 0.079 & 0.103 & 13.0 & \textbf{11.2} \\
+   & 500  & 0.070 & 0.075 & 0.098 & 11.2 & \textbf{9.0} \\
+   & 2000 & 0.054 & 0.058 & 0.079 & 6.5 & \textbf{5.5} \\
+   & 5000 & 0.034 & 0.037 & 0.049 & 2.1 & 1.9 \\
+\midrule
+R2 & 100  & 0.044 & 0.044 & 0.071 & 19.0 & 18.1 \\
+   & 500  & 0.040 & 0.045 & 0.069 & 16.8 & \textbf{14.8} \\
+   & 2000 & 0.036 & 0.039 & 0.060 & 9.9 & \textbf{9.2} \\
+   & 5000 & 0.027 & 0.029 & 0.044 & 3.4 & 3.3 \\
+\bottomrule
+\end{tabular}
+\\[2pt]
+\parbox{\linewidth}{\footnotesize Link-only and controller: means of seeds 21--30; oracle: seeds 21--25. Bold: clearly lower than link-only (non-overlapping 95\% intervals). R4 is identical to R1 here.}
+\end{table} Two causes are plausible. Only 43\% of devices hear a beacon at low latitude, so most devices may never learn the cut-off; or one elevation threshold may be too coarse.
 
 We tested the first cause directly by applying the controller's settings to every device at each pass boundary, with beacons off. With criteria fixed in advance, instant delivery would count as the limit if it was clearly better in at least 27 of the 36 low-latitude 5~dBi scenarios. It was clearly better in none, and closed a median of 1\% of the gap to the oracle (range $-3\%$ to 20\%; Fig.~\ref{fig:limit}). At 10~dBi, where no cut-off is learned, it changed no scenario, as expected.
 
 The cause is the threshold. The Doppler rate a device sees at a given elevation depends on how close the pass comes to zenith. Over the pass geometries in our runs, any single elevation threshold misclassifies 13.3\% of SF12 decisions under R1 and 30.0\% under R2: it either withholds SF12 from packets that would survive or allows it for packets that will not. Closing the gap needs a rule on Doppler rate, which a device could compute from published ephemeris and its own position.
+
+Such a rule moves work to the device. A static sensor knows its position once; it would also need recent orbital elements, which trajectory-based policies already assume~\cite{alvarez2022}, and the time, which Class~B beacons carry~\cite{lorawanL2}. With these, the device can evaluate \eqref{eq:doppler} over the time on air of each candidate packet and withhold SF12 only when the predicted rate exceeds the limit. The network role then shrinks to estimating that limit, for which the gateway's counts by elevation are a natural input. We leave this split design to future work.
 
 A learning controller does not fix this from network data alone. A contextual bandit that chose a Doppler-rate threshold per pass did no harm but performed worse than the elevation rule in all 36 target scenarios, because the reward differences between thresholds (a few packets per pass) were far smaller than the variation between passes.
 
@@ -210,58 +243,57 @@ The network also sees how many devices it hears, which suggests thinning the off
 \section{Conclusion}
 The network can see SF12 Doppler loss in its own reception counts and act on it. A per-pass controller that learns one elevation cut-off and sends it in Class~B beacons never harmed delivery across 192 scenarios and clearly reduced Doppler loss in 24 of the 34 where it occurs. Its gain is capped by the coarseness of a single elevation threshold, not by beacon reach. Thinning load from gateway counters did not survive measured collision thresholds. Future work should measure the SF12 Doppler-rate limit at 868~MHz and test device-side Doppler-rate rules driven by ephemeris.
 
-% References: entries marked [verify] still need their full bibliographic details checked against the source.
 \begin{thebibliography}{99}
 
-\bibitem{alvarez2022} G.~\'Alvarez, J.~A. Fraire, K.~A. Hassan, S.~C\'espedes, and D.~Pesch, ``Uplink transmission policies for LoRa-based direct-to-satellite IoT,'' \emph{IEEE Access}, 2022. [verify]
+\bibitem{alvarez2022} G.~\'Alvarez, J.~A. Fraire, K.~A. Hassan, S.~C\'espedes, and D.~Pesch, ``Uplink transmission policies for LoRa-based direct-to-satellite IoT,'' \emph{IEEE Access}, vol.~10, pp.~72687--72701, 2022, doi:10.1109/ACCESS.2022.3189647.
 
-\bibitem{asadullah2024} M.~Asad~Ullah \emph{et al.}, Doppler analysis of LoRa for LEO satellite IoT, 2024. [verify title and venue]
+\bibitem{asadullah2024} M.~Asad~Ullah, G.~Pasolini, K.~Mikhaylov, and H.~Alves, ``Understanding the limits of LoRa direct-to-satellite: The Doppler perspectives,'' \emph{IEEE Open J. Commun. Soc.}, vol.~5, pp.~51--63, 2024, doi:10.1109/OJCOMS.2023.3337004.
 
-\bibitem{zadorozhny2022} A.~M. Zadorozhny \emph{et al.}, ``First flight-testing of LoRa modulation in satellite radio communications in low-Earth orbit,'' \emph{IEEE Access}, 2022. [verify]
+\bibitem{zadorozhny2022} A.~M. Zadorozhny, A.~A. Doroshkin, V.~N. Gorev, A.~V. Melkov, A.~A. Mitrokhin, V.~Yu. Prokopyev, and Y.~M. Prokopyev, ``First flight-testing of LoRa modulation in satellite radio communications in low-Earth orbit,'' \emph{IEEE Access}, vol.~10, pp.~100006--100023, 2022, doi:10.1109/ACCESS.2022.3207762.
 
-\bibitem{doroshkin2019} A.~A. Doroshkin \emph{et al.}, ``Experimental study of LoRa modulation immunity to Doppler effect in CubeSat radio communications,'' \emph{IEEE Access}, 2019. [verify]
+\bibitem{doroshkin2019} A.~A. Doroshkin, A.~M. Zadorozhny, O.~N. Kus, V.~Yu. Prokopyev, and Y.~M. Prokopyev, ``Experimental study of LoRa modulation immunity to Doppler effect in CubeSat radio communications,'' \emph{IEEE Access}, vol.~7, pp.~75721--75731, 2019, doi:10.1109/ACCESS.2019.2919274.
 
-\bibitem{colombo2022} Colombo \emph{et al.}, LoRa satellite Doppler emulation at 868~MHz, IEEE, 2022, doi:10.1109/MN55117.2022.9887761. [verify title and venue]
+\bibitem{colombo2022} R.~M. Colombo, A.~Mahmood, E.~Sisinni, P.~Ferrari, and M.~Gidlund, ``Low-cost SDR-based tool for evaluating LoRa satellite communications,'' in \emph{Proc. IEEE Int. Symp. Measurements \& Networking (M\&N)}, 2022, doi:10.1109/MN55117.2022.9887761.
 
-\bibitem{sx1301} Semtech, \emph{SX1301 Datasheet}, v2.4.
+\bibitem{sx1301} Semtech, \emph{SX1301 Datasheet}, rev.~2.4.
 
 \bibitem{sx1276} Semtech, \emph{SX1276/77/78/79 Datasheet}.
 
-\bibitem{tarchi2026} D.~Tarchi \emph{et al.}, O-RAN timescales for non-terrestrial networks, arXiv:2603.23252, 2026. [verify]
+\bibitem{tarchi2026} D.~Tarchi, ``AI lifecycle-aware feasibility framework for split-RIC orchestration in NTN O-RAN,'' arXiv:2603.23252, 2026.
 
 \bibitem{lorawanL2} LoRa Alliance, \emph{LoRaWAN L2 1.0.4 Specification}, 2020.
 
-\bibitem{lorawanRP} LoRa Alliance, \emph{LoRaWAN Regional Parameters v1.0.2}.
+\bibitem{lorawanRP} LoRa Alliance, \emph{LoRaWAN Regional Parameters v1.0.2}, 2017.
 
-\bibitem{goursaud2015} C.~Goursaud and J.-M. Gorce, ``Dedicated networks for IoT: PHY/MAC state of the art and challenges,'' \emph{EAI Endorsed Trans. Internet of Things}, 2015.
+\bibitem{goursaud2015} C.~Goursaud and J.-M. Gorce, ``Dedicated networks for IoT: PHY/MAC state of the art and challenges,'' \emph{EAI Endorsed Trans. Internet of Things}, 2015, doi:10.4108/eai.26-10-2015.150597.
 
-\bibitem{croce2018} D.~Croce, M.~Gucciardo, S.~Mangione, G.~Santaromita, and I.~Tinnirello, ``Impact of LoRa imperfect orthogonality: Analysis of link-level performance,'' \emph{IEEE Commun. Lett.}, 2018.
+\bibitem{croce2018} D.~Croce, M.~Gucciardo, S.~Mangione, G.~Santaromita, and I.~Tinnirello, ``Impact of LoRa imperfect orthogonality: Analysis of link-level performance,'' \emph{IEEE Commun. Lett.}, vol.~22, no.~4, pp.~796--799, 2018.
 
-\bibitem{bor2016} M.~C. Bor, U.~Roedig, T.~Voigt, and J.~M. Alonso, ``Do LoRa low-power wide-area networks scale?'' in \emph{Proc. ACM MSWiM}, 2016.
+\bibitem{bor2016} M.~C. Bor, U.~Roedig, T.~Voigt, and J.~M. Alonso, ``Do LoRa low-power wide-area networks scale?'' in \emph{Proc. ACM MSWiM}, 2016, pp.~59--67.
 
-\bibitem{rahmadhani2018} A.~Rahmadhani and F.~Kuipers, ``When LoRaWAN frames collide,'' in \emph{Proc. ACM WiNTECH}, 2018.
+\bibitem{rahmadhani2018} A.~Rahmadhani and F.~Kuipers, ``When LoRaWAN frames collide,'' in \emph{Proc. ACM WiNTECH}, 2018, pp.~89--97, doi:10.1145/3267204.3267212.
 
-\bibitem{tondo2024} F.~A. Tondo \emph{et al.}, multi-channel scheduling for direct-to-satellite LoRa, 2024. [verify]
+\bibitem{tondo2024} F.~A. Tondo, M.~Afhamisis, S.~Montejo-S\'anchez, O.~L. Alcaraz~L\'opez, M.~R. Palattella, and R.~D. Souza, ``Multiple channel LoRa-to-LEO scheduling for direct-to-satellite IoT,'' \emph{IEEE Access}, vol.~12, pp.~30627--30637, 2024, doi:10.1109/ACCESS.2024.3368872.
 
-\bibitem{maleki2026} Maleki \emph{et al.}, reinforcement learning for Doppler-aware LoRa satellite access, 2026. [verify]
+\bibitem{maleki2026} A.~Maleki, E.~Bedeer, and R.~Barton, ``Packet loss analysis under Doppler effects and reinforcement-learning-based resource allocation for direct-to-satellite LoRaWAN,'' arXiv:2610.23682, 2026.
 
-\bibitem{herreria2023} S.~Herreria-Alonso \emph{et al.}, adaptive Aloha for LoRa satellite IoT, 2023. [verify]
+\bibitem{herreria2023} S.~Herrer\'ia-Alonso, M.~Rodr\'iguez-P\'erez, R.~F. Rodr\'iguez-Rubio, and F.~P\'erez-Font\'an, ``Improving uplink scalability of LoRa-based direct-to-satellite IoT networks,'' \emph{IEEE Internet Things J.}, vol.~11, no.~7, pp.~12526--12535, 2024, doi:10.1109/JIOT.2023.3333934.
 
-\bibitem{vogelgesang2021} K.~Vogelgesang \emph{et al.}, ``Uplink transmission probability functions for LoRa-based direct-to-satellite IoT: A case study,'' in \emph{Proc. IEEE GLOBECOM}, 2021, doi:10.1109/GLOBECOM46510.2021.9685152. [verify]
+\bibitem{vogelgesang2021} K.~Vogelgesang, J.~A. Fraire, and H.~Hermanns, ``Uplink transmission probability functions for LoRa-based direct-to-satellite IoT: A case study,'' in \emph{Proc. IEEE GLOBECOM}, 2021, doi:10.1109/GLOBECOM46510.2021.9685152.
 
-\bibitem{fsma2026} FSMA: free-channel signalling for LoRa satellite access, in \emph{Proc. ACM MobiHoc}, 2026, arXiv:2510.02800. [verify]
+\bibitem{fsma2026} R.~R. Vennam, M.~Zhang, R.~Subbaraman, D.~Vasisht \emph{et al.}, ``FSMA: Gateway-controlled access for scalable LoRa non-terrestrial networks,'' in \emph{Proc. ACM MobiHoc}, 2026, arXiv:2510.02800.
 
-\bibitem{traspadini2025} Traspadini \emph{et al.}, 2025. [verify]
+\bibitem{traspadini2025} A.~Traspadini, M.~Zorzi, and M.~Giordani, ``Performance evaluation of LoRa for IoT applications in non-terrestrial networks via ns-3,'' arXiv:2509.02811, 2025.
 
-\bibitem{casals2017} L.~Casals, B.~Mir, R.~Vidal, and C.~Gomez, ``Modeling the energy performance of LoRaWAN,'' \emph{Sensors}, 2017.
+\bibitem{casals2017} L.~Casals, B.~Mir, R.~Vidal, and C.~Gomez, ``Modeling the energy performance of LoRaWAN,'' \emph{Sensors}, vol.~17, no.~10, art.~2364, 2017, doi:10.3390/s17102364.
 
-\bibitem{tr38811} 3GPP, ``Study on New Radio (NR) to support non-terrestrial networks,'' TR 38.811 V15.1.0.
+\bibitem{tr38811} 3GPP, ``Study on New Radio (NR) to support non-terrestrial networks,'' TR 38.811, V15.1.0.
 
-\bibitem{santana2026} Sant'Ana \emph{et al.}, 2026. [verify]
+\bibitem{santana2026} J.~M. de~Souza~Sant'Ana, N.~H. Mahmood, and V.~P. Borin, ``Performance analysis of LoRa and LR-FHSS in 3GPP LEO satellite and HAPS channel scenarios for remote area IoT coverage,'' arXiv:2609.07291, 2026.
 
 \bibitem{erc7003} CEPT, ``ERC Recommendation 70-03 relating to the use of short range devices,'' Feb. 2022.
 
-\bibitem{ns3lorawan} D.~Magrin \emph{et al.}, ns-3 LoRaWAN module, \url{https://github.com/signetlabdei/lorawan}, commit e45b4af.
+\bibitem{ns3lorawan} SIGNET Lab, University of Padova, ``LoRaWAN module for ns-3,'' \url{https://github.com/signetlabdei/lorawan}, commit e45b4af.
 
 \end{thebibliography}
 
