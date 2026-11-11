@@ -9,7 +9,7 @@ import json
 import sys
 
 OBSERVABLE = {"pass", "received", "received_by_sf", "devices_heard", "rssi_mean_dbm", "rssi_min_dbm",
-              "near_sensitivity", "sf11_by_elevation", "sf12_by_elevation"}
+              "near_sensitivity", "sf11_by_elevation", "sf12_by_elevation", "devices_heard_total"}
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--p", type=float, required=True)
@@ -19,6 +19,8 @@ parser.add_argument("--margin-from", default="", help="PASS:VALUE, new margin fo
 parser.add_argument("--mode", choices=["constant", "scripted", "adaptive"], default="")
 parser.add_argument("--k", type=float, default=0, help="adaptive: p = min(1, k / estimated devices); 0 = off")
 parser.add_argument("--adapt-margin", type=int, default=0)
+parser.add_argument("--h", type=float, default=0,
+                    help="adaptive two-level load rule: p = 1/2 once distinct devices heard so far exceed H; 0 = off")
 args = parser.parse_args()
 mode = args.mode or ("scripted" if args.p_from or args.margin_from else "constant")
 
@@ -80,4 +82,6 @@ while True:
         if args.k > 0:
             estimated = obs["devices_heard"] / max(p, 0.0625)
             p = 1.0 if estimated <= 0 else min(1.0, args.k / estimated)
+        if args.h > 0:
+            p = 0.5 if obs.get("devices_heard_total", 0) > args.h else 1.0
     print(json.dumps({"p": p, "margin_db": margin, "theta_deg": theta}), flush=True)

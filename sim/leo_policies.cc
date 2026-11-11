@@ -279,6 +279,7 @@ struct PassRecord
 };
 
 std::vector<PassRecord> g_pass;
+std::set<int> g_everHeard; // Distinct devices heard since the start (device addresses)
 
 int
 PassAt(double t)
@@ -374,7 +375,7 @@ ObservationJson(int pass)
     {
         o << "null,\"rssi_min_dbm\":null";
     }
-    o << ",\"near_sensitivity\":" << r.nearSensitivity;
+    o << ",\"near_sensitivity\":" << r.nearSensitivity << ",\"devices_heard_total\":" << g_everHeard.size();
     for (const auto& [key, bins] : {std::make_pair("sf11_by_elevation", &r.sf11ByElevation),
                                     std::make_pair("sf12_by_elevation", &r.sf12ByElevation)})
     {
@@ -711,6 +712,7 @@ OnReceived(Ptr<const Packet> packet, uint32_t)
         ++p.received;
         ++p.receivedBySf[it->second.sf];
         p.devicesHeard.insert(it->second.device);
+        g_everHeard.insert(it->second.device);
         // The gateway knows each packet's arrival time and its own orbit, hence the elevation.
         const int sf = it->second.sf;
         if (sf == 11 || sf == 12)

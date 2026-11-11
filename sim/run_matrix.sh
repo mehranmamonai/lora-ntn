@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
-# Stage 4: rule-based controller for Doppler cut-off, margin and load, delivered by beacons.
-# Phase 1 tunes on seeds 16-20 (collision C3, readings R1 and R3); phase 2 tests the chosen settings
-# on seeds 21-25 under C1-C3 and R1-R4, with elevation-aware given the true reading as an oracle.
-# Link-only p=1 baselines come from earlier runs on the VM (see summarize.py).
+# Stage 4 revision: Doppler cut-off plus a two-level load rule (p = 1/2 once distinct devices heard
+# exceed H), delivered by beacons. Phase 1 tunes H on seeds 16-20 (C3, R1 and R3); phase 2 tests on
+# seeds 21-30 under C1-C3 and R1-R4. Link-only baselines: seeds 21-25 from earlier runs, 26-30 here.
 set -euo pipefail
 mkdir -p results/cases
 JOBS=$(( $(nproc) > 1 ? $(nproc) - 1 : 1 ))
@@ -15,7 +14,7 @@ run_one() {
     if [ "$k" = frozen ]; then
       extra+=("--controller=python3,scripts/controller.py,--p,1,--margin,$margin")
     else
-      extra+=("--controller=python3,scripts/controller.py,--mode,adaptive,--p,1,--margin,$margin,--k,$k,--adapt-margin,$adapt")
+      extra+=("--controller=python3,scripts/controller.py,--mode,adaptive,--p,1,--margin,$margin,--k,0,--adapt-margin,0,--h,$k")
       extra+=("--exploreProb=$eps")
     fi
   fi
@@ -34,18 +33,16 @@ SCENS=("7.69 -2" "0 0")
       echo "7 $col 1 $n 7.69 -2 5 21 frozen 0 0 z0"
     done
   done
-  # Phase 1 tuning: controlled combinations and link-only baselines at N=500 (N=5000 baselines exist).
+  # Phase 1 tuning of H (field k); link-only baselines at N=2000 (N=500: f1c0467c; N=5000: 8a1478bb).
   for seed in 16 17 18 19 20; do
     for scen in "${SCENS[@]}"; do
       read -r scint lock <<< "$scen"
       for gain in 5 10; do
         for mode in 1 2; do
-          echo "2 3 $mode 500 $scint $lock $gain $seed none 0 0 tune"
-          for n in 500 5000; do
-            for k in 150 400 0; do
-              for adapt in 1 0; do
-                echo "7 3 $mode $n $scint $lock $gain $seed $k $adapt 0.1 tune"
-              done
+          echo "2 3 $mode 2000 $scint $lock $gain $seed none 0 0 tune"
+          for n in 500 2000 5000; do
+            for h in 1000 2000 3000 0; do
+              echo "7 3 $mode $n $scint $lock $gain $seed $h 0 0.1 tune"
             done
           done
         done
@@ -54,20 +51,21 @@ SCENS=("7.69 -2" "0 0")
   done
 } | xargs -P "$JOBS" -L 1 bash -c 'run_one "$0" "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}"' | tee results/runs.txt
 echo "CHOOSE"
-python3 scripts/summarize.py choose results/runs.txt "$HOME/lora-ntn-runs/8a1478bb-d9f6ec6/repo/results/runs.txt" \
+python3 scripts/summarize.py choose results/runs.txt "$HOME/lora-ntn-runs/f1c0467c-436368e/repo/results/runs.txt" \
+  "$HOME/lora-ntn-runs/8a1478bb-d9f6ec6/repo/results/runs.txt" \
   | tee results/choice.txt
 read -r K ADAPT < <(grep '^CHOSEN' results/choice.txt | sed -E 's/.*k=([^ ]+) adapt=([^ ]+).*/\1 \2/')
 {
-  # Phase 2 test: chosen controller and the elevation-aware oracle on unused seeds.
-  for seed in 21 22 23 24 25; do
+  # Phase 2 test: chosen controller on seeds 21-30, link-only baselines for seeds 26-30.
+  for seed in 21 22 23 24 25 26 27 28 29 30; do
     for col in 1 2 3; do
       for mode in 1 5 2 3; do
         for scen in "${SCENS[@]}"; do
           read -r scint lock <<< "$scen"
           for gain in 5 10; do
             for n in 100 500 2000 5000; do
-              echo "7 $col $mode $n $scint $lock $gain $seed $K $ADAPT 0.1 test"
-              echo "3 $col $mode $n $scint $lock $gain $seed none 0 0 oracle"
+              echo "7 $col $mode $n $scint $lock $gain $seed $K 0 0.1 test"
+              if [ "$seed" -ge 26 ]; then echo "2 $col $mode $n $scint $lock $gain $seed none 0 0 base"; fi
             done
           done
         done
@@ -79,4 +77,4 @@ echo "SUMMARY"
 python3 scripts/summarize.py final results/runs.txt results/cases \
   "$HOME/lora-ntn-runs/a7feb12a-f7ecea4/repo/results/runs.txt" "$HOME/lora-ntn-runs/17491a20-b34999c/repo/results/runs.txt" \
   "$HOME/lora-ntn-runs/5fff0738-26c488b/repo/results/runs.txt" "$HOME/lora-ntn-runs/8a1478bb-d9f6ec6/repo/results/runs.txt" \
-  | tee results/summary.txt
+  "$HOME/lora-ntn-runs/f1c0467c-436368e/repo/results/runs.txt" | tee results/summary.txt

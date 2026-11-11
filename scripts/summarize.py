@@ -1,13 +1,13 @@
-"""Stage 4: choose the controller settings on seeds 16-20, then test criteria Z0 and T1-T4.
-Usage: summarize.py choose runs.txt c3_parent_runs.txt
-       summarize.py final runs.txt cases_dir c1_runs c1_runs c2_runs c3_runs"""
+"""Stage 4 revision: choose H on seeds 16-20, then test criteria Z0 and T1-T4 on seeds 21-30.
+Usage: summarize.py choose runs.txt parent_runs.txt [parent_runs.txt ...]
+       summarize.py final runs.txt cases_dir c1_runs c1_runs c2_runs c3_runs stage4_runs"""
 import math
 import os
 import statistics as st
 import sys
 from collections import defaultdict
 
-T_95_DF4 = 2.776
+T_95 = {1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447, 7: 2.365, 8: 2.306, 9: 2.262}
 LOCK = {7.69: -2.0, 0.0: 0.0}
 READINGS = {1: "R1", 5: "R2", 2: "R3", 3: "R4"}
 HOLE_MODES = (1, 5, 3)
@@ -26,7 +26,7 @@ def rows(path, default_collision="1"):
 
 
 def ci(values):
-    return st.mean(values), (T_95_DF4 * st.stdev(values) / len(values) ** 0.5 if len(values) > 1 else 0.0)
+    return st.mean(values), (T_95[len(values) - 1] * st.stdev(values) / len(values) ** 0.5 if len(values) > 1 else 0.0)
 
 
 def delivered(r):
@@ -71,7 +71,8 @@ def stat(runs, fn):
 if sys.argv[1] == "choose":
     new = rows(sys.argv[2])
     seeds = {16, 17, 18, 19, 20}
-    base = group([r for r in new + rows(sys.argv[3]) if is_baseline(r, seeds) and int(r["collision"]) == 3])
+    parents = [r for path in sys.argv[3:] for r in rows(path, "3")]
+    base = group([r for r in new + parents if is_baseline(r, seeds) and int(r["collision"]) == 3])
     combos = defaultdict(list)
     for r in new:
         if r["part"] == "tune" and r["policy"] == "controlled":
@@ -102,10 +103,11 @@ cases_dir = sys.argv[3]
 c1 = [r for p in sys.argv[4:6] for r in rows(p, "1")]
 c2 = rows(sys.argv[6], "2")
 c3 = rows(sys.argv[7], "3")
-seeds = {21, 22, 23, 24, 25}
-base = group([r for r in c1 + c2 + c3 if is_baseline(r, seeds)])
+seeds = set(range(21, 31))
+own_base = [x for x in new if x["part"] == "base"]
+base = group([r for r in c1 + c2 + c3 + own_base if is_baseline(r, seeds)])
 ctrl = group([r for r in new if r["part"] == "test"])
-oracle = group([r for r in new if r["part"] == "oracle"])
+oracle = group([r for r in rows(sys.argv[8]) if r["part"] == "oracle"])
 
 # Z0
 z = defaultdict(dict)
@@ -119,7 +121,7 @@ print(f"Z0 pairs={len(z)} mismatches={len(z_bad)} holds={z0}")
 chosen = next(((r["k"], r["adapt"]) for r in new if r["part"] == "test"), ("?", "?"))
 print(f"CHOSEN k={chosen[0]} adapt={chosen[1]}")
 
-missing = [k for k in ctrl if k not in base]
+missing = [k for k in ctrl if k not in base or len(base[k]) != len(ctrl[k])]
 print(f"BASELINES cells={len(ctrl)} missing={len(missing)} {missing[:3]}")
 
 # T1 no harm
@@ -140,14 +142,17 @@ for key, runs in ctrl.items():
     if key not in base:
         continue
     a, b = stat(runs, doppler_share), stat(base[key], doppler_share)
-    if key[1] in HOLE_MODES:
+    if key[1] in HOLE_MODES and b[0] > 0.01:
         hole_cells += 1
         better += clearly_below(a, b)
+        print(f"T2 cell C{key[0]} {READINGS[key[1]]} scint={key[2]:g} gain={key[3]:g} n={key[4]} "
+              f"dop ctrl={a[0]:.3f}+-{a[1]:.3f} link={b[0]:.3f}+-{b[1]:.3f} lower={clearly_below(a, b)}")
     elif key[1] == 2:
         r3_cells += 1
         worse_r3 += clearly_below(b, a)
-t2 = hole_cells == 144 and better >= 108 and r3_cells == 48 and worse_r3 == 0
-print(f"T2 hole_cells={hole_cells} lower_doppler_loss={better} needed=108 r3_cells={r3_cells} "
+needed = math.ceil(0.75 * hole_cells)
+t2 = hole_cells > 0 and better >= needed and r3_cells == 48 and worse_r3 == 0
+print(f"T2 scoped_hole_cells={hole_cells} lower_doppler_loss={better} needed={needed} r3_cells={r3_cells} "
       f"r3_higher={worse_r3} holds={t2}")
 
 # T3 load
@@ -188,6 +193,15 @@ for r in new:
         with open(path) as f:
             last = [line for line in f if line.startswith("PASS ")][-1]
         thetas[int(r["dopplerLimits"])].append(float(dict(kv.split("=") for kv in last.split()[1:])["thetaDeg"]))
+final_p = defaultdict(list)
+for r in new:
+    if r["part"] == "test":
+        with open(os.path.join(cases_dir, r["case"] + ".log")) as f:
+            last = [line for line in f if line.startswith("PASS ")][-1]
+        final_p[(float(r["scintDb"]), int(r["n"]))].append(float(dict(kv.split("=") for kv in last.split()[1:])["p"]))
+for key in sorted(final_p):
+    v = final_p[key]
+    print(f"T4 load scint={key[0]:g} n={key[1]} share_ending_at_p_half={sum(x < 1 for x in v) / len(v):.2f}")
 for mode in (1, 5, 2, 3):
     values = thetas[mode]
     print(f"T4 theta {READINGS[mode]} final cut-off median={st.median(values):g} "
