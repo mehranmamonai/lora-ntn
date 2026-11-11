@@ -109,4 +109,61 @@ if "static const double SENSITIVITY[6]" in text:
 text = gw_c.read_text()
 if "const double GatewayLoraPhy::SENSITIVITY[6]" in text:
     gw_c.write_text(text.replace("const double GatewayLoraPhy::SENSITIVITY[6]", "double GatewayLoraPhy::SENSITIVITY[6]"))
+# Receiver-locking rule (collision model C3), off by default. Bor et al. 2016 (PDF p. 5, Fig. 3, Eq. 10):
+# with an 8-symbol preamble the receiver locks after 5 symbols, so a same-SF packet arriving more than
+# 3 symbols after another one is lost whatever its power. Rahmadhani and Kuipers 2018 (PDF p. 4, Case 1)
+# observed the same. Measured on single-receiver chips; an SX1301 may behave better.
+ih_h = model / "lora-interference-helper.h"
+ih_c = model / "lora-interference-helper.cc"
+text = ih_h.read_text()
+if "s_lockRule" not in text:
+    a1 = "    static std::vector<std::vector<double>> collisionSnirGoursaud; //!< GOURSAUD collision matrix\n"
+    assert a1 in text
+    ih_h.write_text(text.replace(
+        a1,
+        a1 + "    static bool s_lockRule;          //!< Apply the receiver-locking rule\n"
+             "    static uint64_t s_lockLost;      //!< Packets lost to the locking rule\n"
+             "    static double s_lockLeadSymbols; //!< Lead, in symbols, after which the receiver is locked\n"
+             "    static double s_lockBandwidthHz; //!< Bandwidth used to convert symbols to seconds\n",
+    ))
+text = ih_c.read_text()
+# Version 1 of this rule let the receiver lock onto packets too weak to detect; upgrade it in place.
+OLD_LOCK = "        if (s_lockRule && interfererSf == sf && interfererEndTime > packetStartTime &&\n"
+NEW_LOCK = ("        if (s_lockRule && interfererSf == sf && interfererEndTime > packetStartTime &&\n"
+            "            interfererPower >= GatewayLoraPhy::SENSITIVITY[unsigned(sf) - 7] &&\n")
+if OLD_LOCK in text and NEW_LOCK not in text:
+    text = text.replace(OLD_LOCK, NEW_LOCK)
+    if '#include "gateway-lora-phy.h"' not in text:
+        first_include = text.index("#include")
+        text = text[:first_include] + '#include "gateway-lora-phy.h"\n' + text[first_include:]
+    ih_c.write_text(text)
+if "s_lockRule" not in text:
+    a1 = "Time LoraInterferenceHelper::oldEventThreshold = Seconds(2);\n"
+    a2 = "        Time interfererEndTime = interferer->GetEndTime();\n"
+    assert a1 in text and a2 in text
+    first_include = text.index("#include")
+    text = text[:first_include] + '#include "gateway-lora-phy.h"\n' + text[first_include:]
+    text = text.replace(
+        a1,
+        a1 + "bool LoraInterferenceHelper::s_lockRule = false;\n"
+             "uint64_t LoraInterferenceHelper::s_lockLost = 0;\n"
+             "double LoraInterferenceHelper::s_lockLeadSymbols = 3;\n"
+             "double LoraInterferenceHelper::s_lockBandwidthHz = 125000;\n",
+    )
+    text = text.replace(
+        a2,
+        a2 + "\n"
+             "        // Receiver locked onto an earlier, detectable same-SF packet still on air when this\n"
+             "        // one starts.\n"
+             "        if (s_lockRule && interfererSf == sf && interfererEndTime > packetStartTime &&\n"
+             "            interfererPower >= GatewayLoraPhy::SENSITIVITY[unsigned(sf) - 7] &&\n"
+             "            interfererStartTime +\n"
+             "                    Seconds(s_lockLeadSymbols * double(1u << sf) / s_lockBandwidthHz) <\n"
+             "                packetStartTime)\n"
+             "        {\n"
+             "            ++s_lockLost;\n"
+             "            return sf;\n"
+             "        }\n",
+    )
+    ih_c.write_text(text)
 print("lorawan patches applied")
