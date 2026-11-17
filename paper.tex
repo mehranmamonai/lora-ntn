@@ -243,6 +243,9 @@ The network also sees how many devices it hears, which suggests thinning the off
 \section{Conclusion}
 The network can see SF12 Doppler loss in its own reception counts and act on it. A per-pass controller that learns one elevation cut-off and sends it in Class~B beacons never harmed delivery across 192 scenarios and clearly reduced Doppler loss in 24 of the 34 where it occurs. Its gain is capped by the coarseness of a single elevation threshold, and faster delivery of settings did not raise it. Thinning load from gateway counters did not survive measured collision thresholds. Future work should measure the SF12 Doppler-rate limit at 868~MHz and test device-side Doppler-rate rules driven by ephemeris.
 
+\section*{Acknowledgment}
+The author used Claude (Anthropic) as an AI assistant during this work. It helped write the simulation and analysis code, produce the figures from the simulation data, organize the literature search, and draft and edit the text of all sections. The author chose the research questions and the experiment design, supplied and checked all cited sources, reviewed every result against the simulation logs, and revised the final text. The author takes full responsibility for the content of this article.
+
 \begin{thebibliography}{99}
 
 \bibitem{alvarez2022} G.~\'Alvarez, J.~A. Fraire, K.~A. Hassan, S.~C\'espedes, and D.~Pesch, ``Uplink transmission policies for LoRa-based direct-to-satellite IoT,'' \emph{IEEE Access}, vol.~10, pp.~72687--72701, 2022, doi:10.1109/ACCESS.2022.3189647.
