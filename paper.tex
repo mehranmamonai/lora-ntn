@@ -114,7 +114,7 @@ Collision outcomes at high load depend strongly on the capture model, and measur
 At 5000 devices, C2 delivers 1.57 to 2.07 times as many packets as C1, so high-load results are reported as ranges across models.
 
 \subsection{Simulator}
-We extend the ns-3 LoRaWAN module~\cite{ns3lorawan} with the orbit, channel and Doppler models above, a writable gateway sensitivity table, uplink-only delivery to the gateway, and the C2 and C3 interference rules. The controller runs as a separate process that exchanges one JSON line per pass with the simulator. With a controller that returns constant settings, all 256 test runs reproduce the uncontrolled runs exactly.
+We extend the ns-3 LoRaWAN module~\cite{ns3lorawan} with the orbit, channel and Doppler models above, a writable gateway sensitivity table, uplink-only delivery to the gateway, and the C2 and C3 interference rules. The controller runs as a separate process that exchanges one JSON line per pass with the simulator. With a controller that returns constant settings, all 256 test runs reproduce the uncontrolled runs exactly. The simulator extensions, the controller, the run scripts and the data behind every figure and table are available at \url{https://github.com/mehranmamonai/lora-ntn}.
 
 \section{Network-Side SF12 Control}\label{sec:controller}
 
