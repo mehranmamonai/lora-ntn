@@ -1,0 +1,219 @@
+Z0 pairs=6 mismatches=0 holds=True
+CHOSEN k=0 adapt=0
+BASELINES cells=192 missing=0 []
+T1 cells=192 harmed=0 holds=True
+T2 hole_cells=144 lower_doppler_loss=17 needed=108 r3_cells=48 r3_higher=0 holds=False
+T3 C1 R1 air ctrl=11.84+-0.75 link=11.84+-0.75 delivered ctrl=0.129 link=0.129 win=False
+T3 C1 R3 air ctrl=11.84+-0.75 link=11.84+-0.75 delivered ctrl=0.129 link=0.129 win=False
+T3 C1 R4 air ctrl=8.36+-0.73 link=8.36+-0.73 delivered ctrl=0.183 link=0.183 win=False
+T3 C1 R2 air ctrl=12.31+-0.70 link=12.31+-0.70 delivered ctrl=0.124 link=0.124 win=False
+T3 C2 R1 air ctrl=6.93+-0.37 link=6.93+-0.37 delivered ctrl=0.220 link=0.220 win=False
+T3 C2 R3 air ctrl=6.93+-0.37 link=6.93+-0.37 delivered ctrl=0.220 link=0.220 win=False
+T3 C2 R4 air ctrl=4.50+-0.33 link=4.50+-0.33 delivered ctrl=0.339 link=0.339 win=False
+T3 C2 R2 air ctrl=7.12+-0.35 link=7.12+-0.35 delivered ctrl=0.214 link=0.214 win=False
+T3 C3 R1 air ctrl=9.16+-0.49 link=9.16+-0.49 delivered ctrl=0.167 link=0.167 win=False
+T3 C3 R3 air ctrl=9.16+-0.49 link=9.16+-0.49 delivered ctrl=0.167 link=0.167 win=False
+T3 C3 R4 air ctrl=6.21+-0.47 link=6.21+-0.47 delivered ctrl=0.246 link=0.246 win=False
+T3 C3 R2 air ctrl=9.45+-0.46 link=9.45+-0.46 delivered ctrl=0.161 link=0.161 win=False
+T3 cells=12 wins=0 needed=10 holds=False
+GATE Z0=True T1=True T2=False T3=False passes=False
+T4 delivery ctrl/link median=1.000 min=0.989 max=1.140
+T4 delivery ctrl/oracle median=0.960 min=0.605 max=1.252
+T4 beacons scint=7.69 heard_share=0.427
+T4 beacons scint=0 heard_share=1.000
+T4 theta R1 final cut-off median=90 share_at_90=0.75
+T4 theta R2 final cut-off median=90 share_at_90=0.75
+T4 theta R3 final cut-off median=90 share_at_90=0.75
+T4 theta R4 final cut-off median=90 share_at_90=0.75
+RESULT C1 R1 scint=0 gain=5 n=100 ctrl=0.838+-0.059 link=0.838+-0.059 oracle=1.030+-0.068 dop_ctrl=0.180 dop_link=0.180
+RESULT C1 R1 scint=0 gain=5 n=500 ctrl=0.687+-0.048 link=0.687+-0.048 oracle=0.767+-0.051 dop_ctrl=0.153 dop_link=0.153
+RESULT C1 R1 scint=0 gain=5 n=2000 ctrl=0.348+-0.017 link=0.348+-0.017 oracle=0.338+-0.018 dop_ctrl=0.081 dop_link=0.081
+RESULT C1 R1 scint=0 gain=5 n=5000 ctrl=0.129+-0.003 link=0.129+-0.003 oracle=0.137+-0.005 dop_ctrl=0.023 dop_link=0.023
+RESULT C1 R1 scint=0 gain=10 n=100 ctrl=1.839+-0.154 link=1.839+-0.154 oracle=1.893+-0.127 dop_ctrl=0.022 dop_link=0.022
+RESULT C1 R1 scint=0 gain=10 n=500 ctrl=1.628+-0.114 link=1.628+-0.114 oracle=1.690+-0.104 dop_ctrl=0.022 dop_link=0.022
+RESULT C1 R1 scint=0 gain=10 n=2000 ctrl=1.111+-0.053 link=1.111+-0.053 oracle=1.175+-0.052 dop_ctrl=0.018 dop_link=0.018
+RESULT C1 R1 scint=0 gain=10 n=5000 ctrl=0.579+-0.016 link=0.579+-0.016 oracle=0.619+-0.014 dop_ctrl=0.012 dop_link=0.012
+RESULT C1 R1 scint=7.69 gain=5 n=100 ctrl=0.077+-0.011 link=0.075+-0.003 oracle=0.102+-0.006 dop_ctrl=0.112 dop_link=0.126
+RESULT C1 R1 scint=7.69 gain=5 n=500 ctrl=0.069+-0.008 link=0.064+-0.007 oracle=0.090+-0.009 dop_ctrl=0.080 dop_link=0.097
+RESULT C1 R1 scint=7.69 gain=5 n=2000 ctrl=0.045+-0.003 link=0.041+-0.003 oracle=0.059+-0.004 dop_ctrl=0.032 dop_link=0.038
+RESULT C1 R1 scint=7.69 gain=5 n=5000 ctrl=0.023+-0.002 link=0.022+-0.001 oracle=0.029+-0.001 dop_ctrl=0.007 dop_link=0.008
+RESULT C1 R1 scint=7.69 gain=10 n=100 ctrl=0.380+-0.014 link=0.380+-0.014 oracle=0.605+-0.031 dop_ctrl=0.111 dop_link=0.111
+RESULT C1 R1 scint=7.69 gain=10 n=500 ctrl=0.313+-0.018 link=0.313+-0.018 oracle=0.448+-0.031 dop_ctrl=0.097 dop_link=0.097
+RESULT C1 R1 scint=7.69 gain=10 n=2000 ctrl=0.176+-0.007 link=0.176+-0.007 oracle=0.181+-0.004 dop_ctrl=0.062 dop_link=0.062
+RESULT C1 R1 scint=7.69 gain=10 n=5000 ctrl=0.075+-0.002 link=0.075+-0.002 oracle=0.063+-0.001 dop_ctrl=0.024 dop_link=0.024
+RESULT C1 R3 scint=0 gain=5 n=100 ctrl=0.838+-0.059 link=0.838+-0.059 oracle=1.030+-0.068 dop_ctrl=0.180 dop_link=0.180
+RESULT C1 R3 scint=0 gain=5 n=500 ctrl=0.687+-0.048 link=0.687+-0.048 oracle=0.767+-0.051 dop_ctrl=0.153 dop_link=0.153
+RESULT C1 R3 scint=0 gain=5 n=2000 ctrl=0.348+-0.017 link=0.348+-0.017 oracle=0.338+-0.018 dop_ctrl=0.081 dop_link=0.081
+RESULT C1 R3 scint=0 gain=5 n=5000 ctrl=0.129+-0.003 link=0.129+-0.003 oracle=0.137+-0.005 dop_ctrl=0.023 dop_link=0.023
+RESULT C1 R3 scint=0 gain=10 n=100 ctrl=1.839+-0.154 link=1.839+-0.154 oracle=1.893+-0.127 dop_ctrl=0.022 dop_link=0.022
+RESULT C1 R3 scint=0 gain=10 n=500 ctrl=1.628+-0.114 link=1.628+-0.114 oracle=1.690+-0.104 dop_ctrl=0.022 dop_link=0.022
+RESULT C1 R3 scint=0 gain=10 n=2000 ctrl=1.111+-0.053 link=1.111+-0.053 oracle=1.175+-0.052 dop_ctrl=0.018 dop_link=0.018
+RESULT C1 R3 scint=0 gain=10 n=5000 ctrl=0.579+-0.016 link=0.579+-0.016 oracle=0.619+-0.014 dop_ctrl=0.012 dop_link=0.012
+RESULT C1 R3 scint=7.69 gain=5 n=100 ctrl=0.140+-0.010 link=0.140+-0.010 oracle=0.140+-0.010 dop_ctrl=0.000 dop_link=0.000
+RESULT C1 R3 scint=7.69 gain=5 n=500 ctrl=0.114+-0.010 link=0.115+-0.010 oracle=0.115+-0.010 dop_ctrl=0.000 dop_link=0.000
+RESULT C1 R3 scint=7.69 gain=5 n=2000 ctrl=0.061+-0.003 link=0.061+-0.003 oracle=0.061+-0.003 dop_ctrl=0.000 dop_link=0.000
+RESULT C1 R3 scint=7.69 gain=5 n=5000 ctrl=0.027+-0.001 link=0.026+-0.001 oracle=0.026+-0.001 dop_ctrl=0.000 dop_link=0.000
+RESULT C1 R3 scint=7.69 gain=10 n=100 ctrl=0.380+-0.014 link=0.380+-0.014 oracle=0.605+-0.031 dop_ctrl=0.111 dop_link=0.111
+RESULT C1 R3 scint=7.69 gain=10 n=500 ctrl=0.313+-0.018 link=0.313+-0.018 oracle=0.448+-0.031 dop_ctrl=0.097 dop_link=0.097
+RESULT C1 R3 scint=7.69 gain=10 n=2000 ctrl=0.176+-0.007 link=0.176+-0.007 oracle=0.181+-0.004 dop_ctrl=0.062 dop_link=0.062
+RESULT C1 R3 scint=7.69 gain=10 n=5000 ctrl=0.075+-0.002 link=0.075+-0.002 oracle=0.063+-0.001 dop_ctrl=0.024 dop_link=0.024
+RESULT C1 R4 scint=0 gain=5 n=100 ctrl=1.253+-0.102 link=1.253+-0.102 oracle=1.253+-0.102 dop_ctrl=0.000 dop_link=0.000
+RESULT C1 R4 scint=0 gain=5 n=500 ctrl=1.043+-0.080 link=1.043+-0.080 oracle=1.043+-0.080 dop_ctrl=0.000 dop_link=0.000
+RESULT C1 R4 scint=0 gain=5 n=2000 ctrl=0.536+-0.021 link=0.536+-0.021 oracle=0.536+-0.021 dop_ctrl=0.000 dop_link=0.000
+RESULT C1 R4 scint=0 gain=5 n=5000 ctrl=0.183+-0.004 link=0.183+-0.004 oracle=0.183+-0.004 dop_ctrl=0.000 dop_link=0.000
+RESULT C1 R4 scint=0 gain=10 n=100 ctrl=1.916+-0.144 link=1.916+-0.144 oracle=1.916+-0.144 dop_ctrl=0.000 dop_link=0.000
+RESULT C1 R4 scint=0 gain=10 n=500 ctrl=1.698+-0.111 link=1.698+-0.111 oracle=1.698+-0.111 dop_ctrl=0.000 dop_link=0.000
+RESULT C1 R4 scint=0 gain=10 n=2000 ctrl=1.171+-0.049 link=1.171+-0.049 oracle=1.171+-0.049 dop_ctrl=0.000 dop_link=0.000
+RESULT C1 R4 scint=0 gain=10 n=5000 ctrl=0.617+-0.014 link=0.617+-0.014 oracle=0.617+-0.014 dop_ctrl=0.000 dop_link=0.000
+RESULT C1 R4 scint=7.69 gain=5 n=100 ctrl=0.077+-0.011 link=0.075+-0.003 oracle=0.102+-0.006 dop_ctrl=0.112 dop_link=0.126
+RESULT C1 R4 scint=7.69 gain=5 n=500 ctrl=0.069+-0.008 link=0.064+-0.007 oracle=0.090+-0.009 dop_ctrl=0.080 dop_link=0.097
+RESULT C1 R4 scint=7.69 gain=5 n=2000 ctrl=0.045+-0.003 link=0.041+-0.003 oracle=0.059+-0.004 dop_ctrl=0.032 dop_link=0.038
+RESULT C1 R4 scint=7.69 gain=5 n=5000 ctrl=0.023+-0.002 link=0.022+-0.001 oracle=0.029+-0.001 dop_ctrl=0.007 dop_link=0.008
+RESULT C1 R4 scint=7.69 gain=10 n=100 ctrl=0.603+-0.036 link=0.603+-0.036 oracle=0.603+-0.036 dop_ctrl=0.000 dop_link=0.000
+RESULT C1 R4 scint=7.69 gain=10 n=500 ctrl=0.508+-0.035 link=0.508+-0.035 oracle=0.508+-0.035 dop_ctrl=0.000 dop_link=0.000
+RESULT C1 R4 scint=7.69 gain=10 n=2000 ctrl=0.300+-0.015 link=0.300+-0.015 oracle=0.300+-0.015 dop_ctrl=0.000 dop_link=0.000
+RESULT C1 R4 scint=7.69 gain=10 n=5000 ctrl=0.123+-0.003 link=0.123+-0.003 oracle=0.123+-0.003 dop_ctrl=0.000 dop_link=0.000
+RESULT C1 R2 scint=0 gain=5 n=100 ctrl=0.829+-0.057 link=0.829+-0.057 oracle=1.031+-0.072 dop_ctrl=0.184 dop_link=0.184
+RESULT C1 R2 scint=0 gain=5 n=500 ctrl=0.678+-0.048 link=0.678+-0.048 oracle=0.759+-0.047 dop_ctrl=0.157 dop_link=0.157
+RESULT C1 R2 scint=0 gain=5 n=2000 ctrl=0.340+-0.018 link=0.340+-0.018 oracle=0.333+-0.016 dop_ctrl=0.085 dop_link=0.085
+RESULT C1 R2 scint=0 gain=5 n=5000 ctrl=0.124+-0.003 link=0.124+-0.003 oracle=0.135+-0.005 dop_ctrl=0.025 dop_link=0.025
+RESULT C1 R2 scint=0 gain=10 n=100 ctrl=1.839+-0.154 link=1.839+-0.154 oracle=1.893+-0.127 dop_ctrl=0.022 dop_link=0.022
+RESULT C1 R2 scint=0 gain=10 n=500 ctrl=1.628+-0.114 link=1.628+-0.114 oracle=1.690+-0.104 dop_ctrl=0.022 dop_link=0.022
+RESULT C1 R2 scint=0 gain=10 n=2000 ctrl=1.111+-0.053 link=1.111+-0.053 oracle=1.175+-0.052 dop_ctrl=0.018 dop_link=0.018
+RESULT C1 R2 scint=0 gain=10 n=5000 ctrl=0.579+-0.016 link=0.579+-0.016 oracle=0.619+-0.014 dop_ctrl=0.012 dop_link=0.012
+RESULT C1 R2 scint=7.69 gain=5 n=100 ctrl=0.045+-0.006 link=0.043+-0.003 oracle=0.070+-0.003 dop_ctrl=0.176 dop_link=0.188
+RESULT C1 R2 scint=7.69 gain=5 n=500 ctrl=0.044+-0.007 link=0.038+-0.004 oracle=0.066+-0.005 dop_ctrl=0.129 dop_link=0.147
+RESULT C1 R2 scint=7.69 gain=5 n=2000 ctrl=0.032+-0.002 link=0.031+-0.002 oracle=0.050+-0.004 dop_ctrl=0.054 dop_link=0.059
+RESULT C1 R2 scint=7.69 gain=5 n=5000 ctrl=0.020+-0.002 link=0.019+-0.001 oracle=0.028+-0.002 dop_ctrl=0.013 dop_link=0.014
+RESULT C1 R2 scint=7.69 gain=10 n=100 ctrl=0.349+-0.013 link=0.349+-0.013 oracle=0.566+-0.036 dop_ctrl=0.127 dop_link=0.127
+RESULT C1 R2 scint=7.69 gain=10 n=500 ctrl=0.285+-0.020 link=0.285+-0.020 oracle=0.428+-0.032 dop_ctrl=0.111 dop_link=0.111
+RESULT C1 R2 scint=7.69 gain=10 n=2000 ctrl=0.157+-0.008 link=0.157+-0.008 oracle=0.171+-0.009 dop_ctrl=0.071 dop_link=0.071
+RESULT C1 R2 scint=7.69 gain=10 n=5000 ctrl=0.067+-0.003 link=0.067+-0.003 oracle=0.063+-0.002 dop_ctrl=0.028 dop_link=0.028
+RESULT C2 R1 scint=0 gain=5 n=100 ctrl=0.875+-0.065 link=0.875+-0.065 oracle=1.086+-0.070 dop_ctrl=0.185 dop_link=0.185
+RESULT C2 R1 scint=0 gain=5 n=500 ctrl=0.808+-0.060 link=0.808+-0.060 oracle=0.945+-0.073 dop_ctrl=0.174 dop_link=0.174
+RESULT C2 R1 scint=0 gain=5 n=2000 ctrl=0.526+-0.026 link=0.526+-0.026 oracle=0.515+-0.024 dop_ctrl=0.126 dop_link=0.126
+RESULT C2 R1 scint=0 gain=5 n=5000 ctrl=0.220+-0.007 link=0.220+-0.007 oracle=0.208+-0.007 dop_ctrl=0.051 dop_link=0.051
+RESULT C2 R1 scint=0 gain=10 n=100 ctrl=1.873+-0.160 link=1.873+-0.160 oracle=1.926+-0.136 dop_ctrl=0.022 dop_link=0.022
+RESULT C2 R1 scint=0 gain=10 n=500 ctrl=1.771+-0.128 link=1.771+-0.128 oracle=1.835+-0.126 dop_ctrl=0.022 dop_link=0.022
+RESULT C2 R1 scint=0 gain=10 n=2000 ctrl=1.476+-0.088 link=1.476+-0.088 oracle=1.539+-0.083 dop_ctrl=0.020 dop_link=0.020
+RESULT C2 R1 scint=0 gain=10 n=5000 ctrl=0.950+-0.033 link=0.950+-0.033 oracle=0.989+-0.028 dop_ctrl=0.016 dop_link=0.016
+RESULT C2 R1 scint=7.69 gain=5 n=100 ctrl=0.082+-0.009 link=0.076+-0.004 oracle=0.104+-0.005 dop_ctrl=0.112 dop_link=0.132
+RESULT C2 R1 scint=7.69 gain=5 n=500 ctrl=0.079+-0.009 link=0.073+-0.009 oracle=0.101+-0.011 dop_ctrl=0.098 dop_link=0.120
+RESULT C2 R1 scint=7.69 gain=5 n=2000 ctrl=0.064+-0.005 link=0.059+-0.005 oracle=0.086+-0.007 dop_ctrl=0.065 dop_link=0.079
+RESULT C2 R1 scint=7.69 gain=5 n=5000 ctrl=0.042+-0.003 link=0.039+-0.003 oracle=0.058+-0.003 dop_ctrl=0.026 dop_link=0.029
+RESULT C2 R1 scint=7.69 gain=10 n=100 ctrl=0.393+-0.016 link=0.393+-0.016 oracle=0.636+-0.041 dop_ctrl=0.113 dop_link=0.113
+RESULT C2 R1 scint=7.69 gain=10 n=500 ctrl=0.372+-0.027 link=0.372+-0.027 oracle=0.566+-0.042 dop_ctrl=0.108 dop_link=0.108
+RESULT C2 R1 scint=7.69 gain=10 n=2000 ctrl=0.280+-0.013 link=0.280+-0.013 oracle=0.326+-0.010 dop_ctrl=0.091 dop_link=0.091
+RESULT C2 R1 scint=7.69 gain=10 n=5000 ctrl=0.140+-0.004 link=0.140+-0.004 oracle=0.123+-0.002 dop_ctrl=0.052 dop_link=0.052
+RESULT C2 R3 scint=0 gain=5 n=100 ctrl=0.875+-0.065 link=0.875+-0.065 oracle=1.086+-0.070 dop_ctrl=0.185 dop_link=0.185
+RESULT C2 R3 scint=0 gain=5 n=500 ctrl=0.808+-0.060 link=0.808+-0.060 oracle=0.945+-0.073 dop_ctrl=0.174 dop_link=0.174
+RESULT C2 R3 scint=0 gain=5 n=2000 ctrl=0.526+-0.026 link=0.526+-0.026 oracle=0.515+-0.024 dop_ctrl=0.126 dop_link=0.126
+RESULT C2 R3 scint=0 gain=5 n=5000 ctrl=0.220+-0.007 link=0.220+-0.007 oracle=0.208+-0.007 dop_ctrl=0.051 dop_link=0.051
+RESULT C2 R3 scint=0 gain=10 n=100 ctrl=1.873+-0.160 link=1.873+-0.160 oracle=1.926+-0.136 dop_ctrl=0.022 dop_link=0.022
+RESULT C2 R3 scint=0 gain=10 n=500 ctrl=1.771+-0.128 link=1.771+-0.128 oracle=1.835+-0.126 dop_ctrl=0.022 dop_link=0.022
+RESULT C2 R3 scint=0 gain=10 n=2000 ctrl=1.476+-0.088 link=1.476+-0.088 oracle=1.539+-0.083 dop_ctrl=0.020 dop_link=0.020
+RESULT C2 R3 scint=0 gain=10 n=5000 ctrl=0.950+-0.033 link=0.950+-0.033 oracle=0.989+-0.028 dop_ctrl=0.016 dop_link=0.016
+RESULT C2 R3 scint=7.69 gain=5 n=100 ctrl=0.144+-0.013 link=0.144+-0.013 oracle=0.144+-0.013 dop_ctrl=0.000 dop_link=0.000
+RESULT C2 R3 scint=7.69 gain=5 n=500 ctrl=0.135+-0.013 link=0.135+-0.013 oracle=0.135+-0.013 dop_ctrl=0.000 dop_link=0.000
+RESULT C2 R3 scint=7.69 gain=5 n=2000 ctrl=0.099+-0.008 link=0.100+-0.007 oracle=0.100+-0.007 dop_ctrl=0.000 dop_link=0.000
+RESULT C2 R3 scint=7.69 gain=5 n=5000 ctrl=0.056+-0.003 link=0.054+-0.002 oracle=0.054+-0.002 dop_ctrl=0.000 dop_link=0.000
+RESULT C2 R3 scint=7.69 gain=10 n=100 ctrl=0.393+-0.016 link=0.393+-0.016 oracle=0.636+-0.041 dop_ctrl=0.113 dop_link=0.113
+RESULT C2 R3 scint=7.69 gain=10 n=500 ctrl=0.372+-0.027 link=0.372+-0.027 oracle=0.566+-0.042 dop_ctrl=0.108 dop_link=0.108
+RESULT C2 R3 scint=7.69 gain=10 n=2000 ctrl=0.280+-0.013 link=0.280+-0.013 oracle=0.326+-0.010 dop_ctrl=0.091 dop_link=0.091
+RESULT C2 R3 scint=7.69 gain=10 n=5000 ctrl=0.140+-0.004 link=0.140+-0.004 oracle=0.123+-0.002 dop_ctrl=0.052 dop_link=0.052
+RESULT C2 R4 scint=0 gain=5 n=100 ctrl=1.301+-0.109 link=1.301+-0.109 oracle=1.301+-0.109 dop_ctrl=0.000 dop_link=0.000
+RESULT C2 R4 scint=0 gain=5 n=500 ctrl=1.213+-0.099 link=1.213+-0.099 oracle=1.213+-0.099 dop_ctrl=0.000 dop_link=0.000
+RESULT C2 R4 scint=0 gain=5 n=2000 ctrl=0.818+-0.042 link=0.818+-0.042 oracle=0.818+-0.042 dop_ctrl=0.000 dop_link=0.000
+RESULT C2 R4 scint=0 gain=5 n=5000 ctrl=0.339+-0.007 link=0.339+-0.007 oracle=0.339+-0.007 dop_ctrl=0.000 dop_link=0.000
+RESULT C2 R4 scint=0 gain=10 n=100 ctrl=1.951+-0.150 link=1.951+-0.150 oracle=1.951+-0.150 dop_ctrl=0.000 dop_link=0.000
+RESULT C2 R4 scint=0 gain=10 n=500 ctrl=1.847+-0.130 link=1.847+-0.130 oracle=1.847+-0.130 dop_ctrl=0.000 dop_link=0.000
+RESULT C2 R4 scint=0 gain=10 n=2000 ctrl=1.544+-0.084 link=1.544+-0.084 oracle=1.544+-0.084 dop_ctrl=0.000 dop_link=0.000
+RESULT C2 R4 scint=0 gain=10 n=5000 ctrl=1.001+-0.028 link=1.001+-0.028 oracle=1.001+-0.028 dop_ctrl=0.000 dop_link=0.000
+RESULT C2 R4 scint=7.69 gain=5 n=100 ctrl=0.082+-0.009 link=0.076+-0.004 oracle=0.104+-0.005 dop_ctrl=0.112 dop_link=0.132
+RESULT C2 R4 scint=7.69 gain=5 n=500 ctrl=0.079+-0.009 link=0.073+-0.009 oracle=0.101+-0.011 dop_ctrl=0.098 dop_link=0.120
+RESULT C2 R4 scint=7.69 gain=5 n=2000 ctrl=0.064+-0.005 link=0.059+-0.005 oracle=0.086+-0.007 dop_ctrl=0.065 dop_link=0.079
+RESULT C2 R4 scint=7.69 gain=5 n=5000 ctrl=0.042+-0.003 link=0.039+-0.003 oracle=0.058+-0.003 dop_ctrl=0.026 dop_link=0.029
+RESULT C2 R4 scint=7.69 gain=10 n=100 ctrl=0.620+-0.039 link=0.620+-0.039 oracle=0.620+-0.039 dop_ctrl=0.000 dop_link=0.000
+RESULT C2 R4 scint=7.69 gain=10 n=500 ctrl=0.588+-0.046 link=0.588+-0.046 oracle=0.588+-0.046 dop_ctrl=0.000 dop_link=0.000
+RESULT C2 R4 scint=7.69 gain=10 n=2000 ctrl=0.462+-0.030 link=0.462+-0.030 oracle=0.462+-0.030 dop_ctrl=0.000 dop_link=0.000
+RESULT C2 R4 scint=7.69 gain=10 n=5000 ctrl=0.245+-0.008 link=0.245+-0.008 oracle=0.245+-0.008 dop_ctrl=0.000 dop_link=0.000
+RESULT C2 R2 scint=0 gain=5 n=100 ctrl=0.867+-0.063 link=0.867+-0.063 oracle=1.085+-0.081 dop_ctrl=0.189 dop_link=0.189
+RESULT C2 R2 scint=0 gain=5 n=500 ctrl=0.799+-0.061 link=0.799+-0.061 oracle=0.939+-0.067 dop_ctrl=0.178 dop_link=0.178
+RESULT C2 R2 scint=0 gain=5 n=2000 ctrl=0.518+-0.027 link=0.518+-0.027 oracle=0.511+-0.022 dop_ctrl=0.130 dop_link=0.130
+RESULT C2 R2 scint=0 gain=5 n=5000 ctrl=0.214+-0.007 link=0.214+-0.007 oracle=0.205+-0.007 dop_ctrl=0.054 dop_link=0.054
+RESULT C2 R2 scint=0 gain=10 n=100 ctrl=1.873+-0.160 link=1.873+-0.160 oracle=1.926+-0.136 dop_ctrl=0.022 dop_link=0.022
+RESULT C2 R2 scint=0 gain=10 n=500 ctrl=1.771+-0.128 link=1.771+-0.128 oracle=1.835+-0.126 dop_ctrl=0.022 dop_link=0.022
+RESULT C2 R2 scint=0 gain=10 n=2000 ctrl=1.476+-0.088 link=1.476+-0.088 oracle=1.539+-0.083 dop_ctrl=0.020 dop_link=0.020
+RESULT C2 R2 scint=0 gain=10 n=5000 ctrl=0.950+-0.033 link=0.950+-0.033 oracle=0.989+-0.028 dop_ctrl=0.016 dop_link=0.016
+RESULT C2 R2 scint=7.69 gain=5 n=100 ctrl=0.045+-0.006 link=0.044+-0.003 oracle=0.072+-0.002 dop_ctrl=0.184 dop_link=0.195
+RESULT C2 R2 scint=7.69 gain=5 n=500 ctrl=0.046+-0.006 link=0.041+-0.005 oracle=0.070+-0.006 dop_ctrl=0.159 dop_link=0.181
+RESULT C2 R2 scint=7.69 gain=5 n=2000 ctrl=0.042+-0.004 link=0.038+-0.004 oracle=0.065+-0.006 dop_ctrl=0.109 dop_link=0.119
+RESULT C2 R2 scint=7.69 gain=5 n=5000 ctrl=0.032+-0.003 link=0.030+-0.002 oracle=0.050+-0.005 dop_ctrl=0.045 dop_link=0.046
+RESULT C2 R2 scint=7.69 gain=10 n=100 ctrl=0.362+-0.015 link=0.362+-0.015 oracle=0.599+-0.039 dop_ctrl=0.129 dop_link=0.129
+RESULT C2 R2 scint=7.69 gain=10 n=500 ctrl=0.340+-0.029 link=0.340+-0.029 oracle=0.544+-0.046 dop_ctrl=0.124 dop_link=0.124
+RESULT C2 R2 scint=7.69 gain=10 n=2000 ctrl=0.253+-0.015 link=0.253+-0.015 oracle=0.307+-0.016 dop_ctrl=0.104 dop_link=0.104
+RESULT C2 R2 scint=7.69 gain=10 n=5000 ctrl=0.124+-0.005 link=0.124+-0.005 oracle=0.118+-0.002 dop_ctrl=0.060 dop_link=0.060
+RESULT C3 R1 scint=0 gain=5 n=100 ctrl=0.853+-0.062 link=0.853+-0.062 oracle=1.045+-0.067 dop_ctrl=0.182 dop_link=0.182
+RESULT C3 R1 scint=0 gain=5 n=500 ctrl=0.738+-0.052 link=0.738+-0.052 oracle=0.813+-0.057 dop_ctrl=0.161 dop_link=0.161
+RESULT C3 R1 scint=0 gain=5 n=2000 ctrl=0.422+-0.021 link=0.422+-0.021 oracle=0.388+-0.019 dop_ctrl=0.099 dop_link=0.099
+RESULT C3 R1 scint=0 gain=5 n=5000 ctrl=0.167+-0.005 link=0.167+-0.005 oracle=0.162+-0.006 dop_ctrl=0.034 dop_link=0.034
+RESULT C3 R1 scint=0 gain=10 n=100 ctrl=1.849+-0.155 link=1.849+-0.155 oracle=1.906+-0.132 dop_ctrl=0.022 dop_link=0.022
+RESULT C3 R1 scint=0 gain=10 n=500 ctrl=1.684+-0.123 link=1.684+-0.123 oracle=1.747+-0.108 dop_ctrl=0.022 dop_link=0.022
+RESULT C3 R1 scint=0 gain=10 n=2000 ctrl=1.252+-0.066 link=1.252+-0.066 oracle=1.317+-0.067 dop_ctrl=0.018 dop_link=0.018
+RESULT C3 R1 scint=0 gain=10 n=5000 ctrl=0.723+-0.021 link=0.723+-0.021 oracle=0.761+-0.019 dop_ctrl=0.013 dop_link=0.013
+RESULT C3 R1 scint=7.69 gain=5 n=100 ctrl=0.081+-0.009 link=0.076+-0.004 oracle=0.103+-0.005 dop_ctrl=0.111 dop_link=0.131
+RESULT C3 R1 scint=7.69 gain=5 n=500 ctrl=0.076+-0.009 link=0.071+-0.009 oracle=0.098+-0.010 dop_ctrl=0.091 dop_link=0.112
+RESULT C3 R1 scint=7.69 gain=5 n=2000 ctrl=0.058+-0.005 link=0.054+-0.004 oracle=0.079+-0.007 dop_ctrl=0.056 dop_link=0.066
+RESULT C3 R1 scint=7.69 gain=5 n=5000 ctrl=0.036+-0.003 link=0.033+-0.002 oracle=0.049+-0.003 dop_ctrl=0.020 dop_link=0.021
+RESULT C3 R1 scint=7.69 gain=10 n=100 ctrl=0.389+-0.016 link=0.389+-0.016 oracle=0.619+-0.037 dop_ctrl=0.113 dop_link=0.113
+RESULT C3 R1 scint=7.69 gain=10 n=500 ctrl=0.353+-0.023 link=0.353+-0.023 oracle=0.506+-0.033 dop_ctrl=0.103 dop_link=0.103
+RESULT C3 R1 scint=7.69 gain=10 n=2000 ctrl=0.246+-0.010 link=0.246+-0.010 oracle=0.253+-0.005 dop_ctrl=0.080 dop_link=0.080
+RESULT C3 R1 scint=7.69 gain=10 n=5000 ctrl=0.117+-0.004 link=0.117+-0.004 oracle=0.094+-0.001 dop_ctrl=0.042 dop_link=0.042
+RESULT C3 R3 scint=0 gain=5 n=100 ctrl=0.853+-0.062 link=0.853+-0.062 oracle=1.045+-0.067 dop_ctrl=0.182 dop_link=0.182
+RESULT C3 R3 scint=0 gain=5 n=500 ctrl=0.738+-0.052 link=0.738+-0.052 oracle=0.813+-0.057 dop_ctrl=0.161 dop_link=0.161
+RESULT C3 R3 scint=0 gain=5 n=2000 ctrl=0.422+-0.021 link=0.422+-0.021 oracle=0.388+-0.019 dop_ctrl=0.099 dop_link=0.099
+RESULT C3 R3 scint=0 gain=5 n=5000 ctrl=0.167+-0.005 link=0.167+-0.005 oracle=0.162+-0.006 dop_ctrl=0.034 dop_link=0.034
+RESULT C3 R3 scint=0 gain=10 n=100 ctrl=1.849+-0.155 link=1.849+-0.155 oracle=1.906+-0.132 dop_ctrl=0.022 dop_link=0.022
+RESULT C3 R3 scint=0 gain=10 n=500 ctrl=1.684+-0.123 link=1.684+-0.123 oracle=1.747+-0.108 dop_ctrl=0.022 dop_link=0.022
+RESULT C3 R3 scint=0 gain=10 n=2000 ctrl=1.252+-0.066 link=1.252+-0.066 oracle=1.317+-0.067 dop_ctrl=0.018 dop_link=0.018
+RESULT C3 R3 scint=0 gain=10 n=5000 ctrl=0.723+-0.021 link=0.723+-0.021 oracle=0.761+-0.019 dop_ctrl=0.013 dop_link=0.013
+RESULT C3 R3 scint=7.69 gain=5 n=100 ctrl=0.143+-0.013 link=0.143+-0.013 oracle=0.143+-0.013 dop_ctrl=0.000 dop_link=0.000
+RESULT C3 R3 scint=7.69 gain=5 n=500 ctrl=0.129+-0.012 link=0.129+-0.012 oracle=0.129+-0.012 dop_ctrl=0.000 dop_link=0.000
+RESULT C3 R3 scint=7.69 gain=5 n=2000 ctrl=0.087+-0.007 link=0.088+-0.006 oracle=0.088+-0.006 dop_ctrl=0.000 dop_link=0.000
+RESULT C3 R3 scint=7.69 gain=5 n=5000 ctrl=0.046+-0.002 link=0.044+-0.002 oracle=0.044+-0.002 dop_ctrl=0.000 dop_link=0.000
+RESULT C3 R3 scint=7.69 gain=10 n=100 ctrl=0.389+-0.016 link=0.389+-0.016 oracle=0.619+-0.037 dop_ctrl=0.113 dop_link=0.113
+RESULT C3 R3 scint=7.69 gain=10 n=500 ctrl=0.353+-0.023 link=0.353+-0.023 oracle=0.506+-0.033 dop_ctrl=0.103 dop_link=0.103
+RESULT C3 R3 scint=7.69 gain=10 n=2000 ctrl=0.246+-0.010 link=0.246+-0.010 oracle=0.253+-0.005 dop_ctrl=0.080 dop_link=0.080
+RESULT C3 R3 scint=7.69 gain=10 n=5000 ctrl=0.117+-0.004 link=0.117+-0.004 oracle=0.094+-0.001 dop_ctrl=0.042 dop_link=0.042
+RESULT C3 R4 scint=0 gain=5 n=100 ctrl=1.272+-0.106 link=1.272+-0.106 oracle=1.272+-0.106 dop_ctrl=0.000 dop_link=0.000
+RESULT C3 R4 scint=0 gain=5 n=500 ctrl=1.113+-0.087 link=1.113+-0.087 oracle=1.113+-0.087 dop_ctrl=0.000 dop_link=0.000
+RESULT C3 R4 scint=0 gain=5 n=2000 ctrl=0.651+-0.029 link=0.651+-0.029 oracle=0.651+-0.029 dop_ctrl=0.000 dop_link=0.000
+RESULT C3 R4 scint=0 gain=5 n=5000 ctrl=0.246+-0.004 link=0.246+-0.004 oracle=0.246+-0.004 dop_ctrl=0.000 dop_link=0.000
+RESULT C3 R4 scint=0 gain=10 n=100 ctrl=1.920+-0.154 link=1.920+-0.154 oracle=1.920+-0.154 dop_ctrl=0.000 dop_link=0.000
+RESULT C3 R4 scint=0 gain=10 n=500 ctrl=1.756+-0.114 link=1.756+-0.114 oracle=1.756+-0.114 dop_ctrl=0.000 dop_link=0.000
+RESULT C3 R4 scint=0 gain=10 n=2000 ctrl=1.314+-0.061 link=1.314+-0.061 oracle=1.314+-0.061 dop_ctrl=0.000 dop_link=0.000
+RESULT C3 R4 scint=0 gain=10 n=5000 ctrl=0.765+-0.018 link=0.765+-0.018 oracle=0.765+-0.018 dop_ctrl=0.000 dop_link=0.000
+RESULT C3 R4 scint=7.69 gain=5 n=100 ctrl=0.081+-0.009 link=0.076+-0.004 oracle=0.103+-0.005 dop_ctrl=0.111 dop_link=0.131
+RESULT C3 R4 scint=7.69 gain=5 n=500 ctrl=0.076+-0.009 link=0.071+-0.009 oracle=0.098+-0.010 dop_ctrl=0.091 dop_link=0.112
+RESULT C3 R4 scint=7.69 gain=5 n=2000 ctrl=0.058+-0.005 link=0.054+-0.004 oracle=0.079+-0.007 dop_ctrl=0.056 dop_link=0.066
+RESULT C3 R4 scint=7.69 gain=5 n=5000 ctrl=0.036+-0.003 link=0.033+-0.002 oracle=0.049+-0.003 dop_ctrl=0.020 dop_link=0.021
+RESULT C3 R4 scint=7.69 gain=10 n=100 ctrl=0.614+-0.038 link=0.614+-0.038 oracle=0.614+-0.038 dop_ctrl=0.000 dop_link=0.000
+RESULT C3 R4 scint=7.69 gain=10 n=500 ctrl=0.561+-0.042 link=0.561+-0.042 oracle=0.561+-0.042 dop_ctrl=0.000 dop_link=0.000
+RESULT C3 R4 scint=7.69 gain=10 n=2000 ctrl=0.407+-0.024 link=0.407+-0.024 oracle=0.407+-0.024 dop_ctrl=0.000 dop_link=0.000
+RESULT C3 R4 scint=7.69 gain=10 n=5000 ctrl=0.201+-0.006 link=0.201+-0.006 oracle=0.201+-0.006 dop_ctrl=0.000 dop_link=0.000
+RESULT C3 R2 scint=0 gain=5 n=100 ctrl=0.844+-0.060 link=0.844+-0.060 oracle=1.042+-0.074 dop_ctrl=0.186 dop_link=0.186
+RESULT C3 R2 scint=0 gain=5 n=500 ctrl=0.729+-0.053 link=0.729+-0.053 oracle=0.810+-0.051 dop_ctrl=0.165 dop_link=0.165
+RESULT C3 R2 scint=0 gain=5 n=2000 ctrl=0.414+-0.022 link=0.414+-0.022 oracle=0.383+-0.019 dop_ctrl=0.102 dop_link=0.102
+RESULT C3 R2 scint=0 gain=5 n=5000 ctrl=0.161+-0.005 link=0.161+-0.005 oracle=0.159+-0.007 dop_ctrl=0.036 dop_link=0.036
+RESULT C3 R2 scint=0 gain=10 n=100 ctrl=1.849+-0.155 link=1.849+-0.155 oracle=1.906+-0.132 dop_ctrl=0.022 dop_link=0.022
+RESULT C3 R2 scint=0 gain=10 n=500 ctrl=1.684+-0.123 link=1.684+-0.123 oracle=1.747+-0.108 dop_ctrl=0.022 dop_link=0.022
+RESULT C3 R2 scint=0 gain=10 n=2000 ctrl=1.252+-0.066 link=1.252+-0.066 oracle=1.317+-0.067 dop_ctrl=0.018 dop_link=0.018
+RESULT C3 R2 scint=0 gain=10 n=5000 ctrl=0.723+-0.021 link=0.723+-0.021 oracle=0.761+-0.019 dop_ctrl=0.013 dop_link=0.013
+RESULT C3 R2 scint=7.69 gain=5 n=100 ctrl=0.045+-0.006 link=0.044+-0.003 oracle=0.071+-0.002 dop_ctrl=0.182 dop_link=0.194
+RESULT C3 R2 scint=7.69 gain=5 n=500 ctrl=0.046+-0.007 link=0.040+-0.005 oracle=0.069+-0.006 dop_ctrl=0.150 dop_link=0.170
+RESULT C3 R2 scint=7.69 gain=5 n=2000 ctrl=0.039+-0.003 link=0.036+-0.003 oracle=0.060+-0.005 dop_ctrl=0.093 dop_link=0.100
+RESULT C3 R2 scint=7.69 gain=5 n=5000 ctrl=0.029+-0.003 link=0.027+-0.002 oracle=0.044+-0.004 dop_ctrl=0.034 dop_link=0.034
+RESULT C3 R2 scint=7.69 gain=10 n=100 ctrl=0.358+-0.015 link=0.358+-0.015 oracle=0.581+-0.034 dop_ctrl=0.128 dop_link=0.128
+RESULT C3 R2 scint=7.69 gain=10 n=500 ctrl=0.322+-0.024 link=0.322+-0.024 oracle=0.486+-0.036 dop_ctrl=0.119 dop_link=0.119
+RESULT C3 R2 scint=7.69 gain=10 n=2000 ctrl=0.222+-0.012 link=0.222+-0.012 oracle=0.237+-0.011 dop_ctrl=0.092 dop_link=0.092
+RESULT C3 R2 scint=7.69 gain=10 n=5000 ctrl=0.104+-0.004 link=0.104+-0.004 oracle=0.091+-0.002 dop_ctrl=0.048 dop_link=0.048

@@ -1,0 +1,136 @@
+CELLS instant=96 missing_or_incomplete=0 []
+B1 C1 R1 n=100 instant=0.078+-0.004 beacon=0.076+-0.005 oracle=0.102 win=False
+B1 C1 R1 n=500 instant=0.069+-0.003 beacon=0.069+-0.003 oracle=0.090 win=False
+B1 C1 R1 n=2000 instant=0.045+-0.002 beacon=0.045+-0.001 oracle=0.059 win=False
+B1 C1 R1 n=5000 instant=0.024+-0.001 beacon=0.023+-0.001 oracle=0.029 win=False
+B1 C1 R4 n=100 instant=0.078+-0.004 beacon=0.076+-0.005 oracle=0.102 win=False
+B1 C1 R4 n=500 instant=0.069+-0.003 beacon=0.069+-0.003 oracle=0.090 win=False
+B1 C1 R4 n=2000 instant=0.045+-0.002 beacon=0.045+-0.001 oracle=0.059 win=False
+B1 C1 R4 n=5000 instant=0.024+-0.001 beacon=0.023+-0.001 oracle=0.029 win=False
+B1 C1 R2 n=100 instant=0.046+-0.002 beacon=0.044+-0.003 oracle=0.070 win=False
+B1 C1 R2 n=500 instant=0.043+-0.002 beacon=0.043+-0.003 oracle=0.066 win=False
+B1 C1 R2 n=2000 instant=0.033+-0.001 beacon=0.033+-0.001 oracle=0.050 win=False
+B1 C1 R2 n=5000 instant=0.020+-0.001 beacon=0.020+-0.001 oracle=0.028 win=False
+B1 C2 R1 n=100 instant=0.080+-0.004 beacon=0.080+-0.004 oracle=0.104 win=False
+B1 C2 R1 n=500 instant=0.078+-0.004 beacon=0.078+-0.004 oracle=0.101 win=False
+B1 C2 R1 n=2000 instant=0.065+-0.003 beacon=0.064+-0.002 oracle=0.086 win=False
+B1 C2 R1 n=5000 instant=0.043+-0.002 beacon=0.043+-0.002 oracle=0.058 win=False
+B1 C2 R4 n=100 instant=0.080+-0.004 beacon=0.080+-0.004 oracle=0.104 win=False
+B1 C2 R4 n=500 instant=0.078+-0.004 beacon=0.078+-0.004 oracle=0.101 win=False
+B1 C2 R4 n=2000 instant=0.065+-0.003 beacon=0.064+-0.002 oracle=0.086 win=False
+B1 C2 R4 n=5000 instant=0.043+-0.002 beacon=0.043+-0.002 oracle=0.058 win=False
+B1 C2 R2 n=100 instant=0.047+-0.002 beacon=0.044+-0.002 oracle=0.072 win=False
+B1 C2 R2 n=500 instant=0.046+-0.002 beacon=0.046+-0.003 oracle=0.070 win=False
+B1 C2 R2 n=2000 instant=0.042+-0.002 beacon=0.042+-0.002 oracle=0.065 win=False
+B1 C2 R2 n=5000 instant=0.034+-0.002 beacon=0.033+-0.001 oracle=0.050 win=False
+B1 C3 R1 n=100 instant=0.080+-0.004 beacon=0.079+-0.004 oracle=0.103 win=False
+B1 C3 R1 n=500 instant=0.075+-0.004 beacon=0.075+-0.004 oracle=0.098 win=False
+B1 C3 R1 n=2000 instant=0.058+-0.003 beacon=0.058+-0.002 oracle=0.079 win=False
+B1 C3 R1 n=5000 instant=0.037+-0.001 beacon=0.037+-0.001 oracle=0.049 win=False
+B1 C3 R4 n=100 instant=0.080+-0.004 beacon=0.079+-0.004 oracle=0.103 win=False
+B1 C3 R4 n=500 instant=0.075+-0.004 beacon=0.075+-0.004 oracle=0.098 win=False
+B1 C3 R4 n=2000 instant=0.058+-0.003 beacon=0.058+-0.002 oracle=0.079 win=False
+B1 C3 R4 n=5000 instant=0.037+-0.001 beacon=0.037+-0.001 oracle=0.049 win=False
+B1 C3 R2 n=100 instant=0.047+-0.002 beacon=0.044+-0.003 oracle=0.071 win=False
+B1 C3 R2 n=500 instant=0.045+-0.002 beacon=0.045+-0.003 oracle=0.069 win=False
+B1 C3 R2 n=2000 instant=0.039+-0.002 beacon=0.039+-0.002 oracle=0.060 win=False
+B1 C3 R2 n=5000 instant=0.029+-0.001 beacon=0.029+-0.001 oracle=0.044 win=False
+B1 cells=36 wins=0 needed=27 beacon_reach_is_significant_limit=False
+B2 gap_to_oracle_closed median=0.01 min=-0.03 max=0.20
+B3 cells=48 clearly_different=0 holds=True
+RESULT C1 R1 gain=5 n=100 instant=0.078 beacon=0.076
+RESULT C1 R1 gain=5 n=500 instant=0.069 beacon=0.069
+RESULT C1 R1 gain=5 n=2000 instant=0.045 beacon=0.045
+RESULT C1 R1 gain=5 n=5000 instant=0.024 beacon=0.023
+RESULT C1 R1 gain=10 n=100 instant=0.381 beacon=0.381
+RESULT C1 R1 gain=10 n=500 instant=0.318 beacon=0.318
+RESULT C1 R1 gain=10 n=2000 instant=0.177 beacon=0.177
+RESULT C1 R1 gain=10 n=5000 instant=0.075 beacon=0.075
+RESULT C1 R3 gain=5 n=100 instant=0.141 beacon=0.141
+RESULT C1 R3 gain=5 n=500 instant=0.114 beacon=0.115
+RESULT C1 R3 gain=5 n=2000 instant=0.061 beacon=0.062
+RESULT C1 R3 gain=5 n=5000 instant=0.027 beacon=0.027
+RESULT C1 R3 gain=10 n=100 instant=0.381 beacon=0.381
+RESULT C1 R3 gain=10 n=500 instant=0.318 beacon=0.318
+RESULT C1 R3 gain=10 n=2000 instant=0.177 beacon=0.177
+RESULT C1 R3 gain=10 n=5000 instant=0.075 beacon=0.075
+RESULT C1 R4 gain=5 n=100 instant=0.078 beacon=0.076
+RESULT C1 R4 gain=5 n=500 instant=0.069 beacon=0.069
+RESULT C1 R4 gain=5 n=2000 instant=0.045 beacon=0.045
+RESULT C1 R4 gain=5 n=5000 instant=0.024 beacon=0.023
+RESULT C1 R4 gain=10 n=100 instant=0.600 beacon=0.600
+RESULT C1 R4 gain=10 n=500 instant=0.513 beacon=0.513
+RESULT C1 R4 gain=10 n=2000 instant=0.302 beacon=0.302
+RESULT C1 R4 gain=10 n=5000 instant=0.123 beacon=0.123
+RESULT C1 R2 gain=5 n=100 instant=0.046 beacon=0.044
+RESULT C1 R2 gain=5 n=500 instant=0.043 beacon=0.043
+RESULT C1 R2 gain=5 n=2000 instant=0.033 beacon=0.033
+RESULT C1 R2 gain=5 n=5000 instant=0.020 beacon=0.020
+RESULT C1 R2 gain=10 n=100 instant=0.349 beacon=0.349
+RESULT C1 R2 gain=10 n=500 instant=0.290 beacon=0.290
+RESULT C1 R2 gain=10 n=2000 instant=0.158 beacon=0.158
+RESULT C1 R2 gain=10 n=5000 instant=0.067 beacon=0.067
+RESULT C2 R1 gain=5 n=100 instant=0.080 beacon=0.080
+RESULT C2 R1 gain=5 n=500 instant=0.078 beacon=0.078
+RESULT C2 R1 gain=5 n=2000 instant=0.065 beacon=0.064
+RESULT C2 R1 gain=5 n=5000 instant=0.043 beacon=0.043
+RESULT C2 R1 gain=10 n=100 instant=0.395 beacon=0.395
+RESULT C2 R1 gain=10 n=500 instant=0.377 beacon=0.377
+RESULT C2 R1 gain=10 n=2000 instant=0.282 beacon=0.282
+RESULT C2 R1 gain=10 n=5000 instant=0.141 beacon=0.141
+RESULT C2 R3 gain=5 n=100 instant=0.145 beacon=0.145
+RESULT C2 R3 gain=5 n=500 instant=0.135 beacon=0.136
+RESULT C2 R3 gain=5 n=2000 instant=0.100 beacon=0.100
+RESULT C2 R3 gain=5 n=5000 instant=0.056 beacon=0.056
+RESULT C2 R3 gain=10 n=100 instant=0.395 beacon=0.395
+RESULT C2 R3 gain=10 n=500 instant=0.377 beacon=0.377
+RESULT C2 R3 gain=10 n=2000 instant=0.282 beacon=0.282
+RESULT C2 R3 gain=10 n=5000 instant=0.141 beacon=0.141
+RESULT C2 R4 gain=5 n=100 instant=0.080 beacon=0.080
+RESULT C2 R4 gain=5 n=500 instant=0.078 beacon=0.078
+RESULT C2 R4 gain=5 n=2000 instant=0.065 beacon=0.064
+RESULT C2 R4 gain=5 n=5000 instant=0.043 beacon=0.043
+RESULT C2 R4 gain=10 n=100 instant=0.620 beacon=0.620
+RESULT C2 R4 gain=10 n=500 instant=0.595 beacon=0.595
+RESULT C2 R4 gain=10 n=2000 instant=0.467 beacon=0.467
+RESULT C2 R4 gain=10 n=5000 instant=0.246 beacon=0.246
+RESULT C2 R2 gain=5 n=100 instant=0.047 beacon=0.044
+RESULT C2 R2 gain=5 n=500 instant=0.046 beacon=0.046
+RESULT C2 R2 gain=5 n=2000 instant=0.042 beacon=0.042
+RESULT C2 R2 gain=5 n=5000 instant=0.034 beacon=0.033
+RESULT C2 R2 gain=10 n=100 instant=0.363 beacon=0.363
+RESULT C2 R2 gain=10 n=500 instant=0.345 beacon=0.345
+RESULT C2 R2 gain=10 n=2000 instant=0.255 beacon=0.255
+RESULT C2 R2 gain=10 n=5000 instant=0.125 beacon=0.125
+RESULT C3 R1 gain=5 n=100 instant=0.080 beacon=0.079
+RESULT C3 R1 gain=5 n=500 instant=0.075 beacon=0.075
+RESULT C3 R1 gain=5 n=2000 instant=0.058 beacon=0.058
+RESULT C3 R1 gain=5 n=5000 instant=0.037 beacon=0.037
+RESULT C3 R1 gain=10 n=100 instant=0.391 beacon=0.391
+RESULT C3 R1 gain=10 n=500 instant=0.358 beacon=0.358
+RESULT C3 R1 gain=10 n=2000 instant=0.247 beacon=0.247
+RESULT C3 R1 gain=10 n=5000 instant=0.118 beacon=0.118
+RESULT C3 R3 gain=5 n=100 instant=0.144 beacon=0.144
+RESULT C3 R3 gain=5 n=500 instant=0.128 beacon=0.129
+RESULT C3 R3 gain=5 n=2000 instant=0.088 beacon=0.088
+RESULT C3 R3 gain=5 n=5000 instant=0.047 beacon=0.046
+RESULT C3 R3 gain=10 n=100 instant=0.391 beacon=0.391
+RESULT C3 R3 gain=10 n=500 instant=0.358 beacon=0.358
+RESULT C3 R3 gain=10 n=2000 instant=0.247 beacon=0.247
+RESULT C3 R3 gain=10 n=5000 instant=0.118 beacon=0.118
+RESULT C3 R4 gain=5 n=100 instant=0.080 beacon=0.079
+RESULT C3 R4 gain=5 n=500 instant=0.075 beacon=0.075
+RESULT C3 R4 gain=5 n=2000 instant=0.058 beacon=0.058
+RESULT C3 R4 gain=5 n=5000 instant=0.037 beacon=0.037
+RESULT C3 R4 gain=10 n=100 instant=0.613 beacon=0.613
+RESULT C3 R4 gain=10 n=500 instant=0.567 beacon=0.567
+RESULT C3 R4 gain=10 n=2000 instant=0.411 beacon=0.411
+RESULT C3 R4 gain=10 n=5000 instant=0.202 beacon=0.202
+RESULT C3 R2 gain=5 n=100 instant=0.047 beacon=0.044
+RESULT C3 R2 gain=5 n=500 instant=0.045 beacon=0.045
+RESULT C3 R2 gain=5 n=2000 instant=0.039 beacon=0.039
+RESULT C3 R2 gain=5 n=5000 instant=0.029 beacon=0.029
+RESULT C3 R2 gain=10 n=100 instant=0.359 beacon=0.359
+RESULT C3 R2 gain=10 n=500 instant=0.328 beacon=0.328
+RESULT C3 R2 gain=10 n=2000 instant=0.223 beacon=0.223
+RESULT C3 R2 gain=10 n=5000 instant=0.105 beacon=0.105

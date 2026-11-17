@@ -1,0 +1,7 @@
+TUNE k=0 adapt=0 cells=16 worst_ratio=0.993 median_ratio=1.000 mean_air=7.72
+TUNE k=0 adapt=1 cells=16 worst_ratio=0.676 median_ratio=1.009 mean_air=7.38
+TUNE k=150 adapt=0 cells=16 worst_ratio=0.159 median_ratio=0.456 mean_air=5.08
+TUNE k=150 adapt=1 cells=16 worst_ratio=0.152 median_ratio=0.463 mean_air=5.09
+TUNE k=400 adapt=0 cells=16 worst_ratio=0.222 median_ratio=0.976 mean_air=6.04
+TUNE k=400 adapt=1 cells=16 worst_ratio=0.210 median_ratio=0.878 mean_air=6.05
+CHOSEN k=0 adapt=0 worst_ratio=0.993

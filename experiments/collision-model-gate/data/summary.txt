@@ -1,0 +1,489 @@
+L1 cases=6 found=6 exact_match=True
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=5 n=100 margin=0 p=0.0625 runs=5 delivered=0.075+-0.013 air_per_delivered=1.65+-0.13 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=5 n=100 margin=0 p=0.125 runs=5 delivered=0.139+-0.014 air_per_delivered=1.74+-0.10 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=5 n=100 margin=0 p=0.25 runs=5 delivered=0.265+-0.016 air_per_delivered=1.76+-0.11 lost_interf=0.002
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=5 n=100 margin=0 p=0.5 runs=5 delivered=0.503+-0.033 air_per_delivered=1.75+-0.07 lost_interf=0.005
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=5 n=100 margin=0 p=1 runs=5 delivered=0.875+-0.065 air_per_delivered=1.72+-0.02 lost_interf=0.009
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=5 n=500 margin=0 p=0.0625 runs=5 delivered=0.069+-0.006 air_per_delivered=1.78+-0.10 lost_interf=0.004
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=5 n=500 margin=0 p=0.125 runs=5 delivered=0.136+-0.009 air_per_delivered=1.81+-0.07 lost_interf=0.008
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=5 n=500 margin=0 p=0.25 runs=5 delivered=0.259+-0.023 air_per_delivered=1.82+-0.04 lost_interf=0.013
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=5 n=500 margin=0 p=0.5 runs=5 delivered=0.473+-0.037 air_per_delivered=1.85+-0.03 lost_interf=0.026
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=5 n=500 margin=0 p=1 runs=5 delivered=0.808+-0.060 air_per_delivered=1.88+-0.04 lost_interf=0.046
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=5 n=2000 margin=0 p=0.0625 runs=5 delivered=0.070+-0.006 air_per_delivered=1.82+-0.03 lost_interf=0.015
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=5 n=2000 margin=0 p=0.125 runs=5 delivered=0.129+-0.010 air_per_delivered=1.90+-0.01 lost_interf=0.030
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=5 n=2000 margin=0 p=0.25 runs=5 delivered=0.235+-0.018 air_per_delivered=2.02+-0.02 lost_interf=0.060
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=5 n=2000 margin=0 p=0.5 runs=5 delivered=0.382+-0.023 air_per_delivered=2.30+-0.05 lost_interf=0.116
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=5 n=2000 margin=0 p=1 runs=5 delivered=0.526+-0.026 air_per_delivered=2.90+-0.10 lost_interf=0.179
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=5 n=5000 margin=0 p=0.0625 runs=5 delivered=0.065+-0.005 air_per_delivered=1.93+-0.03 lost_interf=0.040
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=5 n=5000 margin=0 p=0.125 runs=5 delivered=0.116+-0.009 air_per_delivered=2.13+-0.03 lost_interf=0.081
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=5 n=5000 margin=0 p=0.25 runs=5 delivered=0.181+-0.012 air_per_delivered=2.62+-0.04 lost_interf=0.151
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=5 n=5000 margin=0 p=0.5 runs=5 delivered=0.226+-0.009 air_per_delivered=3.90+-0.16 lost_interf=0.212
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=5 n=5000 margin=0 p=1 runs=5 delivered=0.220+-0.007 air_per_delivered=6.93+-0.37 lost_interf=0.220
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=10 n=100 margin=0 p=0.0625 runs=5 delivered=0.118+-0.015 air_per_delivered=0.38+-0.02 lost_interf=0.000
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=10 n=100 margin=0 p=0.125 runs=5 delivered=0.237+-0.026 air_per_delivered=0.39+-0.01 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=10 n=100 margin=0 p=0.25 runs=5 delivered=0.481+-0.034 air_per_delivered=0.39+-0.01 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=10 n=100 margin=0 p=0.5 runs=5 delivered=0.947+-0.075 air_per_delivered=0.39+-0.01 lost_interf=0.002
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=10 n=100 margin=0 p=1 runs=5 delivered=1.873+-0.160 air_per_delivered=0.39+-0.01 lost_interf=0.005
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=10 n=500 margin=0 p=0.0625 runs=5 delivered=0.120+-0.009 air_per_delivered=0.39+-0.01 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=10 n=500 margin=0 p=0.125 runs=5 delivered=0.241+-0.024 air_per_delivered=0.39+-0.01 lost_interf=0.003
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=10 n=500 margin=0 p=0.25 runs=5 delivered=0.478+-0.041 air_per_delivered=0.40+-0.01 lost_interf=0.006
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=10 n=500 margin=0 p=0.5 runs=5 delivered=0.932+-0.082 air_per_delivered=0.40+-0.01 lost_interf=0.012
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=10 n=500 margin=0 p=1 runs=5 delivered=1.771+-0.128 air_per_delivered=0.42+-0.01 lost_interf=0.023
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=10 n=2000 margin=0 p=0.0625 runs=5 delivered=0.119+-0.012 air_per_delivered=0.40+-0.01 lost_interf=0.006
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=10 n=2000 margin=0 p=0.125 runs=5 delivered=0.234+-0.022 air_per_delivered=0.41+-0.01 lost_interf=0.012
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=10 n=2000 margin=0 p=0.25 runs=5 delivered=0.457+-0.041 air_per_delivered=0.41+-0.01 lost_interf=0.025
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=10 n=2000 margin=0 p=0.5 runs=5 delivered=0.862+-0.070 air_per_delivered=0.44+-0.00 lost_interf=0.053
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=10 n=2000 margin=0 p=1 runs=5 delivered=1.476+-0.088 air_per_delivered=0.50+-0.01 lost_interf=0.105
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=10 n=5000 margin=0 p=0.0625 runs=5 delivered=0.117+-0.011 air_per_delivered=0.41+-0.01 lost_interf=0.016
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=10 n=5000 margin=0 p=0.125 runs=5 delivered=0.227+-0.020 air_per_delivered=0.42+-0.00 lost_interf=0.033
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=10 n=5000 margin=0 p=0.25 runs=5 delivered=0.424+-0.037 air_per_delivered=0.45+-0.00 lost_interf=0.068
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=10 n=5000 margin=0 p=0.5 runs=5 delivered=0.718+-0.047 air_per_delivered=0.52+-0.01 lost_interf=0.135
+RESULT collision=C2 part=confirm scint=0 reading=R1 gain=10 n=5000 margin=0 p=1 runs=5 delivered=0.950+-0.033 air_per_delivered=0.78+-0.04 lost_interf=0.208
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=5 n=100 margin=0 p=0.0625 runs=5 delivered=0.075+-0.013 air_per_delivered=1.65+-0.13 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=5 n=100 margin=0 p=0.125 runs=5 delivered=0.139+-0.014 air_per_delivered=1.74+-0.10 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=5 n=100 margin=0 p=0.25 runs=5 delivered=0.265+-0.016 air_per_delivered=1.76+-0.11 lost_interf=0.002
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=5 n=100 margin=0 p=0.5 runs=5 delivered=0.503+-0.033 air_per_delivered=1.75+-0.07 lost_interf=0.005
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=5 n=100 margin=0 p=1 runs=5 delivered=0.875+-0.065 air_per_delivered=1.72+-0.02 lost_interf=0.009
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=5 n=500 margin=0 p=0.0625 runs=5 delivered=0.069+-0.006 air_per_delivered=1.78+-0.10 lost_interf=0.004
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=5 n=500 margin=0 p=0.125 runs=5 delivered=0.136+-0.009 air_per_delivered=1.81+-0.07 lost_interf=0.008
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=5 n=500 margin=0 p=0.25 runs=5 delivered=0.259+-0.023 air_per_delivered=1.82+-0.04 lost_interf=0.013
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=5 n=500 margin=0 p=0.5 runs=5 delivered=0.473+-0.037 air_per_delivered=1.85+-0.03 lost_interf=0.026
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=5 n=500 margin=0 p=1 runs=5 delivered=0.808+-0.060 air_per_delivered=1.88+-0.04 lost_interf=0.046
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=5 n=2000 margin=0 p=0.0625 runs=5 delivered=0.070+-0.006 air_per_delivered=1.82+-0.03 lost_interf=0.015
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=5 n=2000 margin=0 p=0.125 runs=5 delivered=0.129+-0.010 air_per_delivered=1.90+-0.01 lost_interf=0.030
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=5 n=2000 margin=0 p=0.25 runs=5 delivered=0.235+-0.018 air_per_delivered=2.02+-0.02 lost_interf=0.060
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=5 n=2000 margin=0 p=0.5 runs=5 delivered=0.382+-0.023 air_per_delivered=2.30+-0.05 lost_interf=0.116
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=5 n=2000 margin=0 p=1 runs=5 delivered=0.526+-0.026 air_per_delivered=2.90+-0.10 lost_interf=0.179
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=5 n=5000 margin=0 p=0.0625 runs=5 delivered=0.065+-0.005 air_per_delivered=1.93+-0.03 lost_interf=0.040
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=5 n=5000 margin=0 p=0.125 runs=5 delivered=0.116+-0.009 air_per_delivered=2.13+-0.03 lost_interf=0.081
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=5 n=5000 margin=0 p=0.25 runs=5 delivered=0.181+-0.012 air_per_delivered=2.62+-0.04 lost_interf=0.151
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=5 n=5000 margin=0 p=0.5 runs=5 delivered=0.226+-0.009 air_per_delivered=3.90+-0.16 lost_interf=0.212
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=5 n=5000 margin=0 p=1 runs=5 delivered=0.220+-0.007 air_per_delivered=6.93+-0.37 lost_interf=0.220
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=10 n=100 margin=0 p=0.0625 runs=5 delivered=0.118+-0.015 air_per_delivered=0.38+-0.02 lost_interf=0.000
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=10 n=100 margin=0 p=0.125 runs=5 delivered=0.237+-0.026 air_per_delivered=0.39+-0.01 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=10 n=100 margin=0 p=0.25 runs=5 delivered=0.481+-0.034 air_per_delivered=0.39+-0.01 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=10 n=100 margin=0 p=0.5 runs=5 delivered=0.947+-0.075 air_per_delivered=0.39+-0.01 lost_interf=0.002
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=10 n=100 margin=0 p=1 runs=5 delivered=1.873+-0.160 air_per_delivered=0.39+-0.01 lost_interf=0.005
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=10 n=500 margin=0 p=0.0625 runs=5 delivered=0.120+-0.009 air_per_delivered=0.39+-0.01 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=10 n=500 margin=0 p=0.125 runs=5 delivered=0.241+-0.024 air_per_delivered=0.39+-0.01 lost_interf=0.003
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=10 n=500 margin=0 p=0.25 runs=5 delivered=0.478+-0.041 air_per_delivered=0.40+-0.01 lost_interf=0.006
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=10 n=500 margin=0 p=0.5 runs=5 delivered=0.932+-0.082 air_per_delivered=0.40+-0.01 lost_interf=0.012
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=10 n=500 margin=0 p=1 runs=5 delivered=1.771+-0.128 air_per_delivered=0.42+-0.01 lost_interf=0.023
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=10 n=2000 margin=0 p=0.0625 runs=5 delivered=0.119+-0.012 air_per_delivered=0.40+-0.01 lost_interf=0.006
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=10 n=2000 margin=0 p=0.125 runs=5 delivered=0.234+-0.022 air_per_delivered=0.41+-0.01 lost_interf=0.012
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=10 n=2000 margin=0 p=0.25 runs=5 delivered=0.457+-0.041 air_per_delivered=0.41+-0.01 lost_interf=0.025
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=10 n=2000 margin=0 p=0.5 runs=5 delivered=0.862+-0.070 air_per_delivered=0.44+-0.00 lost_interf=0.053
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=10 n=2000 margin=0 p=1 runs=5 delivered=1.476+-0.088 air_per_delivered=0.50+-0.01 lost_interf=0.105
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=10 n=5000 margin=0 p=0.0625 runs=5 delivered=0.117+-0.011 air_per_delivered=0.41+-0.01 lost_interf=0.016
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=10 n=5000 margin=0 p=0.125 runs=5 delivered=0.227+-0.020 air_per_delivered=0.42+-0.00 lost_interf=0.033
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=10 n=5000 margin=0 p=0.25 runs=5 delivered=0.424+-0.037 air_per_delivered=0.45+-0.00 lost_interf=0.068
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=10 n=5000 margin=0 p=0.5 runs=5 delivered=0.718+-0.047 air_per_delivered=0.52+-0.01 lost_interf=0.135
+RESULT collision=C2 part=confirm scint=0 reading=R3 gain=10 n=5000 margin=0 p=1 runs=5 delivered=0.950+-0.033 air_per_delivered=0.78+-0.04 lost_interf=0.208
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=5 n=100 margin=0 p=0.0625 runs=5 delivered=0.111+-0.017 air_per_delivered=1.12+-0.07 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=5 n=100 margin=0 p=0.125 runs=5 delivered=0.212+-0.020 air_per_delivered=1.14+-0.02 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=5 n=100 margin=0 p=0.25 runs=5 delivered=0.413+-0.028 air_per_delivered=1.13+-0.04 lost_interf=0.002
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=5 n=100 margin=0 p=0.5 runs=5 delivered=0.761+-0.053 air_per_delivered=1.15+-0.02 lost_interf=0.005
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=5 n=100 margin=0 p=1 runs=5 delivered=1.301+-0.109 air_per_delivered=1.16+-0.02 lost_interf=0.009
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=5 n=500 margin=0 p=0.0625 runs=5 delivered=0.108+-0.010 air_per_delivered=1.15+-0.04 lost_interf=0.004
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=5 n=500 margin=0 p=0.125 runs=5 delivered=0.214+-0.017 air_per_delivered=1.15+-0.04 lost_interf=0.008
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=5 n=500 margin=0 p=0.25 runs=5 delivered=0.402+-0.036 air_per_delivered=1.17+-0.02 lost_interf=0.013
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=5 n=500 margin=0 p=0.5 runs=5 delivered=0.726+-0.062 air_per_delivered=1.21+-0.02 lost_interf=0.026
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=5 n=500 margin=0 p=1 runs=5 delivered=1.213+-0.099 air_per_delivered=1.25+-0.02 lost_interf=0.046
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=5 n=2000 margin=0 p=0.0625 runs=5 delivered=0.107+-0.010 air_per_delivered=1.18+-0.02 lost_interf=0.015
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=5 n=2000 margin=0 p=0.125 runs=5 delivered=0.201+-0.017 air_per_delivered=1.22+-0.02 lost_interf=0.030
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=5 n=2000 margin=0 p=0.25 runs=5 delivered=0.368+-0.030 air_per_delivered=1.29+-0.00 lost_interf=0.060
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=5 n=2000 margin=0 p=0.5 runs=5 delivered=0.600+-0.041 air_per_delivered=1.46+-0.02 lost_interf=0.116
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=5 n=2000 margin=0 p=1 runs=5 delivered=0.818+-0.042 air_per_delivered=1.86+-0.06 lost_interf=0.178
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=5 n=5000 margin=0 p=0.0625 runs=5 delivered=0.102+-0.008 air_per_delivered=1.24+-0.01 lost_interf=0.040
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=5 n=5000 margin=0 p=0.125 runs=5 delivered=0.183+-0.015 air_per_delivered=1.35+-0.02 lost_interf=0.081
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=5 n=5000 margin=0 p=0.25 runs=5 delivered=0.290+-0.019 air_per_delivered=1.64+-0.02 lost_interf=0.151
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=5 n=5000 margin=0 p=0.5 runs=5 delivered=0.360+-0.012 air_per_delivered=2.44+-0.11 lost_interf=0.212
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=5 n=5000 margin=0 p=1 runs=5 delivered=0.339+-0.007 air_per_delivered=4.50+-0.33 lost_interf=0.220
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=10 n=100 margin=0 p=0.0625 runs=5 delivered=0.124+-0.013 air_per_delivered=0.36+-0.01 lost_interf=0.000
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=10 n=100 margin=0 p=0.125 runs=5 delivered=0.248+-0.025 air_per_delivered=0.37+-0.01 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=10 n=100 margin=0 p=0.25 runs=5 delivered=0.503+-0.032 air_per_delivered=0.38+-0.01 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=10 n=100 margin=0 p=0.5 runs=5 delivered=0.986+-0.072 air_per_delivered=0.38+-0.01 lost_interf=0.002
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=10 n=100 margin=0 p=1 runs=5 delivered=1.951+-0.150 air_per_delivered=0.38+-0.01 lost_interf=0.004
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=10 n=500 margin=0 p=0.0625 runs=5 delivered=0.126+-0.010 air_per_delivered=0.38+-0.01 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=10 n=500 margin=0 p=0.125 runs=5 delivered=0.252+-0.024 air_per_delivered=0.38+-0.01 lost_interf=0.003
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=10 n=500 margin=0 p=0.25 runs=5 delivered=0.499+-0.040 air_per_delivered=0.38+-0.00 lost_interf=0.006
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=10 n=500 margin=0 p=0.5 runs=5 delivered=0.973+-0.079 air_per_delivered=0.39+-0.00 lost_interf=0.012
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=10 n=500 margin=0 p=1 runs=5 delivered=1.847+-0.130 air_per_delivered=0.40+-0.00 lost_interf=0.023
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=10 n=2000 margin=0 p=0.0625 runs=5 delivered=0.125+-0.012 air_per_delivered=0.38+-0.01 lost_interf=0.006
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=10 n=2000 margin=0 p=0.125 runs=5 delivered=0.245+-0.022 air_per_delivered=0.39+-0.01 lost_interf=0.012
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=10 n=2000 margin=0 p=0.25 runs=5 delivered=0.478+-0.040 air_per_delivered=0.39+-0.00 lost_interf=0.025
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=10 n=2000 margin=0 p=0.5 runs=5 delivered=0.902+-0.068 air_per_delivered=0.42+-0.00 lost_interf=0.053
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=10 n=2000 margin=0 p=1 runs=5 delivered=1.544+-0.084 air_per_delivered=0.48+-0.01 lost_interf=0.105
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=10 n=5000 margin=0 p=0.0625 runs=5 delivered=0.123+-0.011 air_per_delivered=0.39+-0.00 lost_interf=0.016
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=10 n=5000 margin=0 p=0.125 runs=5 delivered=0.238+-0.020 air_per_delivered=0.40+-0.00 lost_interf=0.033
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=10 n=5000 margin=0 p=0.25 runs=5 delivered=0.444+-0.036 air_per_delivered=0.43+-0.00 lost_interf=0.068
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=10 n=5000 margin=0 p=0.5 runs=5 delivered=0.755+-0.045 air_per_delivered=0.50+-0.01 lost_interf=0.135
+RESULT collision=C2 part=confirm scint=0 reading=R4 gain=10 n=5000 margin=0 p=1 runs=5 delivered=1.001+-0.028 air_per_delivered=0.74+-0.04 lost_interf=0.207
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=5 n=100 margin=0 p=0.0625 runs=5 delivered=0.074+-0.013 air_per_delivered=1.67+-0.13 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=5 n=100 margin=0 p=0.125 runs=5 delivered=0.137+-0.014 air_per_delivered=1.76+-0.09 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=5 n=100 margin=0 p=0.25 runs=5 delivered=0.263+-0.015 air_per_delivered=1.78+-0.12 lost_interf=0.002
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=5 n=100 margin=0 p=0.5 runs=5 delivered=0.497+-0.033 air_per_delivered=1.77+-0.07 lost_interf=0.005
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=5 n=100 margin=0 p=1 runs=5 delivered=0.867+-0.063 air_per_delivered=1.74+-0.02 lost_interf=0.009
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=5 n=500 margin=0 p=0.0625 runs=5 delivered=0.069+-0.006 air_per_delivered=1.81+-0.11 lost_interf=0.004
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=5 n=500 margin=0 p=0.125 runs=5 delivered=0.135+-0.010 air_per_delivered=1.83+-0.07 lost_interf=0.008
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=5 n=500 margin=0 p=0.25 runs=5 delivered=0.255+-0.023 air_per_delivered=1.84+-0.05 lost_interf=0.013
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=5 n=500 margin=0 p=0.5 runs=5 delivered=0.468+-0.038 air_per_delivered=1.87+-0.03 lost_interf=0.026
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=5 n=500 margin=0 p=1 runs=5 delivered=0.799+-0.061 air_per_delivered=1.90+-0.04 lost_interf=0.046
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=5 n=2000 margin=0 p=0.0625 runs=5 delivered=0.069+-0.006 air_per_delivered=1.84+-0.03 lost_interf=0.015
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=5 n=2000 margin=0 p=0.125 runs=5 delivered=0.128+-0.010 air_per_delivered=1.92+-0.01 lost_interf=0.030
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=5 n=2000 margin=0 p=0.25 runs=5 delivered=0.232+-0.018 air_per_delivered=2.05+-0.01 lost_interf=0.060
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=5 n=2000 margin=0 p=0.5 runs=5 delivered=0.377+-0.024 air_per_delivered=2.33+-0.04 lost_interf=0.116
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=5 n=2000 margin=0 p=1 runs=5 delivered=0.518+-0.027 air_per_delivered=2.94+-0.09 lost_interf=0.179
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=5 n=5000 margin=0 p=0.0625 runs=5 delivered=0.064+-0.005 air_per_delivered=1.96+-0.04 lost_interf=0.040
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=5 n=5000 margin=0 p=0.125 runs=5 delivered=0.114+-0.009 air_per_delivered=2.16+-0.03 lost_interf=0.081
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=5 n=5000 margin=0 p=0.25 runs=5 delivered=0.178+-0.012 air_per_delivered=2.66+-0.04 lost_interf=0.151
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=5 n=5000 margin=0 p=0.5 runs=5 delivered=0.221+-0.009 air_per_delivered=3.97+-0.15 lost_interf=0.212
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=5 n=5000 margin=0 p=1 runs=5 delivered=0.214+-0.007 air_per_delivered=7.12+-0.35 lost_interf=0.220
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=10 n=100 margin=0 p=0.0625 runs=5 delivered=0.118+-0.015 air_per_delivered=0.38+-0.02 lost_interf=0.000
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=10 n=100 margin=0 p=0.125 runs=5 delivered=0.237+-0.026 air_per_delivered=0.39+-0.01 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=10 n=100 margin=0 p=0.25 runs=5 delivered=0.481+-0.034 air_per_delivered=0.39+-0.01 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=10 n=100 margin=0 p=0.5 runs=5 delivered=0.947+-0.075 air_per_delivered=0.39+-0.01 lost_interf=0.002
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=10 n=100 margin=0 p=1 runs=5 delivered=1.873+-0.160 air_per_delivered=0.39+-0.01 lost_interf=0.005
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=10 n=500 margin=0 p=0.0625 runs=5 delivered=0.120+-0.009 air_per_delivered=0.39+-0.01 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=10 n=500 margin=0 p=0.125 runs=5 delivered=0.241+-0.024 air_per_delivered=0.39+-0.01 lost_interf=0.003
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=10 n=500 margin=0 p=0.25 runs=5 delivered=0.478+-0.041 air_per_delivered=0.40+-0.01 lost_interf=0.006
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=10 n=500 margin=0 p=0.5 runs=5 delivered=0.932+-0.082 air_per_delivered=0.40+-0.01 lost_interf=0.012
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=10 n=500 margin=0 p=1 runs=5 delivered=1.771+-0.128 air_per_delivered=0.42+-0.01 lost_interf=0.023
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=10 n=2000 margin=0 p=0.0625 runs=5 delivered=0.119+-0.012 air_per_delivered=0.40+-0.01 lost_interf=0.006
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=10 n=2000 margin=0 p=0.125 runs=5 delivered=0.234+-0.022 air_per_delivered=0.41+-0.01 lost_interf=0.012
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=10 n=2000 margin=0 p=0.25 runs=5 delivered=0.457+-0.041 air_per_delivered=0.41+-0.01 lost_interf=0.025
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=10 n=2000 margin=0 p=0.5 runs=5 delivered=0.862+-0.070 air_per_delivered=0.44+-0.00 lost_interf=0.053
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=10 n=2000 margin=0 p=1 runs=5 delivered=1.476+-0.088 air_per_delivered=0.50+-0.01 lost_interf=0.105
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=10 n=5000 margin=0 p=0.0625 runs=5 delivered=0.117+-0.011 air_per_delivered=0.41+-0.01 lost_interf=0.016
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=10 n=5000 margin=0 p=0.125 runs=5 delivered=0.227+-0.020 air_per_delivered=0.42+-0.00 lost_interf=0.033
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=10 n=5000 margin=0 p=0.25 runs=5 delivered=0.424+-0.037 air_per_delivered=0.45+-0.00 lost_interf=0.068
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=10 n=5000 margin=0 p=0.5 runs=5 delivered=0.718+-0.047 air_per_delivered=0.52+-0.01 lost_interf=0.135
+RESULT collision=C2 part=confirm scint=0 reading=R2 gain=10 n=5000 margin=0 p=1 runs=5 delivered=0.950+-0.033 air_per_delivered=0.78+-0.04 lost_interf=0.208
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=5 n=100 margin=-2 p=0.0625 runs=5 delivered=0.011+-0.002 air_per_delivered=9.52+-1.71 lost_interf=0.000
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=5 n=100 margin=-2 p=0.125 runs=5 delivered=0.022+-0.005 air_per_delivered=9.38+-1.31 lost_interf=0.000
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=5 n=100 margin=-2 p=0.25 runs=5 delivered=0.037+-0.007 air_per_delivered=9.98+-1.17 lost_interf=0.000
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=5 n=100 margin=-2 p=0.5 runs=5 delivered=0.057+-0.006 air_per_delivered=10.58+-0.96 lost_interf=0.000
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=5 n=100 margin=-2 p=1 runs=5 delivered=0.076+-0.004 air_per_delivered=10.79+-0.44 lost_interf=0.002
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=5 n=500 margin=-2 p=0.0625 runs=5 delivered=0.011+-0.001 air_per_delivered=9.62+-1.07 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=5 n=500 margin=-2 p=0.125 runs=5 delivered=0.020+-0.001 air_per_delivered=10.15+-1.38 lost_interf=0.002
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=5 n=500 margin=-2 p=0.25 runs=5 delivered=0.037+-0.004 air_per_delivered=10.11+-0.74 lost_interf=0.006
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=5 n=500 margin=-2 p=0.5 runs=5 delivered=0.057+-0.006 air_per_delivered=10.69+-0.62 lost_interf=0.010
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=5 n=500 margin=-2 p=1 runs=5 delivered=0.073+-0.009 air_per_delivered=11.43+-0.66 lost_interf=0.014
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=5 n=2000 margin=-2 p=0.0625 runs=5 delivered=0.011+-0.000 air_per_delivered=10.12+-0.80 lost_interf=0.007
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=5 n=2000 margin=-2 p=0.125 runs=5 delivered=0.020+-0.002 air_per_delivered=10.49+-0.72 lost_interf=0.014
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=5 n=2000 margin=-2 p=0.25 runs=5 delivered=0.033+-0.004 air_per_delivered=11.22+-0.33 lost_interf=0.031
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=5 n=2000 margin=-2 p=0.5 runs=5 delivered=0.049+-0.005 air_per_delivered=12.51+-0.49 lost_interf=0.055
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=5 n=2000 margin=-2 p=1 runs=5 delivered=0.059+-0.005 air_per_delivered=14.05+-0.37 lost_interf=0.079
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=5 n=5000 margin=-2 p=0.0625 runs=5 delivered=0.010+-0.001 air_per_delivered=10.70+-0.33 lost_interf=0.021
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=5 n=5000 margin=-2 p=0.125 runs=5 delivered=0.018+-0.002 air_per_delivered=11.44+-0.32 lost_interf=0.044
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=5 n=5000 margin=-2 p=0.25 runs=5 delivered=0.027+-0.002 air_per_delivered=13.67+-0.35 lost_interf=0.088
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=5 n=5000 margin=-2 p=0.5 runs=5 delivered=0.036+-0.003 air_per_delivered=17.17+-0.30 lost_interf=0.136
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=5 n=5000 margin=-2 p=1 runs=5 delivered=0.039+-0.003 air_per_delivered=21.52+-0.80 lost_interf=0.161
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=10 n=100 margin=-2 p=0.0625 runs=5 delivered=0.037+-0.004 air_per_delivered=3.90+-0.23 lost_interf=0.000
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=10 n=100 margin=-2 p=0.125 runs=5 delivered=0.069+-0.008 air_per_delivered=4.04+-0.23 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=10 n=100 margin=-2 p=0.25 runs=5 delivered=0.135+-0.006 air_per_delivered=3.93+-0.35 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=10 n=100 margin=-2 p=0.5 runs=5 delivered=0.239+-0.008 air_per_delivered=4.02+-0.16 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=10 n=100 margin=-2 p=1 runs=5 delivered=0.393+-0.016 air_per_delivered=3.94+-0.19 lost_interf=0.002
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=10 n=500 margin=-2 p=0.0625 runs=5 delivered=0.036+-0.003 air_per_delivered=4.09+-0.28 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=10 n=500 margin=-2 p=0.125 runs=5 delivered=0.069+-0.005 air_per_delivered=4.16+-0.25 lost_interf=0.002
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=10 n=500 margin=-2 p=0.25 runs=5 delivered=0.131+-0.012 air_per_delivered=4.11+-0.11 lost_interf=0.004
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=10 n=500 margin=-2 p=0.5 runs=5 delivered=0.235+-0.014 air_per_delivered=4.10+-0.09 lost_interf=0.007
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=10 n=500 margin=-2 p=1 runs=5 delivered=0.372+-0.027 air_per_delivered=4.20+-0.11 lost_interf=0.013
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=10 n=2000 margin=-2 p=0.0625 runs=5 delivered=0.036+-0.003 air_per_delivered=4.14+-0.15 lost_interf=0.004
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=10 n=2000 margin=-2 p=0.125 runs=5 delivered=0.068+-0.006 air_per_delivered=4.19+-0.05 lost_interf=0.010
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=10 n=2000 margin=-2 p=0.25 runs=5 delivered=0.123+-0.008 air_per_delivered=4.41+-0.08 lost_interf=0.021
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=10 n=2000 margin=-2 p=0.5 runs=5 delivered=0.203+-0.012 air_per_delivered=4.77+-0.07 lost_interf=0.042
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=10 n=2000 margin=-2 p=1 runs=5 delivered=0.280+-0.013 air_per_delivered=5.57+-0.17 lost_interf=0.074
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=10 n=5000 margin=-2 p=0.0625 runs=5 delivered=0.035+-0.002 air_per_delivered=4.29+-0.13 lost_interf=0.013
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=10 n=5000 margin=-2 p=0.125 runs=5 delivered=0.062+-0.004 air_per_delivered=4.62+-0.06 lost_interf=0.029
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=10 n=5000 margin=-2 p=0.25 runs=5 delivered=0.101+-0.006 air_per_delivered=5.39+-0.14 lost_interf=0.063
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=10 n=5000 margin=-2 p=0.5 runs=5 delivered=0.134+-0.004 air_per_delivered=7.23+-0.38 lost_interf=0.107
+RESULT collision=C2 part=confirm scint=7.69 reading=R1 gain=10 n=5000 margin=-2 p=1 runs=5 delivered=0.140+-0.004 air_per_delivered=11.14+-0.62 lost_interf=0.136
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=5 n=100 margin=-2 p=0.0625 runs=5 delivered=0.019+-0.004 air_per_delivered=5.49+-0.86 lost_interf=0.000
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=5 n=100 margin=-2 p=0.125 runs=5 delivered=0.040+-0.004 air_per_delivered=4.97+-0.19 lost_interf=0.000
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=5 n=100 margin=-2 p=0.25 runs=5 delivered=0.066+-0.008 air_per_delivered=5.54+-0.29 lost_interf=0.000
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=5 n=100 margin=-2 p=0.5 runs=5 delivered=0.107+-0.007 air_per_delivered=5.63+-0.19 lost_interf=0.000
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=5 n=100 margin=-2 p=1 runs=5 delivered=0.144+-0.013 air_per_delivered=5.71+-0.21 lost_interf=0.002
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=5 n=500 margin=-2 p=0.0625 runs=5 delivered=0.019+-0.002 air_per_delivered=5.50+-0.38 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=5 n=500 margin=-2 p=0.125 runs=5 delivered=0.037+-0.002 air_per_delivered=5.62+-0.66 lost_interf=0.002
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=5 n=500 margin=-2 p=0.25 runs=5 delivered=0.066+-0.006 air_per_delivered=5.62+-0.22 lost_interf=0.006
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=5 n=500 margin=-2 p=0.5 runs=5 delivered=0.105+-0.010 air_per_delivered=5.85+-0.17 lost_interf=0.010
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=5 n=500 margin=-2 p=1 runs=5 delivered=0.135+-0.013 air_per_delivered=6.15+-0.21 lost_interf=0.014
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=5 n=2000 margin=-2 p=0.0625 runs=5 delivered=0.018+-0.001 air_per_delivered=5.81+-0.23 lost_interf=0.007
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=5 n=2000 margin=-2 p=0.125 runs=5 delivered=0.035+-0.003 air_per_delivered=5.92+-0.22 lost_interf=0.014
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=5 n=2000 margin=-2 p=0.25 runs=5 delivered=0.059+-0.006 air_per_delivered=6.31+-0.17 lost_interf=0.031
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=5 n=2000 margin=-2 p=0.5 runs=5 delivered=0.085+-0.007 air_per_delivered=7.18+-0.13 lost_interf=0.055
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=5 n=2000 margin=-2 p=1 runs=5 delivered=0.100+-0.007 air_per_delivered=8.31+-0.28 lost_interf=0.079
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=5 n=5000 margin=-2 p=0.0625 runs=5 delivered=0.018+-0.002 air_per_delivered=6.09+-0.19 lost_interf=0.021
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=5 n=5000 margin=-2 p=0.125 runs=5 delivered=0.030+-0.003 air_per_delivered=6.70+-0.18 lost_interf=0.044
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=5 n=5000 margin=-2 p=0.25 runs=5 delivered=0.045+-0.003 air_per_delivered=8.33+-0.31 lost_interf=0.088
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=5 n=5000 margin=-2 p=0.5 runs=5 delivered=0.053+-0.003 air_per_delivered=11.45+-0.58 lost_interf=0.136
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=5 n=5000 margin=-2 p=1 runs=5 delivered=0.054+-0.002 air_per_delivered=15.48+-0.98 lost_interf=0.161
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=10 n=100 margin=-2 p=0.0625 runs=5 delivered=0.037+-0.004 air_per_delivered=3.90+-0.23 lost_interf=0.000
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=10 n=100 margin=-2 p=0.125 runs=5 delivered=0.069+-0.008 air_per_delivered=4.04+-0.23 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=10 n=100 margin=-2 p=0.25 runs=5 delivered=0.135+-0.006 air_per_delivered=3.93+-0.35 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=10 n=100 margin=-2 p=0.5 runs=5 delivered=0.239+-0.008 air_per_delivered=4.02+-0.16 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=10 n=100 margin=-2 p=1 runs=5 delivered=0.393+-0.016 air_per_delivered=3.94+-0.19 lost_interf=0.002
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=10 n=500 margin=-2 p=0.0625 runs=5 delivered=0.036+-0.003 air_per_delivered=4.09+-0.28 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=10 n=500 margin=-2 p=0.125 runs=5 delivered=0.069+-0.005 air_per_delivered=4.16+-0.25 lost_interf=0.002
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=10 n=500 margin=-2 p=0.25 runs=5 delivered=0.131+-0.012 air_per_delivered=4.11+-0.11 lost_interf=0.004
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=10 n=500 margin=-2 p=0.5 runs=5 delivered=0.235+-0.014 air_per_delivered=4.10+-0.09 lost_interf=0.007
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=10 n=500 margin=-2 p=1 runs=5 delivered=0.372+-0.027 air_per_delivered=4.20+-0.11 lost_interf=0.013
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=10 n=2000 margin=-2 p=0.0625 runs=5 delivered=0.036+-0.003 air_per_delivered=4.14+-0.15 lost_interf=0.004
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=10 n=2000 margin=-2 p=0.125 runs=5 delivered=0.068+-0.006 air_per_delivered=4.19+-0.05 lost_interf=0.010
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=10 n=2000 margin=-2 p=0.25 runs=5 delivered=0.123+-0.008 air_per_delivered=4.41+-0.08 lost_interf=0.021
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=10 n=2000 margin=-2 p=0.5 runs=5 delivered=0.203+-0.012 air_per_delivered=4.77+-0.07 lost_interf=0.042
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=10 n=2000 margin=-2 p=1 runs=5 delivered=0.280+-0.013 air_per_delivered=5.57+-0.17 lost_interf=0.074
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=10 n=5000 margin=-2 p=0.0625 runs=5 delivered=0.035+-0.002 air_per_delivered=4.29+-0.13 lost_interf=0.013
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=10 n=5000 margin=-2 p=0.125 runs=5 delivered=0.062+-0.004 air_per_delivered=4.62+-0.06 lost_interf=0.029
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=10 n=5000 margin=-2 p=0.25 runs=5 delivered=0.101+-0.006 air_per_delivered=5.39+-0.14 lost_interf=0.063
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=10 n=5000 margin=-2 p=0.5 runs=5 delivered=0.134+-0.004 air_per_delivered=7.23+-0.38 lost_interf=0.107
+RESULT collision=C2 part=confirm scint=7.69 reading=R3 gain=10 n=5000 margin=-2 p=1 runs=5 delivered=0.140+-0.004 air_per_delivered=11.14+-0.62 lost_interf=0.136
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=5 n=100 margin=-2 p=0.0625 runs=5 delivered=0.011+-0.002 air_per_delivered=9.52+-1.71 lost_interf=0.000
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=5 n=100 margin=-2 p=0.125 runs=5 delivered=0.022+-0.005 air_per_delivered=9.38+-1.31 lost_interf=0.000
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=5 n=100 margin=-2 p=0.25 runs=5 delivered=0.037+-0.007 air_per_delivered=9.98+-1.17 lost_interf=0.000
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=5 n=100 margin=-2 p=0.5 runs=5 delivered=0.057+-0.006 air_per_delivered=10.58+-0.96 lost_interf=0.000
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=5 n=100 margin=-2 p=1 runs=5 delivered=0.076+-0.004 air_per_delivered=10.79+-0.44 lost_interf=0.002
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=5 n=500 margin=-2 p=0.0625 runs=5 delivered=0.011+-0.001 air_per_delivered=9.62+-1.07 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=5 n=500 margin=-2 p=0.125 runs=5 delivered=0.020+-0.001 air_per_delivered=10.15+-1.38 lost_interf=0.002
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=5 n=500 margin=-2 p=0.25 runs=5 delivered=0.037+-0.004 air_per_delivered=10.11+-0.74 lost_interf=0.006
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=5 n=500 margin=-2 p=0.5 runs=5 delivered=0.057+-0.006 air_per_delivered=10.69+-0.62 lost_interf=0.010
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=5 n=500 margin=-2 p=1 runs=5 delivered=0.073+-0.009 air_per_delivered=11.43+-0.66 lost_interf=0.014
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=5 n=2000 margin=-2 p=0.0625 runs=5 delivered=0.011+-0.000 air_per_delivered=10.12+-0.80 lost_interf=0.007
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=5 n=2000 margin=-2 p=0.125 runs=5 delivered=0.020+-0.002 air_per_delivered=10.49+-0.72 lost_interf=0.014
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=5 n=2000 margin=-2 p=0.25 runs=5 delivered=0.033+-0.004 air_per_delivered=11.22+-0.33 lost_interf=0.031
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=5 n=2000 margin=-2 p=0.5 runs=5 delivered=0.049+-0.005 air_per_delivered=12.51+-0.49 lost_interf=0.055
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=5 n=2000 margin=-2 p=1 runs=5 delivered=0.059+-0.005 air_per_delivered=14.05+-0.37 lost_interf=0.079
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=5 n=5000 margin=-2 p=0.0625 runs=5 delivered=0.010+-0.001 air_per_delivered=10.70+-0.33 lost_interf=0.021
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=5 n=5000 margin=-2 p=0.125 runs=5 delivered=0.018+-0.002 air_per_delivered=11.44+-0.32 lost_interf=0.044
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=5 n=5000 margin=-2 p=0.25 runs=5 delivered=0.027+-0.002 air_per_delivered=13.67+-0.35 lost_interf=0.088
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=5 n=5000 margin=-2 p=0.5 runs=5 delivered=0.036+-0.003 air_per_delivered=17.17+-0.30 lost_interf=0.136
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=5 n=5000 margin=-2 p=1 runs=5 delivered=0.039+-0.003 air_per_delivered=21.52+-0.80 lost_interf=0.161
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=10 n=100 margin=-2 p=0.0625 runs=5 delivered=0.060+-0.007 air_per_delivered=2.40+-0.19 lost_interf=0.000
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=10 n=100 margin=-2 p=0.125 runs=5 delivered=0.111+-0.011 air_per_delivered=2.51+-0.08 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=10 n=100 margin=-2 p=0.25 runs=5 delivered=0.213+-0.006 air_per_delivered=2.49+-0.14 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=10 n=100 margin=-2 p=0.5 runs=5 delivered=0.376+-0.016 air_per_delivered=2.56+-0.07 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=10 n=100 margin=-2 p=1 runs=5 delivered=0.620+-0.039 air_per_delivered=2.50+-0.05 lost_interf=0.002
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=10 n=500 margin=-2 p=0.0625 runs=5 delivered=0.056+-0.005 air_per_delivered=2.59+-0.09 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=10 n=500 margin=-2 p=0.125 runs=5 delivered=0.110+-0.008 air_per_delivered=2.61+-0.10 lost_interf=0.002
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=10 n=500 margin=-2 p=0.25 runs=5 delivered=0.208+-0.018 air_per_delivered=2.59+-0.08 lost_interf=0.004
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=10 n=500 margin=-2 p=0.5 runs=5 delivered=0.372+-0.026 air_per_delivered=2.59+-0.01 lost_interf=0.007
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=10 n=500 margin=-2 p=1 runs=5 delivered=0.588+-0.046 air_per_delivered=2.65+-0.03 lost_interf=0.013
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=10 n=2000 margin=-2 p=0.0625 runs=5 delivered=0.057+-0.005 air_per_delivered=2.61+-0.08 lost_interf=0.004
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=10 n=2000 margin=-2 p=0.125 runs=5 delivered=0.108+-0.009 air_per_delivered=2.66+-0.05 lost_interf=0.010
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=10 n=2000 margin=-2 p=0.25 runs=5 delivered=0.196+-0.016 air_per_delivered=2.76+-0.05 lost_interf=0.021
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=10 n=2000 margin=-2 p=0.5 runs=5 delivered=0.328+-0.024 air_per_delivered=2.95+-0.02 lost_interf=0.042
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=10 n=2000 margin=-2 p=1 runs=5 delivered=0.462+-0.030 air_per_delivered=3.38+-0.06 lost_interf=0.074
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=10 n=5000 margin=-2 p=0.0625 runs=5 delivered=0.055+-0.004 air_per_delivered=2.72+-0.06 lost_interf=0.013
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=10 n=5000 margin=-2 p=0.125 runs=5 delivered=0.100+-0.008 air_per_delivered=2.87+-0.03 lost_interf=0.029
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=10 n=5000 margin=-2 p=0.25 runs=5 delivered=0.167+-0.012 air_per_delivered=3.26+-0.03 lost_interf=0.063
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=10 n=5000 margin=-2 p=0.5 runs=5 delivered=0.229+-0.011 air_per_delivered=4.23+-0.13 lost_interf=0.107
+RESULT collision=C2 part=confirm scint=7.69 reading=R4 gain=10 n=5000 margin=-2 p=1 runs=5 delivered=0.245+-0.008 air_per_delivered=6.39+-0.32 lost_interf=0.136
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=5 n=100 margin=-2 p=0.0625 runs=5 delivered=0.006+-0.002 air_per_delivered=17.95+-4.99 lost_interf=0.000
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=5 n=100 margin=-2 p=0.125 runs=5 delivered=0.011+-0.003 air_per_delivered=18.16+-4.42 lost_interf=0.000
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=5 n=100 margin=-2 p=0.25 runs=5 delivered=0.022+-0.006 air_per_delivered=16.80+-3.33 lost_interf=0.000
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=5 n=100 margin=-2 p=0.5 runs=5 delivered=0.033+-0.005 air_per_delivered=18.20+-2.61 lost_interf=0.000
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=5 n=100 margin=-2 p=1 runs=5 delivered=0.044+-0.003 air_per_delivered=18.79+-1.31 lost_interf=0.002
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=5 n=500 margin=-2 p=0.0625 runs=5 delivered=0.006+-0.001 air_per_delivered=17.17+-3.54 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=5 n=500 margin=-2 p=0.125 runs=5 delivered=0.012+-0.001 air_per_delivered=17.48+-2.53 lost_interf=0.002
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=5 n=500 margin=-2 p=0.25 runs=5 delivered=0.023+-0.003 air_per_delivered=16.46+-1.35 lost_interf=0.006
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=5 n=500 margin=-2 p=0.5 runs=5 delivered=0.034+-0.004 air_per_delivered=17.88+-1.30 lost_interf=0.010
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=5 n=500 margin=-2 p=1 runs=5 delivered=0.041+-0.005 air_per_delivered=20.23+-1.22 lost_interf=0.014
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=5 n=2000 margin=-2 p=0.0625 runs=5 delivered=0.006+-0.000 air_per_delivered=16.52+-1.51 lost_interf=0.007
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=5 n=2000 margin=-2 p=0.125 runs=5 delivered=0.012+-0.001 air_per_delivered=17.37+-1.79 lost_interf=0.014
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=5 n=2000 margin=-2 p=0.25 runs=5 delivered=0.021+-0.002 air_per_delivered=18.03+-0.75 lost_interf=0.031
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=5 n=2000 margin=-2 p=0.5 runs=5 delivered=0.031+-0.004 air_per_delivered=19.62+-0.80 lost_interf=0.055
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=5 n=2000 margin=-2 p=1 runs=5 delivered=0.038+-0.004 air_per_delivered=21.76+-0.60 lost_interf=0.079
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=5 n=5000 margin=-2 p=0.0625 runs=5 delivered=0.006+-0.001 air_per_delivered=17.83+-0.70 lost_interf=0.021
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=5 n=5000 margin=-2 p=0.125 runs=5 delivered=0.011+-0.001 air_per_delivered=18.02+-0.94 lost_interf=0.044
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=5 n=5000 margin=-2 p=0.25 runs=5 delivered=0.018+-0.002 air_per_delivered=20.39+-0.64 lost_interf=0.088
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=5 n=5000 margin=-2 p=0.5 runs=5 delivered=0.026+-0.003 air_per_delivered=23.12+-0.24 lost_interf=0.136
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=5 n=5000 margin=-2 p=1 runs=5 delivered=0.030+-0.002 air_per_delivered=27.79+-0.44 lost_interf=0.161
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=10 n=100 margin=-2 p=0.0625 runs=5 delivered=0.034+-0.004 air_per_delivered=4.29+-0.19 lost_interf=0.000
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=10 n=100 margin=-2 p=0.125 runs=5 delivered=0.061+-0.007 air_per_delivered=4.57+-0.34 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=10 n=100 margin=-2 p=0.25 runs=5 delivered=0.121+-0.007 air_per_delivered=4.38+-0.41 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=10 n=100 margin=-2 p=0.5 runs=5 delivered=0.218+-0.010 air_per_delivered=4.41+-0.19 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=10 n=100 margin=-2 p=1 runs=5 delivered=0.362+-0.015 air_per_delivered=4.27+-0.16 lost_interf=0.002
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=10 n=500 margin=-2 p=0.0625 runs=5 delivered=0.032+-0.003 air_per_delivered=4.50+-0.41 lost_interf=0.001
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=10 n=500 margin=-2 p=0.125 runs=5 delivered=0.062+-0.005 air_per_delivered=4.59+-0.21 lost_interf=0.002
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=10 n=500 margin=-2 p=0.25 runs=5 delivered=0.120+-0.013 air_per_delivered=4.51+-0.14 lost_interf=0.004
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=10 n=500 margin=-2 p=0.5 runs=5 delivered=0.215+-0.015 air_per_delivered=4.50+-0.08 lost_interf=0.007
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=10 n=500 margin=-2 p=1 runs=5 delivered=0.340+-0.029 air_per_delivered=4.58+-0.11 lost_interf=0.013
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=10 n=2000 margin=-2 p=0.0625 runs=5 delivered=0.032+-0.003 air_per_delivered=4.58+-0.19 lost_interf=0.004
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=10 n=2000 margin=-2 p=0.125 runs=5 delivered=0.062+-0.006 air_per_delivered=4.64+-0.08 lost_interf=0.010
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=10 n=2000 margin=-2 p=0.25 runs=5 delivered=0.111+-0.008 air_per_delivered=4.87+-0.08 lost_interf=0.021
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=10 n=2000 margin=-2 p=0.5 runs=5 delivered=0.184+-0.013 air_per_delivered=5.27+-0.04 lost_interf=0.042
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=10 n=2000 margin=-2 p=1 runs=5 delivered=0.253+-0.015 air_per_delivered=6.17+-0.12 lost_interf=0.074
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=10 n=5000 margin=-2 p=0.0625 runs=5 delivered=0.031+-0.003 air_per_delivered=4.73+-0.16 lost_interf=0.013
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=10 n=5000 margin=-2 p=0.125 runs=5 delivered=0.056+-0.005 air_per_delivered=5.10+-0.07 lost_interf=0.029
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=10 n=5000 margin=-2 p=0.25 runs=5 delivered=0.091+-0.006 air_per_delivered=5.98+-0.07 lost_interf=0.063
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=10 n=5000 margin=-2 p=0.5 runs=5 delivered=0.120+-0.005 air_per_delivered=8.08+-0.35 lost_interf=0.107
+RESULT collision=C2 part=confirm scint=7.69 reading=R2 gain=10 n=5000 margin=-2 p=1 runs=5 delivered=0.124+-0.005 air_per_delivered=12.58+-0.57 lost_interf=0.136
+RESULT collision=C2 part=search scint=0 reading=R1 gain=5 n=5000 margin=0 p=0.0625 runs=5 delivered=0.069+-0.002 air_per_delivered=1.96+-0.02 lost_interf=0.042
+RESULT collision=C2 part=search scint=0 reading=R1 gain=5 n=5000 margin=0 p=0.125 runs=5 delivered=0.123+-0.004 air_per_delivered=2.16+-0.03 lost_interf=0.088
+RESULT collision=C2 part=search scint=0 reading=R1 gain=5 n=5000 margin=0 p=0.25 runs=5 delivered=0.189+-0.005 air_per_delivered=2.72+-0.05 lost_interf=0.160
+RESULT collision=C2 part=search scint=0 reading=R1 gain=5 n=5000 margin=0 p=0.5 runs=5 delivered=0.230+-0.003 air_per_delivered=4.11+-0.06 lost_interf=0.215
+RESULT collision=C2 part=search scint=0 reading=R1 gain=5 n=5000 margin=0 p=1 runs=5 delivered=0.224+-0.002 air_per_delivered=7.36+-0.11 lost_interf=0.217
+RESULT collision=C2 part=search scint=0 reading=R1 gain=10 n=5000 margin=0 p=0.0625 runs=5 delivered=0.126+-0.003 air_per_delivered=0.40+-0.00 lost_interf=0.017
+RESULT collision=C2 part=search scint=0 reading=R1 gain=10 n=5000 margin=0 p=0.125 runs=5 delivered=0.245+-0.008 air_per_delivered=0.42+-0.00 lost_interf=0.035
+RESULT collision=C2 part=search scint=0 reading=R1 gain=10 n=5000 margin=0 p=0.25 runs=5 delivered=0.454+-0.013 air_per_delivered=0.45+-0.00 lost_interf=0.074
+RESULT collision=C2 part=search scint=0 reading=R1 gain=10 n=5000 margin=0 p=0.5 runs=5 delivered=0.761+-0.016 air_per_delivered=0.53+-0.00 lost_interf=0.145
+RESULT collision=C2 part=search scint=0 reading=R1 gain=10 n=5000 margin=0 p=1 runs=5 delivered=0.968+-0.015 air_per_delivered=0.83+-0.01 lost_interf=0.211
+RESULT collision=C2 part=search scint=0 reading=R3 gain=5 n=5000 margin=0 p=0.0625 runs=5 delivered=0.069+-0.002 air_per_delivered=1.96+-0.02 lost_interf=0.042
+RESULT collision=C2 part=search scint=0 reading=R3 gain=5 n=5000 margin=0 p=0.125 runs=5 delivered=0.123+-0.004 air_per_delivered=2.16+-0.03 lost_interf=0.088
+RESULT collision=C2 part=search scint=0 reading=R3 gain=5 n=5000 margin=0 p=0.25 runs=5 delivered=0.189+-0.005 air_per_delivered=2.72+-0.05 lost_interf=0.160
+RESULT collision=C2 part=search scint=0 reading=R3 gain=5 n=5000 margin=0 p=0.5 runs=5 delivered=0.230+-0.003 air_per_delivered=4.11+-0.06 lost_interf=0.215
+RESULT collision=C2 part=search scint=0 reading=R3 gain=5 n=5000 margin=0 p=1 runs=5 delivered=0.224+-0.002 air_per_delivered=7.36+-0.11 lost_interf=0.217
+RESULT collision=C2 part=search scint=0 reading=R3 gain=10 n=5000 margin=0 p=0.0625 runs=5 delivered=0.126+-0.003 air_per_delivered=0.40+-0.00 lost_interf=0.017
+RESULT collision=C2 part=search scint=0 reading=R3 gain=10 n=5000 margin=0 p=0.125 runs=5 delivered=0.245+-0.008 air_per_delivered=0.42+-0.00 lost_interf=0.035
+RESULT collision=C2 part=search scint=0 reading=R3 gain=10 n=5000 margin=0 p=0.25 runs=5 delivered=0.454+-0.013 air_per_delivered=0.45+-0.00 lost_interf=0.074
+RESULT collision=C2 part=search scint=0 reading=R3 gain=10 n=5000 margin=0 p=0.5 runs=5 delivered=0.761+-0.016 air_per_delivered=0.53+-0.00 lost_interf=0.145
+RESULT collision=C2 part=search scint=0 reading=R3 gain=10 n=5000 margin=0 p=1 runs=5 delivered=0.968+-0.015 air_per_delivered=0.83+-0.01 lost_interf=0.211
+RESULT collision=C2 part=search scint=0 reading=R4 gain=5 n=5000 margin=0 p=0.0625 runs=5 delivered=0.109+-0.003 air_per_delivered=1.24+-0.02 lost_interf=0.042
+RESULT collision=C2 part=search scint=0 reading=R4 gain=5 n=5000 margin=0 p=0.125 runs=5 delivered=0.196+-0.005 air_per_delivered=1.36+-0.01 lost_interf=0.088
+RESULT collision=C2 part=search scint=0 reading=R4 gain=5 n=5000 margin=0 p=0.25 runs=5 delivered=0.304+-0.007 air_per_delivered=1.68+-0.02 lost_interf=0.160
+RESULT collision=C2 part=search scint=0 reading=R4 gain=5 n=5000 margin=0 p=0.5 runs=5 delivered=0.368+-0.006 air_per_delivered=2.57+-0.03 lost_interf=0.215
+RESULT collision=C2 part=search scint=0 reading=R4 gain=5 n=5000 margin=0 p=1 runs=5 delivered=0.340+-0.003 air_per_delivered=4.85+-0.09 lost_interf=0.217
+RESULT collision=C2 part=search scint=0 reading=R4 gain=10 n=5000 margin=0 p=0.0625 runs=5 delivered=0.132+-0.003 air_per_delivered=0.39+-0.00 lost_interf=0.017
+RESULT collision=C2 part=search scint=0 reading=R4 gain=10 n=5000 margin=0 p=0.125 runs=5 delivered=0.255+-0.009 air_per_delivered=0.40+-0.00 lost_interf=0.035
+RESULT collision=C2 part=search scint=0 reading=R4 gain=10 n=5000 margin=0 p=0.25 runs=5 delivered=0.473+-0.012 air_per_delivered=0.43+-0.00 lost_interf=0.074
+RESULT collision=C2 part=search scint=0 reading=R4 gain=10 n=5000 margin=0 p=0.5 runs=5 delivered=0.795+-0.016 air_per_delivered=0.51+-0.00 lost_interf=0.145
+RESULT collision=C2 part=search scint=0 reading=R4 gain=10 n=5000 margin=0 p=1 runs=5 delivered=1.015+-0.012 air_per_delivered=0.79+-0.01 lost_interf=0.210
+RESULT collision=C2 part=search scint=0 reading=R2 gain=5 n=5000 margin=0 p=0.0625 runs=5 delivered=0.068+-0.002 air_per_delivered=1.98+-0.02 lost_interf=0.042
+RESULT collision=C2 part=search scint=0 reading=R2 gain=5 n=5000 margin=0 p=0.125 runs=5 delivered=0.122+-0.004 air_per_delivered=2.18+-0.03 lost_interf=0.088
+RESULT collision=C2 part=search scint=0 reading=R2 gain=5 n=5000 margin=0 p=0.25 runs=5 delivered=0.186+-0.005 air_per_delivered=2.75+-0.05 lost_interf=0.160
+RESULT collision=C2 part=search scint=0 reading=R2 gain=5 n=5000 margin=0 p=0.5 runs=5 delivered=0.226+-0.003 air_per_delivered=4.18+-0.06 lost_interf=0.215
+RESULT collision=C2 part=search scint=0 reading=R2 gain=5 n=5000 margin=0 p=1 runs=5 delivered=0.219+-0.002 air_per_delivered=7.52+-0.10 lost_interf=0.217
+RESULT collision=C2 part=search scint=0 reading=R2 gain=10 n=5000 margin=0 p=0.0625 runs=5 delivered=0.126+-0.003 air_per_delivered=0.40+-0.00 lost_interf=0.017
+RESULT collision=C2 part=search scint=0 reading=R2 gain=10 n=5000 margin=0 p=0.125 runs=5 delivered=0.245+-0.008 air_per_delivered=0.42+-0.00 lost_interf=0.035
+RESULT collision=C2 part=search scint=0 reading=R2 gain=10 n=5000 margin=0 p=0.25 runs=5 delivered=0.454+-0.013 air_per_delivered=0.45+-0.00 lost_interf=0.074
+RESULT collision=C2 part=search scint=0 reading=R2 gain=10 n=5000 margin=0 p=0.5 runs=5 delivered=0.761+-0.016 air_per_delivered=0.53+-0.00 lost_interf=0.145
+RESULT collision=C2 part=search scint=0 reading=R2 gain=10 n=5000 margin=0 p=1 runs=5 delivered=0.968+-0.015 air_per_delivered=0.83+-0.01 lost_interf=0.211
+RESULT collision=C2 part=search scint=7.69 reading=R1 gain=5 n=5000 margin=-2 p=0.0625 runs=5 delivered=0.011+-0.000 air_per_delivered=10.99+-0.44 lost_interf=0.023
+RESULT collision=C2 part=search scint=7.69 reading=R1 gain=5 n=5000 margin=-2 p=0.125 runs=5 delivered=0.019+-0.001 air_per_delivered=12.03+-0.27 lost_interf=0.050
+RESULT collision=C2 part=search scint=7.69 reading=R1 gain=5 n=5000 margin=-2 p=0.25 runs=5 delivered=0.029+-0.001 air_per_delivered=13.92+-0.39 lost_interf=0.094
+RESULT collision=C2 part=search scint=7.69 reading=R1 gain=5 n=5000 margin=-2 p=0.5 runs=5 delivered=0.038+-0.001 air_per_delivered=17.65+-0.23 lost_interf=0.143
+RESULT collision=C2 part=search scint=7.69 reading=R1 gain=5 n=5000 margin=-2 p=1 runs=5 delivered=0.041+-0.001 air_per_delivered=22.21+-0.54 lost_interf=0.165
+RESULT collision=C2 part=search scint=7.69 reading=R1 gain=10 n=5000 margin=-2 p=0.0625 runs=5 delivered=0.036+-0.001 air_per_delivered=4.37+-0.07 lost_interf=0.014
+RESULT collision=C2 part=search scint=7.69 reading=R1 gain=10 n=5000 margin=-2 p=0.125 runs=5 delivered=0.066+-0.001 air_per_delivered=4.66+-0.04 lost_interf=0.032
+RESULT collision=C2 part=search scint=7.69 reading=R1 gain=10 n=5000 margin=-2 p=0.25 runs=5 delivered=0.106+-0.002 air_per_delivered=5.49+-0.07 lost_interf=0.067
+RESULT collision=C2 part=search scint=7.69 reading=R1 gain=10 n=5000 margin=-2 p=0.5 runs=5 delivered=0.136+-0.002 air_per_delivered=7.68+-0.10 lost_interf=0.112
+RESULT collision=C2 part=search scint=7.69 reading=R1 gain=10 n=5000 margin=-2 p=1 runs=5 delivered=0.142+-0.002 air_per_delivered=11.86+-0.25 lost_interf=0.138
+RESULT collision=C2 part=search scint=7.69 reading=R3 gain=5 n=5000 margin=-2 p=0.0625 runs=5 delivered=0.019+-0.000 air_per_delivered=6.26+-0.17 lost_interf=0.023
+RESULT collision=C2 part=search scint=7.69 reading=R3 gain=5 n=5000 margin=-2 p=0.125 runs=5 delivered=0.033+-0.001 air_per_delivered=6.95+-0.13 lost_interf=0.050
+RESULT collision=C2 part=search scint=7.69 reading=R3 gain=5 n=5000 margin=-2 p=0.25 runs=5 delivered=0.047+-0.001 air_per_delivered=8.70+-0.10 lost_interf=0.094
+RESULT collision=C2 part=search scint=7.69 reading=R3 gain=5 n=5000 margin=-2 p=0.5 runs=5 delivered=0.055+-0.001 air_per_delivered=12.14+-0.23 lost_interf=0.143
+RESULT collision=C2 part=search scint=7.69 reading=R3 gain=5 n=5000 margin=-2 p=1 runs=5 delivered=0.055+-0.001 air_per_delivered=16.52+-0.39 lost_interf=0.165
+RESULT collision=C2 part=search scint=7.69 reading=R3 gain=10 n=5000 margin=-2 p=0.0625 runs=5 delivered=0.036+-0.001 air_per_delivered=4.37+-0.07 lost_interf=0.014
+RESULT collision=C2 part=search scint=7.69 reading=R3 gain=10 n=5000 margin=-2 p=0.125 runs=5 delivered=0.066+-0.001 air_per_delivered=4.66+-0.04 lost_interf=0.032
+RESULT collision=C2 part=search scint=7.69 reading=R3 gain=10 n=5000 margin=-2 p=0.25 runs=5 delivered=0.106+-0.002 air_per_delivered=5.49+-0.07 lost_interf=0.067
+RESULT collision=C2 part=search scint=7.69 reading=R3 gain=10 n=5000 margin=-2 p=0.5 runs=5 delivered=0.136+-0.002 air_per_delivered=7.68+-0.10 lost_interf=0.112
+RESULT collision=C2 part=search scint=7.69 reading=R3 gain=10 n=5000 margin=-2 p=1 runs=5 delivered=0.142+-0.002 air_per_delivered=11.86+-0.25 lost_interf=0.138
+RESULT collision=C2 part=search scint=7.69 reading=R4 gain=5 n=5000 margin=-2 p=0.0625 runs=5 delivered=0.011+-0.000 air_per_delivered=10.99+-0.44 lost_interf=0.023
+RESULT collision=C2 part=search scint=7.69 reading=R4 gain=5 n=5000 margin=-2 p=0.125 runs=5 delivered=0.019+-0.001 air_per_delivered=12.03+-0.27 lost_interf=0.050
+RESULT collision=C2 part=search scint=7.69 reading=R4 gain=5 n=5000 margin=-2 p=0.25 runs=5 delivered=0.029+-0.001 air_per_delivered=13.92+-0.39 lost_interf=0.094
+RESULT collision=C2 part=search scint=7.69 reading=R4 gain=5 n=5000 margin=-2 p=0.5 runs=5 delivered=0.038+-0.001 air_per_delivered=17.65+-0.23 lost_interf=0.143
+RESULT collision=C2 part=search scint=7.69 reading=R4 gain=5 n=5000 margin=-2 p=1 runs=5 delivered=0.041+-0.001 air_per_delivered=22.21+-0.54 lost_interf=0.165
+RESULT collision=C2 part=search scint=7.69 reading=R4 gain=10 n=5000 margin=-2 p=0.0625 runs=5 delivered=0.058+-0.002 air_per_delivered=2.72+-0.03 lost_interf=0.014
+RESULT collision=C2 part=search scint=7.69 reading=R4 gain=10 n=5000 margin=-2 p=0.125 runs=5 delivered=0.107+-0.003 air_per_delivered=2.87+-0.03 lost_interf=0.032
+RESULT collision=C2 part=search scint=7.69 reading=R4 gain=10 n=5000 margin=-2 p=0.25 runs=5 delivered=0.177+-0.004 air_per_delivered=3.29+-0.03 lost_interf=0.067
+RESULT collision=C2 part=search scint=7.69 reading=R4 gain=10 n=5000 margin=-2 p=0.5 runs=5 delivered=0.237+-0.005 air_per_delivered=4.41+-0.05 lost_interf=0.112
+RESULT collision=C2 part=search scint=7.69 reading=R4 gain=10 n=5000 margin=-2 p=1 runs=5 delivered=0.249+-0.004 air_per_delivered=6.75+-0.12 lost_interf=0.138
+RESULT collision=C2 part=search scint=7.69 reading=R2 gain=5 n=5000 margin=-2 p=0.0625 runs=5 delivered=0.007+-0.000 air_per_delivered=18.03+-0.85 lost_interf=0.023
+RESULT collision=C2 part=search scint=7.69 reading=R2 gain=5 n=5000 margin=-2 p=0.125 runs=5 delivered=0.012+-0.000 air_per_delivered=18.92+-0.38 lost_interf=0.050
+RESULT collision=C2 part=search scint=7.69 reading=R2 gain=5 n=5000 margin=-2 p=0.25 runs=5 delivered=0.020+-0.001 air_per_delivered=20.07+-0.60 lost_interf=0.094
+RESULT collision=C2 part=search scint=7.69 reading=R2 gain=5 n=5000 margin=-2 p=0.5 runs=5 delivered=0.029+-0.001 air_per_delivered=23.33+-0.31 lost_interf=0.143
+RESULT collision=C2 part=search scint=7.69 reading=R2 gain=5 n=5000 margin=-2 p=1 runs=5 delivered=0.033+-0.001 air_per_delivered=28.02+-0.69 lost_interf=0.165
+RESULT collision=C2 part=search scint=7.69 reading=R2 gain=10 n=5000 margin=-2 p=0.0625 runs=5 delivered=0.033+-0.001 air_per_delivered=4.79+-0.08 lost_interf=0.014
+RESULT collision=C2 part=search scint=7.69 reading=R2 gain=10 n=5000 margin=-2 p=0.125 runs=5 delivered=0.060+-0.001 air_per_delivered=5.10+-0.03 lost_interf=0.032
+RESULT collision=C2 part=search scint=7.69 reading=R2 gain=10 n=5000 margin=-2 p=0.25 runs=5 delivered=0.097+-0.002 air_per_delivered=6.03+-0.06 lost_interf=0.067
+RESULT collision=C2 part=search scint=7.69 reading=R2 gain=10 n=5000 margin=-2 p=0.5 runs=5 delivered=0.123+-0.002 air_per_delivered=8.47+-0.09 lost_interf=0.112
+RESULT collision=C2 part=search scint=7.69 reading=R2 gain=10 n=5000 margin=-2 p=1 runs=5 delivered=0.127+-0.002 air_per_delivered=13.22+-0.21 lost_interf=0.138
+L2 scint=7.69 R1 gain=5 no_candidate win=False
+L2 scint=7.69 R1 gain=10 no_candidate win=False
+L2 scint=7.69 R2 gain=5 no_candidate win=False
+L2 scint=7.69 R2 gain=10 no_candidate win=False
+L2 scint=7.69 R3 gain=5 p=0.5 delivered=0.053+-0.003 vs 0.054+-0.002 air=11.45+-0.58 vs 15.48+-0.98 air_ratio=0.74 win=True
+L2 scint=7.69 R3 gain=10 no_candidate win=False
+L2 scint=7.69 R4 gain=5 no_candidate win=False
+L2 scint=7.69 R4 gain=10 no_candidate win=False
+L2 scint=0 R1 gain=5 p=0.5 delivered=0.226+-0.009 vs 0.220+-0.007 air=3.90+-0.16 vs 6.93+-0.37 air_ratio=0.56 win=True
+L2 scint=0 R1 gain=10 no_candidate win=False
+L2 scint=0 R2 gain=5 p=0.5 delivered=0.221+-0.009 vs 0.214+-0.007 air=3.97+-0.15 vs 7.12+-0.35 air_ratio=0.56 win=True
+L2 scint=0 R2 gain=10 no_candidate win=False
+L2 scint=0 R3 gain=5 p=0.5 delivered=0.226+-0.009 vs 0.220+-0.007 air=3.90+-0.16 vs 6.93+-0.37 air_ratio=0.56 win=True
+L2 scint=0 R3 gain=10 no_candidate win=False
+L2 scint=0 R4 gain=5 p=0.5 delivered=0.360+-0.012 vs 0.339+-0.007 air=2.44+-0.11 vs 4.50+-0.33 air_ratio=0.54 win=True
+L2 scint=0 R4 gain=10 no_candidate win=False
+L2 wins=5/16 needed=8 holds=False
+L5 R1=1/4 R2=1/4 R3=2/4 R4=1/4
+L3 p=0.5 not_clearly_worse n100=0/16 n500=1/16 n2000=1/16 n5000=12/16 serves_all=False
+L3 p=0.25 not_clearly_worse n100=0/16 n500=0/16 n2000=0/16 n5000=0/16 serves_all=False
+L3 p=0.125 not_clearly_worse n100=0/16 n500=0/16 n2000=0/16 n5000=0/16 serves_all=False
+L3 p=0.0625 not_clearly_worse n100=0/16 n500=0/16 n2000=0/16 n5000=0/16 serves_all=False
+L3 holds=True
+GATE_C2 L2=False L3=True passes=False
+L4 scint=7.69 R1 gain=5 n=100 delivered_c1=0.075+-0.003 delivered_c2=0.076+-0.004 ratio=1.01 interf_c1=0.010 interf_c2=0.002
+L4 scint=7.69 R1 gain=5 n=500 delivered_c1=0.064+-0.007 delivered_c2=0.073+-0.009 ratio=1.14 interf_c1=0.054 interf_c2=0.014
+L4 scint=7.69 R1 gain=5 n=2000 delivered_c1=0.041+-0.003 delivered_c2=0.059+-0.005 ratio=1.43 interf_c1=0.154 interf_c2=0.079
+L4 scint=7.69 R1 gain=5 n=5000 delivered_c1=0.022+-0.001 delivered_c2=0.039+-0.003 ratio=1.75 interf_c1=0.214 interf_c2=0.161
+L4 scint=7.69 R1 gain=10 n=100 delivered_c1=0.380+-0.014 delivered_c2=0.393+-0.016 ratio=1.03 interf_c1=0.010 interf_c2=0.002
+L4 scint=7.69 R1 gain=10 n=500 delivered_c1=0.313+-0.018 delivered_c2=0.372+-0.027 ratio=1.19 interf_c1=0.053 interf_c2=0.013
+L4 scint=7.69 R1 gain=10 n=2000 delivered_c1=0.176+-0.007 delivered_c2=0.280+-0.013 ratio=1.59 interf_c1=0.155 interf_c2=0.074
+L4 scint=7.69 R1 gain=10 n=5000 delivered_c1=0.075+-0.002 delivered_c2=0.140+-0.004 ratio=1.88 interf_c1=0.197 interf_c2=0.136
+L4 scint=7.69 R2 gain=5 n=100 delivered_c1=0.043+-0.003 delivered_c2=0.044+-0.003 ratio=1.01 interf_c1=0.010 interf_c2=0.002
+L4 scint=7.69 R2 gain=5 n=500 delivered_c1=0.038+-0.004 delivered_c2=0.041+-0.005 ratio=1.08 interf_c1=0.054 interf_c2=0.014
+L4 scint=7.69 R2 gain=5 n=2000 delivered_c1=0.031+-0.002 delivered_c2=0.038+-0.004 ratio=1.25 interf_c1=0.154 interf_c2=0.079
+L4 scint=7.69 R2 gain=5 n=5000 delivered_c1=0.019+-0.001 delivered_c2=0.030+-0.002 ratio=1.57 interf_c1=0.214 interf_c2=0.161
+L4 scint=7.69 R2 gain=10 n=100 delivered_c1=0.349+-0.013 delivered_c2=0.362+-0.015 ratio=1.04 interf_c1=0.010 interf_c2=0.002
+L4 scint=7.69 R2 gain=10 n=500 delivered_c1=0.285+-0.020 delivered_c2=0.340+-0.029 ratio=1.19 interf_c1=0.053 interf_c2=0.013
+L4 scint=7.69 R2 gain=10 n=2000 delivered_c1=0.157+-0.008 delivered_c2=0.253+-0.015 ratio=1.61 interf_c1=0.155 interf_c2=0.074
+L4 scint=7.69 R2 gain=10 n=5000 delivered_c1=0.067+-0.003 delivered_c2=0.124+-0.005 ratio=1.86 interf_c1=0.197 interf_c2=0.136
+L4 scint=7.69 R3 gain=5 n=100 delivered_c1=0.140+-0.010 delivered_c2=0.144+-0.013 ratio=1.03 interf_c1=0.010 interf_c2=0.002
+L4 scint=7.69 R3 gain=5 n=500 delivered_c1=0.115+-0.010 delivered_c2=0.135+-0.013 ratio=1.18 interf_c1=0.054 interf_c2=0.014
+L4 scint=7.69 R3 gain=5 n=2000 delivered_c1=0.061+-0.003 delivered_c2=0.100+-0.007 ratio=1.64 interf_c1=0.154 interf_c2=0.079
+L4 scint=7.69 R3 gain=5 n=5000 delivered_c1=0.026+-0.001 delivered_c2=0.054+-0.002 ratio=2.07 interf_c1=0.214 interf_c2=0.161
+L4 scint=7.69 R3 gain=10 n=100 delivered_c1=0.380+-0.014 delivered_c2=0.393+-0.016 ratio=1.03 interf_c1=0.010 interf_c2=0.002
+L4 scint=7.69 R3 gain=10 n=500 delivered_c1=0.313+-0.018 delivered_c2=0.372+-0.027 ratio=1.19 interf_c1=0.053 interf_c2=0.013
+L4 scint=7.69 R3 gain=10 n=2000 delivered_c1=0.176+-0.007 delivered_c2=0.280+-0.013 ratio=1.59 interf_c1=0.155 interf_c2=0.074
+L4 scint=7.69 R3 gain=10 n=5000 delivered_c1=0.075+-0.002 delivered_c2=0.140+-0.004 ratio=1.88 interf_c1=0.197 interf_c2=0.136
+L4 scint=7.69 R4 gain=5 n=100 delivered_c1=0.075+-0.003 delivered_c2=0.076+-0.004 ratio=1.01 interf_c1=0.010 interf_c2=0.002
+L4 scint=7.69 R4 gain=5 n=500 delivered_c1=0.064+-0.007 delivered_c2=0.073+-0.009 ratio=1.14 interf_c1=0.054 interf_c2=0.014
+L4 scint=7.69 R4 gain=5 n=2000 delivered_c1=0.041+-0.003 delivered_c2=0.059+-0.005 ratio=1.43 interf_c1=0.154 interf_c2=0.079
+L4 scint=7.69 R4 gain=5 n=5000 delivered_c1=0.022+-0.001 delivered_c2=0.039+-0.003 ratio=1.75 interf_c1=0.214 interf_c2=0.161
+L4 scint=7.69 R4 gain=10 n=100 delivered_c1=0.603+-0.036 delivered_c2=0.620+-0.039 ratio=1.03 interf_c1=0.010 interf_c2=0.002
+L4 scint=7.69 R4 gain=10 n=500 delivered_c1=0.508+-0.035 delivered_c2=0.588+-0.046 ratio=1.16 interf_c1=0.053 interf_c2=0.013
+L4 scint=7.69 R4 gain=10 n=2000 delivered_c1=0.300+-0.015 delivered_c2=0.462+-0.030 ratio=1.54 interf_c1=0.155 interf_c2=0.074
+L4 scint=7.69 R4 gain=10 n=5000 delivered_c1=0.123+-0.003 delivered_c2=0.245+-0.008 ratio=2.00 interf_c1=0.197 interf_c2=0.136
+L4 scint=0 R1 gain=5 n=100 delivered_c1=0.838+-0.059 delivered_c2=0.875+-0.065 ratio=1.05 interf_c1=0.030 interf_c2=0.009
+L4 scint=0 R1 gain=5 n=500 delivered_c1=0.687+-0.048 delivered_c2=0.808+-0.060 ratio=1.18 interf_c1=0.119 interf_c2=0.046
+L4 scint=0 R1 gain=5 n=2000 delivered_c1=0.348+-0.017 delivered_c2=0.526+-0.026 ratio=1.51 interf_c1=0.300 interf_c2=0.179
+L4 scint=0 R1 gain=5 n=5000 delivered_c1=0.129+-0.003 delivered_c2=0.220+-0.007 ratio=1.71 interf_c1=0.287 interf_c2=0.220
+L4 scint=0 R1 gain=10 n=100 delivered_c1=1.839+-0.154 delivered_c2=1.873+-0.160 ratio=1.02 interf_c1=0.015 interf_c2=0.005
+L4 scint=0 R1 gain=10 n=500 delivered_c1=1.628+-0.114 delivered_c2=1.771+-0.128 ratio=1.09 interf_c1=0.068 interf_c2=0.023
+L4 scint=0 R1 gain=10 n=2000 delivered_c1=1.111+-0.053 delivered_c2=1.476+-0.088 ratio=1.33 interf_c1=0.217 interf_c2=0.105
+L4 scint=0 R1 gain=10 n=5000 delivered_c1=0.579+-0.016 delivered_c2=0.950+-0.033 ratio=1.64 interf_c1=0.323 interf_c2=0.208
+L4 scint=0 R2 gain=5 n=100 delivered_c1=0.829+-0.057 delivered_c2=0.867+-0.063 ratio=1.05 interf_c1=0.030 interf_c2=0.009
+L4 scint=0 R2 gain=5 n=500 delivered_c1=0.678+-0.048 delivered_c2=0.799+-0.061 ratio=1.18 interf_c1=0.119 interf_c2=0.046
+L4 scint=0 R2 gain=5 n=2000 delivered_c1=0.340+-0.018 delivered_c2=0.518+-0.027 ratio=1.52 interf_c1=0.300 interf_c2=0.179
+L4 scint=0 R2 gain=5 n=5000 delivered_c1=0.124+-0.003 delivered_c2=0.214+-0.007 ratio=1.73 interf_c1=0.287 interf_c2=0.220
+L4 scint=0 R2 gain=10 n=100 delivered_c1=1.839+-0.154 delivered_c2=1.873+-0.160 ratio=1.02 interf_c1=0.015 interf_c2=0.005
+L4 scint=0 R2 gain=10 n=500 delivered_c1=1.628+-0.114 delivered_c2=1.771+-0.128 ratio=1.09 interf_c1=0.068 interf_c2=0.023
+L4 scint=0 R2 gain=10 n=2000 delivered_c1=1.111+-0.053 delivered_c2=1.476+-0.088 ratio=1.33 interf_c1=0.217 interf_c2=0.105
+L4 scint=0 R2 gain=10 n=5000 delivered_c1=0.579+-0.016 delivered_c2=0.950+-0.033 ratio=1.64 interf_c1=0.323 interf_c2=0.208
+L4 scint=0 R3 gain=5 n=100 delivered_c1=0.838+-0.059 delivered_c2=0.875+-0.065 ratio=1.05 interf_c1=0.030 interf_c2=0.009
+L4 scint=0 R3 gain=5 n=500 delivered_c1=0.687+-0.048 delivered_c2=0.808+-0.060 ratio=1.18 interf_c1=0.119 interf_c2=0.046
+L4 scint=0 R3 gain=5 n=2000 delivered_c1=0.348+-0.017 delivered_c2=0.526+-0.026 ratio=1.51 interf_c1=0.300 interf_c2=0.179
+L4 scint=0 R3 gain=5 n=5000 delivered_c1=0.129+-0.003 delivered_c2=0.220+-0.007 ratio=1.71 interf_c1=0.287 interf_c2=0.220
+L4 scint=0 R3 gain=10 n=100 delivered_c1=1.839+-0.154 delivered_c2=1.873+-0.160 ratio=1.02 interf_c1=0.015 interf_c2=0.005
+L4 scint=0 R3 gain=10 n=500 delivered_c1=1.628+-0.114 delivered_c2=1.771+-0.128 ratio=1.09 interf_c1=0.068 interf_c2=0.023
+L4 scint=0 R3 gain=10 n=2000 delivered_c1=1.111+-0.053 delivered_c2=1.476+-0.088 ratio=1.33 interf_c1=0.217 interf_c2=0.105
+L4 scint=0 R3 gain=10 n=5000 delivered_c1=0.579+-0.016 delivered_c2=0.950+-0.033 ratio=1.64 interf_c1=0.323 interf_c2=0.208
+L4 scint=0 R4 gain=5 n=100 delivered_c1=1.253+-0.102 delivered_c2=1.301+-0.109 ratio=1.04 interf_c1=0.030 interf_c2=0.009
+L4 scint=0 R4 gain=5 n=500 delivered_c1=1.043+-0.080 delivered_c2=1.213+-0.099 ratio=1.16 interf_c1=0.119 interf_c2=0.046
+L4 scint=0 R4 gain=5 n=2000 delivered_c1=0.536+-0.021 delivered_c2=0.818+-0.042 ratio=1.53 interf_c1=0.300 interf_c2=0.178
+L4 scint=0 R4 gain=5 n=5000 delivered_c1=0.183+-0.004 delivered_c2=0.339+-0.007 ratio=1.86 interf_c1=0.287 interf_c2=0.220
+L4 scint=0 R4 gain=10 n=100 delivered_c1=1.916+-0.144 delivered_c2=1.951+-0.150 ratio=1.02 interf_c1=0.015 interf_c2=0.004
+L4 scint=0 R4 gain=10 n=500 delivered_c1=1.698+-0.111 delivered_c2=1.847+-0.130 ratio=1.09 interf_c1=0.068 interf_c2=0.023
+L4 scint=0 R4 gain=10 n=2000 delivered_c1=1.171+-0.049 delivered_c2=1.544+-0.084 ratio=1.32 interf_c1=0.216 interf_c2=0.105
+L4 scint=0 R4 gain=10 n=5000 delivered_c1=0.617+-0.014 delivered_c2=1.001+-0.028 ratio=1.62 interf_c1=0.323 interf_c2=0.207
