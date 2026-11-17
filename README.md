@@ -23,7 +23,7 @@ is involved.
 | `figs/extract_data.py` | Rebuilds the figure tables in `figs/data/` from `experiments/`. |
 | `figs/make_figures.py` | Draws the result figures from `figs/data/`. |
 | `figs/fig_architecture.tex` | TikZ source of the system architecture figure. |
-| `paper.tex` | Manuscript source (IEEEtran). `Paper_2.tex` is the same text with the architecture figure. |
+| `paper.tex` | Manuscript source (IEEEtran). Build with `pdflatex paper.tex` (twice). |
 
 ## Experiments behind the paper
 

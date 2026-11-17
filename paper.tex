@@ -14,7 +14,7 @@
 \title{Network-Side Doppler Mitigation for\\ Direct-to-Satellite LoRaWAN Using\\ Gateway Reception Statistics}
 
 \author{Mehran~M.~Mamonai%
-\thanks{Manuscript draft, November 2026.}%
+\thanks{Manuscript draft, November 2026. The code, simulation scenarios and raw results of this study are available at \protect\url{https://github.com/mehranmamonai/lora-ntn}.}%
 \thanks{M.~M.~Mamonai is with the Department of Telecommunication Engineering, Mehran University of Engineering and Technology, Jamshoro, Pakistan (e-mail: mehran.mamonai@faculty.muet.edu.pk).}}
 
 \markboth{IEEE Internet of Things Journal (draft)}{Network-Side Doppler Mitigation for Direct-to-Satellite LoRaWAN Using Gateway Reception Statistics}
@@ -56,6 +56,15 @@ Section~\ref{sec:related} reviews related work. Section~\ref{sec:model} describe
 Unlike these studies, our controller acts once per pass and uses network-side observations only. We evaluate it on a full LoRaWAN stack with measured collision thresholds and report each result across the range of Doppler limits that the literature allows.
 
 \section{System Model}\label{sec:model}
+
+Fig.~\ref{fig:arch} shows the system. Static devices in a remote area send uplinks to a LoRaWAN gateway carried by a low Earth orbit satellite. The network server bins the receptions of each pass by elevation, a network-side controller turns these counts into an SF12 elevation cut-off $\theta$, and the satellite sends $\theta$ to the devices in Class~B beacons during the next pass. The rest of this section describes each part and the assumptions behind it.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figs/fig_architecture.pdf}
+\caption{\textbf{System architecture.} Devices choose their SF from the link budget and skip SF12 above the last cut-off $\theta$ they received. Near zenith the Doppler rate is highest, so SF12 packets there are lost under the Doppler limits of Section~\ref{sec:model}-B. After each pass the network server reports aggregated reception counts, and the controller returns $\theta$, which reaches devices in Class~B beacons. The feeder link between satellite and ground is shown for completeness and is not modeled; in the simulation the per-pass report reaches the controller directly. The cone angle is schematic.}
+\label{fig:arch}
+\end{figure*}
 
 \subsection{Orbit, Link and Channel}
 A satellite in a 560~km circular orbit~\cite{asadullah2024} carries a LoRaWAN gateway. Devices on the ground send 32-byte frames at 14~dBm on the three default EU868 channels at 125~kHz, one attempt per 60~s and at most 1\% duty cycle~\cite{traspadini2025,casals2017,lorawanRP}. Table~\ref{tab:params} lists the parameters. The total antenna gain is 5 or 10~dBi~\cite{traspadini2025}. Devices transmit only above 20$^\circ$ elevation~\cite{tr38811,santana2026}.
