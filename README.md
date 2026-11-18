@@ -3,7 +3,10 @@
 Code, simulation scenarios and raw results for the manuscript
 
 > M. M. Mamonai, "Network-Side Doppler Mitigation for Direct-to-Satellite LoRaWAN Using Gateway
-> Reception Statistics," manuscript in preparation, 2026.
+> Reception Statistics," manuscript submitted to IEEE Internet of Things Journal, 2026.
+
+Author: Mehran M. Mamonai, Mehran University of Engineering and Technology, Jamshoro, Pakistan.
+ORCID: [0009-0007-5426-5943](https://orcid.org/0009-0007-5426-5943)
 
 The study asks whether a controller at the satellite gateway, using only reception counts the
 network already has, can reduce the SF12 packet loss caused by the Doppler rate of a low Earth
