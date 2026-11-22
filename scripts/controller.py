@@ -3,20 +3,23 @@ answers with the settings for the next pass: transmit probability p, link margin
 elevation cut-off theta.
 
 Modes: 'constant' returns fixed values; 'scripted' changes them from a given pass (Stage 3);
-'adaptive' applies the Stage 4 rules, using only gateway-observable fields."""
+'adaptive' applies the Stage 4 rules, using only gateway-observable fields; 'abtest' starts from the
+adaptive cut-off and then compares neighbouring cut-offs within each pass, odd against even device
+addresses, by received packets."""
 import argparse
 import json
 import sys
 
 OBSERVABLE = {"pass", "received", "received_by_sf", "devices_heard", "rssi_mean_dbm", "rssi_min_dbm",
-              "near_sensitivity", "sf11_by_elevation", "sf12_by_elevation", "devices_heard_total"}
+              "near_sensitivity", "sf11_by_elevation", "sf12_by_elevation", "devices_heard_total",
+              "received_odd"}
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--p", type=float, required=True)
 parser.add_argument("--margin", type=float, required=True)
 parser.add_argument("--p-from", default="", help="PASS:VALUE, new p for every pass from PASS on")
 parser.add_argument("--margin-from", default="", help="PASS:VALUE, new margin for every pass from PASS on")
-parser.add_argument("--mode", choices=["constant", "scripted", "adaptive"], default="")
+parser.add_argument("--mode", choices=["constant", "scripted", "adaptive", "abtest"], default="")
 parser.add_argument("--k", type=float, default=0, help="adaptive: p = min(1, k / estimated devices); 0 = off")
 parser.add_argument("--adapt-margin", type=int, default=0)
 parser.add_argument("--h", type=float, default=0,
@@ -25,6 +28,11 @@ parser.add_argument("--share-frac", type=float, default=0.5,
                     help="adaptive: cut-off at the first bin whose SF12 share falls below this fraction of the reference")
 parser.add_argument("--min-bin", type=int, default=2,
                     help="adaptive: lowest bin that can set the cut-off; bins below it form the reference band")
+parser.add_argument("--ab-start", type=int, default=2, help="abtest: first pass with an A/B comparison")
+parser.add_argument("--ab-end", type=int, default=13, help="abtest: last pass with an A/B comparison")
+parser.add_argument("--ab-len", type=int, default=2, help="abtest: passes per comparison (even; groups swap each pass)")
+parser.add_argument("--ab-delta", type=float, default=0.0,
+                    help="abtest: accept the challenger if its extra packets exceed this share of all packets received in the comparison")
 args = parser.parse_args()
 mode = args.mode or ("scripted" if args.p_from or args.margin_from else "constant")
 
@@ -57,6 +65,72 @@ def learn_theta():
     return 90.0
 
 
+class AbTest:
+    """Hill climb over cut-offs in 10-degree steps. Each comparison runs ab_len passes; the challenger
+    goes to the odd group on even-numbered passes of the comparison and to the even group otherwise,
+    so device placement cancels. The challenger wins if it collects more packets by the margin."""
+
+    def __init__(self):
+        self.incumbent = None
+        self.direction = -10
+        self.tried_other = False
+        self.done = False
+        self.challenger = None
+        self.step = 0
+        self.diff = 0
+        self.total = 0
+        self.odd_is_challenger = False
+
+    def next_challenger(self):
+        for _ in range(2):
+            c = self.incumbent + self.direction
+            if 20 <= c <= 90:
+                return c
+            if self.tried_other:
+                return None
+            self.direction, self.tried_other = -self.direction, True
+        return None
+
+    def settle(self, obs):
+        odd = obs["received_odd"]
+        even = obs["received"] - odd
+        self.diff += (odd - even) if self.odd_is_challenger else (even - odd)
+        self.total += obs["received"]
+
+    def reply(self, finished_pass, obs, share_theta):
+        next_pass = finished_pass + 1
+        if self.challenger is not None:
+            self.settle(obs)
+            self.step += 1
+            if self.step == args.ab_len:
+                if self.diff > args.ab_delta * self.total:
+                    self.incumbent = self.challenger  # keep climbing the same way
+                    self.tried_other = True
+                elif self.tried_other:
+                    self.done = True
+                else:
+                    self.direction, self.tried_other = -self.direction, True
+                self.challenger = None
+        if self.incumbent is None and next_pass >= args.ab_start:
+            self.incumbent = share_theta
+        if self.incumbent is None:
+            return share_theta, -1
+        if self.challenger is None and not self.done and args.ab_start <= next_pass <= args.ab_end - args.ab_len + 1:
+            self.challenger = self.next_challenger()
+            if self.challenger is None:
+                self.done = True
+            self.step, self.diff, self.total = 0, 0, 0
+        if self.challenger is None:
+            return self.incumbent, -1
+        self.odd_is_challenger = self.step % 2 == 0
+        if self.odd_is_challenger:
+            return self.incumbent, self.challenger
+        return self.challenger, self.incumbent
+
+
+ab = AbTest()
+theta_odd = -1
+
 # readline, not iteration: iterating over a pipe waits for a full buffer, which deadlocks the loop.
 while True:
     line = sys.stdin.readline()
@@ -73,11 +147,13 @@ while True:
             p = p_change[1]
         if margin_change and next_pass >= margin_change[0]:
             margin = margin_change[1]
-    elif mode == "adaptive":
+    elif mode in ("adaptive", "abtest"):
         for b in range(7):
             sf11[b] += obs.get("sf11_by_elevation", [0] * 7)[b]
             sf12[b] += obs.get("sf12_by_elevation", [0] * 7)[b]
         theta = learn_theta()
+        if mode == "abtest":
+            theta, theta_odd = ab.reply(obs["pass"], obs, theta)
         if args.adapt_margin and obs["received"] > 0:
             near = obs.get("near_sensitivity", 0) / obs["received"]
             if near > 0.5:
@@ -89,4 +165,7 @@ while True:
             p = 1.0 if estimated <= 0 else min(1.0, args.k / estimated)
         if args.h > 0:
             p = 0.5 if obs.get("devices_heard_total", 0) > args.h else 1.0
-    print(json.dumps({"p": p, "margin_db": margin, "theta_deg": theta}), flush=True)
+    reply = {"p": p, "margin_db": margin, "theta_deg": theta}
+    if theta_odd >= 0:
+        reply["theta_odd_deg"] = theta_odd
+    print(json.dumps(reply), flush=True)

@@ -1,20 +1,21 @@
-"""Revised SF12 cut-off rule: choose (share-frac, min-bin) on seeds 16-20, then test on seeds 21-30.
-Usage: summarize.py choose runs.txt
+"""A/B-tested SF12 cut-off: choose (comparison length L, margin delta) on seeds 16-20, test on 21-30.
+Usage: summarize.py choose runs.txt <experiments dir>
        summarize.py final runs.txt <experiments dir>
 
-Choice rule (fixed before the run): among combinations whose mean delivery is at least 0.98 of
-link-only in every tuning scenario (R1, R2, R3 at low latitude 5 dBi, plus mid-latitude 5 dBi and
-low-latitude 10 dBi under R1), take the highest median ratio to link-only over the R1 and R2
-tuning scenarios; ties go to the old rule (0.5, 2), then to the lower share-frac. If no
-combination is harmless, the old rule is kept.
+Choice rule (fixed before the run): link-only and old-rule tuning results come from b055586b
+(experiments/rule-revision, seeds 16-20, same scenarios). Among (L, delta) whose mean delivery is at
+least 0.98 of link-only in every tuning scenario, take the highest median ratio to link-only over the
+R1 and R2 low-latitude 5 dBi tuning scenarios; ties go to the shorter L, then the smaller delta. If none
+is harmless, take the one with the highest worst-case ratio (the test then shows the harm).
 
 Criteria (fixed before the run), seeds 21-30, paired per-seed 95% t-intervals:
-  G0  the old rule (0.5, 2) reproduces ae2d1534 exactly on the two regression runs.
-  G1  in the 36 scenarios with SF12 Doppler loss (low latitude, 5 dBi, R1 R2 R4), the new rule
+  G0  the old rule (adaptive mode) reproduces ae2d1534 exactly on the two regression runs.
+  G1  in the 36 scenarios with SF12 Doppler loss (low latitude, 5 dBi, R1 R2 R4), the new controller
       delivers significantly more than the old rule in at least 27, and its median delivery over
       the 24 distinct scenarios is at least 0.80 of the oracle.
-  G2  the new rule is never significantly below link-only in any of the 192 scenarios.
-  Reported, not gated: share of the gap to the hindsight-best fixed cut-off closed; active scenarios.
+  G2  the new controller is never significantly below link-only in any of the 192 scenarios.
+  Reported, not gated: share of the gap to the hindsight-best fixed cut-off closed; active scenarios;
+  final cut-off per scenario.
 """
 import math
 import statistics as st
@@ -56,29 +57,29 @@ def name(k):
 
 if sys.argv[1] == "choose":
     rs = [r for r in rows(sys.argv[2]) if r["part"] == "tune"]
+    prev = [r for r in rows(Path(sys.argv[3]) / "rule-revision/data/runs.txt") if r["part"] == "tune"]
     link = defaultdict(dict)
     combos = defaultdict(lambda: defaultdict(dict))
-    for r in rs:
-        k = key(r)
+    for r in prev:
         if r["policy"] == "link_only":
-            link[k][r["seed"]] = r
-        else:
-            combos[(float(r["frac"]), int(r["minbin"]))][k][r["seed"]] = r
+            link[key(r)][r["seed"]] = r
+        elif (r["frac"], r["minbin"]) == ("0.5", "2"):
+            combos[("old", 0.0)][key(r)][r["seed"]] = r
+    for r in rs:
+        combos[(int(r["ablen"]), float(r["abdelta"]))][key(r)][r["seed"]] = r
     scored = []
-    for c, by in sorted(combos.items()):
+    for c, by in sorted(combos.items(), key=str):
         ratios = {k: st.mean(deliv(x) for x in v.values()) / st.mean(deliv(x) for x in link[k].values()) for k, v in by.items()}
         target = [v for k, v in ratios.items() if k[1] in (1, 5) and k[2] == 7.69 and k[3] == 5]
         worst = min(ratios.values())
         obj = st.median(target)
         ok = worst >= 0.98
-        tie = (c == (0.5, 2), -c[0])
-        scored.append((ok, round(obj, 6), tie, c))
-        print(f"TUNE frac={c[0]} minbin={c[1]} scenarios={len(ratios)} target_median={obj:.4f} worst={worst:.4f} "
+        print(f"TUNE ablen={c[0]} abdelta={c[1]} scenarios={len(ratios)} target_median={obj:.4f} worst={worst:.4f} "
               f"harmless={ok} worst_at={name(min(ratios, key=ratios.get))}")
+        if c[0] != "old":
+            scored.append((ok, round(obj, 6) if ok else round(worst, 6), (-c[0], -c[1]), c))
     best = max(scored)
-    if not best[0]:  # no harmless combination: keep the old rule
-        best = next(x for x in scored if x[3] == (0.5, 2))
-    print(f"CHOSEN frac={best[3][0]} minbin={best[3][1]} target_median={best[1]:.4f} harmless={best[0]}")
+    print(f"CHOSEN ablen={best[3][0]} abdelta={best[3][1]} harmless={best[0]}")
     sys.exit(0)
 
 new = rows(sys.argv[2])
@@ -108,8 +109,8 @@ for r in hind:
 for r in new:
     if r["part"] == "test":
         ctl[key(r)][int(r["seed"])] = r
-chosen = next(((r["frac"], r["minbin"]) for r in new if r["part"] == "test"), ("?", "?"))
-print(f"CHOSEN frac={chosen[0]} minbin={chosen[1]}")
+chosen = next(((r["ablen"], r["abdelta"]) for r in new if r["part"] == "test"), ("?", "?"))
+print(f"CHOSEN ablen={chosen[0]} abdelta={chosen[1]}")
 
 # G0
 fields = ["sent", "received", "airtimeS", "rejDoppler", "interfered", "underSens", "noDemod"]

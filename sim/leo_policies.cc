@@ -240,6 +240,10 @@ bool g_instantSettings = false; // Controlled policy: apply settings to all devi
 // Controlled policy: SF12 cut-off every device holds from the start (review baseline: best fixed
 // threshold). 90 keeps every earlier experiment unchanged.
 double g_initThetaDeg = 90;
+// A/B test of two cut-offs within a pass: devices with an odd index (odd device address, known to the
+// network) take this cut-off from beacons, devices with an even index take g_beaconThetaDeg. Negative
+// means the same cut-off for all, which keeps every earlier experiment unchanged.
+double g_beaconThetaOddDeg = -1;
 std::vector<uint64_t> g_receivedByDevice;
 double g_orbitPeriodS = 0;
 double g_predErrorKm = 0; // Along-track error of the device's satellite prediction
@@ -260,6 +264,7 @@ Stats g_stats;
 struct PassRecord
 {
     uint64_t received = 0;
+    uint64_t receivedOdd = 0; // From devices with an odd address (gateway-observable)
     std::array<uint64_t, 13> receivedBySf{};
     std::set<int> devicesHeard;
     double rssiSumDbm = 0;
@@ -271,6 +276,7 @@ struct PassRecord
     std::array<uint64_t, 7> sf12ByElevation{};
     uint64_t nearSensitivity = 0;
     double thetaDeg = 90;
+    double thetaOddDeg = -1;
     uint64_t beaconsHeard = 0;
     uint64_t beaconsMissed = 0;
     uint64_t sent = 0;
@@ -379,6 +385,7 @@ ObservationJson(int pass)
     {
         o << "null,\"rssi_min_dbm\":null";
     }
+    o << ",\"received_odd\":" << r.receivedOdd;
     o << ",\"near_sensitivity\":" << r.nearSensitivity << ",\"devices_heard_total\":" << g_everHeard.size();
     for (const auto& [key, bins] : {std::make_pair("sf11_by_elevation", &r.sf11ByElevation),
                                     std::make_pair("sf12_by_elevation", &r.sf12ByElevation)})
@@ -411,6 +418,8 @@ ControlStep(int finishedPass)
     const double p = JsonNumber(reply, "p");
     const double margin = JsonNumber(reply, "margin_db");
     const double theta = reply.find("\"theta_deg\"") == std::string::npos ? 90 : JsonNumber(reply, "theta_deg");
+    const double thetaOdd =
+        reply.find("\"theta_odd_deg\"") == std::string::npos ? -1 : JsonNumber(reply, "theta_odd_deg");
     if (p < 0 || p > 1)
     {
         NS_FATAL_ERROR("Controller returned p outside [0, 1]: " << reply);
@@ -421,14 +430,16 @@ ControlStep(int finishedPass)
         g_beaconTxProb = p;
         g_beaconMarginDb = margin;
         g_beaconThetaDeg = theta;
+        g_beaconThetaOddDeg = thetaOdd;
         if (g_instantSettings)
         {
             // Test of beacon reach: every device gets the new settings at the pass boundary.
-            for (auto& d : g_devices)
+            for (size_t i = 0; i < g_devices.size(); ++i)
             {
+                auto& d = g_devices[i];
                 d.txProb = p;
                 d.marginDb = margin;
-                d.thetaDeg = theta;
+                d.thetaDeg = (i % 2 == 1 && thetaOdd >= 0) ? thetaOdd : theta;
             }
         }
     }
@@ -440,6 +451,7 @@ ControlStep(int finishedPass)
     g_pass[finishedPass + 1].txProb = p;
     g_pass[finishedPass + 1].marginDb = margin;
     g_pass[finishedPass + 1].thetaDeg = theta;
+    g_pass[finishedPass + 1].thetaOddDeg = thetaOdd;
 }
 
 bool
@@ -724,6 +736,7 @@ OnReceived(Ptr<const Packet> packet, uint32_t)
         g_stats.receivedLast5 += it->second.pass >= g_passes - 5;
         PassRecord& p = g_pass[PassAt(Simulator::Now().GetSeconds())];
         ++p.received;
+        p.receivedOdd += it->second.device % 2;
         ++p.receivedBySf[it->second.sf];
         p.devicesHeard.insert(it->second.device);
         g_everHeard.insert(it->second.device);
@@ -781,8 +794,9 @@ Beacon()
     const auto s = g_orbit->Position(t);
     const Vector sat(s.x, s.y, s.z);
     PassRecord& p = g_pass[PassAt(t)];
-    for (auto& d : g_devices)
+    for (size_t i = 0; i < g_devices.size(); ++i)
     {
+        auto& d = g_devices[i];
         const Vector pos(d.pos.x, d.pos.y, d.pos.z);
         const double e = ElevationDeg(sat, pos);
         if (e < g_minElevationDeg)
@@ -795,7 +809,7 @@ Beacon()
         {
             d.txProb = g_beaconTxProb;
             d.marginDb = g_beaconMarginDb;
-            d.thetaDeg = g_beaconThetaDeg;
+            d.thetaDeg = (i % 2 == 1 && g_beaconThetaOddDeg >= 0) ? g_beaconThetaOddDeg : g_beaconThetaDeg;
             ++p.beaconsHeard;
         }
         else
@@ -1073,7 +1087,8 @@ main(int argc, char* argv[])
         {
             const PassRecord& r = g_pass[k];
             std::cout << "PASS pass=" << k << " p=" << r.txProb << " marginDb=" << r.marginDb
-                      << " thetaDeg=" << r.thetaDeg << " sent=" << r.sent
+                      << " thetaDeg=" << r.thetaDeg << " thetaOddDeg=" << r.thetaOddDeg
+                      << " receivedOdd=" << r.receivedOdd << " sent=" << r.sent
                       << " received=" << r.received << " rejDoppler=" << r.rejectedDoppler
                       << " underSens=" << r.underSensitivity << " interfered=" << r.interfered
                       << " noDemod=" << r.noDemodulator << " beaconsHeard=" << r.beaconsHeard
