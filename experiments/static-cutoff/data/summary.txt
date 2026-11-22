@@ -1,0 +1,57 @@
+K0 pairs=4 mismatches=0 holds=True
+K1 scenarios=192
+K1 theta=40 group=doppler scenarios=36 missing=0 below_link=0 above_link=36 ratio_to_link median=1.298 min=1.144 below_controller=0 above_controller=36
+K1 harm theta=40 lowlat5_R3 C1 R3 low 5dBi N=100 ratio=0.751 diff=-0.0350+-0.0047
+K1 harm theta=40 lowlat5_R3 C1 R3 low 5dBi N=500 ratio=0.837 diff=-0.0187+-0.0021
+K1 harm theta=40 lowlat5_R3 C2 R3 low 5dBi N=100 ratio=0.746 diff=-0.0368+-0.0057
+K1 harm theta=40 lowlat5_R3 C2 R3 low 5dBi N=500 ratio=0.788 diff=-0.0287+-0.0023
+K1 harm theta=40 lowlat5_R3 C2 R3 low 5dBi N=2000 ratio=0.916 diff=-0.0084+-0.0010
+K1 harm theta=40 lowlat5_R3 C3 R3 low 5dBi N=100 ratio=0.745 diff=-0.0366+-0.0057
+K1 harm theta=40 lowlat5_R3 C3 R3 low 5dBi N=500 ratio=0.809 diff=-0.0246+-0.0019
+K1 harm theta=40 lowlat5_R3 C3 R3 low 5dBi N=2000 ratio=0.955 diff=-0.0040+-0.0009
+K1 theta=40 group=lowlat5_R3 scenarios=12 missing=0 below_link=8 above_link=3 ratio_to_link median=0.877 min=0.745 below_controller=8 above_controller=3
+K1 theta=40 group=lowlat10 scenarios=48 missing=0 below_link=0 above_link=0 ratio_to_link median=1.000 min=1.000 below_controller=0 above_controller=0
+K1 theta=40 group=midlat scenarios=96 missing=0 below_link=0 above_link=0 ratio_to_link median=1.000 min=1.000 below_controller=0 above_controller=0
+K1 theta=50 group=doppler scenarios=36 missing=0 below_link=0 above_link=36 ratio_to_link median=1.092 min=1.050 below_controller=0 above_controller=7
+K1 harm theta=50 lowlat5_R3 C1 R3 low 5dBi N=100 ratio=0.924 diff=-0.0107+-0.0046
+K1 harm theta=50 lowlat5_R3 C1 R3 low 5dBi N=500 ratio=0.946 diff=-0.0062+-0.0015
+K1 harm theta=50 lowlat5_R3 C1 R3 low 5dBi N=2000 ratio=0.986 diff=-0.0008+-0.0008
+K1 harm theta=50 lowlat5_R3 C2 R3 low 5dBi N=100 ratio=0.925 diff=-0.0108+-0.0045
+K1 harm theta=50 lowlat5_R3 C2 R3 low 5dBi N=500 ratio=0.936 diff=-0.0087+-0.0014
+K1 harm theta=50 lowlat5_R3 C2 R3 low 5dBi N=2000 ratio=0.977 diff=-0.0023+-0.0013
+K1 harm theta=50 lowlat5_R3 C3 R3 low 5dBi N=100 ratio=0.924 diff=-0.0109+-0.0047
+K1 harm theta=50 lowlat5_R3 C3 R3 low 5dBi N=500 ratio=0.943 diff=-0.0073+-0.0016
+K1 harm theta=50 lowlat5_R3 C3 R3 low 5dBi N=2000 ratio=0.985 diff=-0.0013+-0.0012
+K1 theta=50 group=lowlat5_R3 scenarios=12 missing=0 below_link=9 above_link=3 ratio_to_link median=0.961 min=0.924 below_controller=7 above_controller=0
+K1 theta=50 group=lowlat10 scenarios=48 missing=0 below_link=0 above_link=0 ratio_to_link median=1.000 min=1.000 below_controller=0 above_controller=0
+K1 theta=50 group=midlat scenarios=96 missing=0 below_link=0 above_link=0 ratio_to_link median=1.000 min=1.000 below_controller=0 above_controller=0
+K1 static40_harm_outside_doppler_group=8 reading=static cut-off NOT safe; controller is the safe choice
+K2 C1 R1 N=100 cv_theta=40 cv=0.0878 hindsight=0.0878 oracle=0.1022 cv/oracle=0.859 cv/controller=1.148
+K2 C1 R1 N=500 cv_theta=40 cv=0.0800 hindsight=0.0800 oracle=0.0899 cv/oracle=0.891 cv/controller=1.158
+K2 C1 R1 N=2000 cv_theta=40 cv=0.0537 hindsight=0.0537 oracle=0.0597 cv/oracle=0.900 cv/controller=1.200
+K2 C1 R1 N=5000 cv_theta=40 cv=0.0261 hindsight=0.0261 oracle=0.0293 cv/oracle=0.891 cv/controller=1.113
+K2 C1 R2 N=100 cv_theta=20 cv=0.0732 hindsight=0.0732 oracle=0.0707 cv/oracle=1.035 cv/controller=1.670
+K2 C1 R2 N=500 cv_theta=20 cv=0.0647 hindsight=0.0647 oracle=0.0644 cv/oracle=1.006 cv/controller=1.507
+K2 C1 R2 N=2000 cv_theta=20 cv=0.0435 hindsight=0.0435 oracle=0.0499 cv/oracle=0.872 cv/controller=1.333
+K2 C1 R2 N=5000 cv_theta=40 cv=0.0222 hindsight=0.0222 oracle=0.0280 cv/oracle=0.792 cv/controller=1.098
+K2 C2 R1 N=100 cv_theta=40 cv=0.0897 hindsight=0.0897 oracle=0.1046 cv/oracle=0.858 cv/controller=1.126
+K2 C2 R1 N=500 cv_theta=40 cv=0.0882 hindsight=0.0882 oracle=0.1004 cv/oracle=0.878 cv/controller=1.133
+K2 C2 R1 N=2000 cv_theta=40 cv=0.0773 hindsight=0.0773 oracle=0.0867 cv/oracle=0.891 cv/controller=1.202
+K2 C2 R1 N=5000 cv_theta=40 cv=0.0541 hindsight=0.0541 oracle=0.0586 cv/oracle=0.923 cv/controller=1.272
+K2 C2 R2 N=100 cv_theta=20 cv=0.0746 hindsight=0.0746 oracle=0.0718 cv/oracle=1.038 cv/controller=1.684
+K2 C2 R2 N=500 cv_theta=20 cv=0.0708 hindsight=0.0708 oracle=0.0688 cv/oracle=1.029 cv/controller=1.538
+K2 C2 R2 N=2000 cv_theta=20 cv=0.0634 hindsight=0.0634 oracle=0.0651 cv/oracle=0.973 cv/controller=1.508
+K2 C2 R2 N=5000 cv_theta=40 cv=0.0437 hindsight=0.0437 oracle=0.0511 cv/oracle=0.855 cv/controller=1.324
+K2 C3 R1 N=100 cv_theta=40 cv=0.0888 hindsight=0.0888 oracle=0.1039 cv/oracle=0.855 cv/controller=1.123
+K2 C3 R1 N=500 cv_theta=40 cv=0.0858 hindsight=0.0858 oracle=0.0978 cv/oracle=0.877 cv/controller=1.138
+K2 C3 R1 N=2000 cv_theta=40 cv=0.0710 hindsight=0.0710 oracle=0.0796 cv/oracle=0.892 cv/controller=1.217
+K2 C3 R1 N=5000 cv_theta=40 cv=0.0462 hindsight=0.0462 oracle=0.0502 cv/oracle=0.921 cv/controller=1.262
+K2 C3 R2 N=100 cv_theta=20 cv=0.0741 hindsight=0.0741 oracle=0.0717 cv/oracle=1.034 cv/controller=1.678
+K2 C3 R2 N=500 cv_theta=30 cv=0.0687 hindsight=0.0687 oracle=0.0674 cv/oracle=1.019 cv/controller=1.525
+K2 C3 R2 N=2000 cv_theta=20 cv=0.0572 hindsight=0.0572 oracle=0.0607 cv/oracle=0.942 cv/controller=1.456
+K2 C3 R2 N=5000 cv_theta=40 cv=0.0373 hindsight=0.0373 oracle=0.0443 cv/oracle=0.842 cv/controller=1.282
+K2 scenarios=24 median cv/oracle=0.892 range=0.792-1.038 median cv/controller=1.267 reading='both contribute'
+K3 R1 N=500 SF12 received/sent (Doppler-lost) by bin: 20-30:0/0(0dop) 30-40:582/7679(698dop) 40-50:1151/9245(1412dop) 50-60:92/2461(809dop) 60-70:0/0(0dop) 70-80:0/0(0dop) 80-90:0/0(0dop)
+K3 R1 N=2000 SF12 received/sent (Doppler-lost) by bin: 20-30:0/0(0dop) 30-40:1542/31261(1521dop) 40-50:2689/36756(3400dop) 50-60:217/9487(1928dop) 60-70:0/0(0dop) 70-80:0/0(0dop) 80-90:0/0(0dop)
+K3 R3 N=500 SF12 received/sent (Doppler-lost) by bin: 20-30:0/0(0dop) 30-40:1280/7679(0dop) 40-50:2563/9245(0dop) 50-60:901/2461(0dop) 60-70:0/0(0dop) 70-80:0/0(0dop) 80-90:0/0(0dop)
+K3 R3 N=2000 SF12 received/sent (Doppler-lost) by bin: 20-30:0/0(0dop) 30-40:3063/31261(0dop) 40-50:6089/36756(0dop) 50-60:2145/9487(0dop) 60-70:0/0(0dop) 70-80:0/0(0dop) 80-90:0/0(0dop)
