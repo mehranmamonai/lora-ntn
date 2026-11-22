@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# A/B-tested SF12 cut-off. Passes 0-1: the Stage 4 share rule. Passes 2-13: hill climb in 10-degree
+# A/B-tested SF12 cut-off. Passes 0-3: the Stage 4 share rule. Passes 4-15: hill climb in 10-degree
 # steps, comparing incumbent and challenger cut-offs within each pass between odd and even device
-# addresses (groups swap every pass), by received packets. Passes 14-19: the winner for all devices.
+# addresses (groups swap every pass), by received packets. Passes 16-19: the winner for all devices. Until a challenger wins, the incumbent follows the share rule.
 # Phase 1 tunes (comparison length L, acceptance margin delta) on seeds 16-20; link-only and old-rule
 # tuning baselines come from b055586b (experiments/rule-revision). Phase 2 tests on seeds 21-30.
 set -euo pipefail

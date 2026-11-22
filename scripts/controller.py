@@ -28,8 +28,8 @@ parser.add_argument("--share-frac", type=float, default=0.5,
                     help="adaptive: cut-off at the first bin whose SF12 share falls below this fraction of the reference")
 parser.add_argument("--min-bin", type=int, default=2,
                     help="adaptive: lowest bin that can set the cut-off; bins below it form the reference band")
-parser.add_argument("--ab-start", type=int, default=2, help="abtest: first pass with an A/B comparison")
-parser.add_argument("--ab-end", type=int, default=13, help="abtest: last pass with an A/B comparison")
+parser.add_argument("--ab-start", type=int, default=4, help="abtest: first pass with an A/B comparison")
+parser.add_argument("--ab-end", type=int, default=15, help="abtest: last pass with an A/B comparison")
 parser.add_argument("--ab-len", type=int, default=2, help="abtest: passes per comparison (even; groups swap each pass)")
 parser.add_argument("--ab-delta", type=float, default=0.0,
                     help="abtest: accept the challenger if its extra packets exceed this share of all packets received in the comparison")
@@ -68,10 +68,13 @@ def learn_theta():
 class AbTest:
     """Hill climb over cut-offs in 10-degree steps. Each comparison runs ab_len passes; the challenger
     goes to the odd group on even-numbered passes of the comparison and to the even group otherwise,
-    so device placement cancels. The challenger wins if it collects more packets by the margin."""
+    so device placement cancels. The challenger wins if it collects more packets by the margin.
+    Until a challenger has won, the incumbent follows the share rule's current cut-off, so the
+    controller never ends on a cut-off the share rule would not also have used."""
 
     def __init__(self):
         self.incumbent = None
+        self.accepted = False
         self.direction = -10
         self.tried_other = False
         self.done = False
@@ -105,6 +108,7 @@ class AbTest:
             if self.step == args.ab_len:
                 if self.diff > args.ab_delta * self.total:
                     self.incumbent = self.challenger  # keep climbing the same way
+                    self.accepted = True
                     self.tried_other = True
                 elif self.tried_other:
                     self.done = True
@@ -115,6 +119,8 @@ class AbTest:
             self.incumbent = share_theta
         if self.incumbent is None:
             return share_theta, -1
+        if self.challenger is None and not self.accepted:
+            self.incumbent = share_theta
         if self.challenger is None and not self.done and args.ab_start <= next_pass <= args.ab_end - args.ab_len + 1:
             self.challenger = self.next_challenger()
             if self.challenger is None:
