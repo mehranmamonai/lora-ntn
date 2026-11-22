@@ -1,0 +1,11 @@
+TUNE frac=0.5 minbin=1 scenarios=16 target_median=1.0000 worst=1.0000 harmless=True worst_at=C3 R1 low 5dBi N=100
+TUNE frac=0.5 minbin=2 scenarios=16 target_median=1.0708 worst=0.9927 harmless=True worst_at=C3 R3 low 5dBi N=500
+TUNE frac=0.6 minbin=1 scenarios=16 target_median=1.0000 worst=1.0000 harmless=True worst_at=C3 R1 low 5dBi N=100
+TUNE frac=0.6 minbin=2 scenarios=16 target_median=1.0708 worst=0.9809 harmless=True worst_at=C3 R3 low 5dBi N=500
+TUNE frac=0.7 minbin=1 scenarios=16 target_median=1.0000 worst=1.0000 harmless=True worst_at=C3 R1 low 5dBi N=100
+TUNE frac=0.7 minbin=2 scenarios=16 target_median=1.0708 worst=0.9455 harmless=False worst_at=C3 R3 low 5dBi N=100
+TUNE frac=0.8 minbin=1 scenarios=16 target_median=1.0000 worst=1.0000 harmless=True worst_at=C3 R1 low 5dBi N=100
+TUNE frac=0.8 minbin=2 scenarios=16 target_median=1.0708 worst=0.9371 harmless=False worst_at=C3 R3 low 5dBi N=100
+TUNE frac=0.9 minbin=1 scenarios=16 target_median=1.0000 worst=1.0000 harmless=True worst_at=C3 R1 low 5dBi N=100
+TUNE frac=0.9 minbin=2 scenarios=16 target_median=1.0708 worst=0.9351 harmless=False worst_at=C3 R3 low 5dBi N=100
+CHOSEN frac=0.5 minbin=2 target_median=1.0708 harmless=True
