@@ -237,6 +237,9 @@ double g_beaconTxProb = 1;
 double g_beaconMarginDb = 0;
 double g_beaconThetaDeg = 90;
 bool g_instantSettings = false; // Controlled policy: apply settings to all devices at once, no beacon
+// Controlled policy: SF12 cut-off every device holds from the start (review baseline: best fixed
+// threshold). 90 keeps every earlier experiment unchanged.
+double g_initThetaDeg = 90;
 std::vector<uint64_t> g_receivedByDevice;
 double g_orbitPeriodS = 0;
 double g_predErrorKm = 0; // Along-track error of the device's satellite prediction
@@ -858,6 +861,8 @@ main(int argc, char* argv[])
     cmd.AddValue("exploreProb", "Controlled policy: probability of SF12 above the cut-off", g_exploreProb);
     bool beacons = true;
     cmd.AddValue("beacons", "Controlled policy: deliver settings by beacon (1) or not at all (0)", beacons);
+    cmd.AddValue("thetaDeg", "Controlled policy: SF12 elevation cut-off held by every device from the start",
+                 g_initThetaDeg);
     cmd.AddValue("instantSettings", "Controlled policy: apply settings to every device at the pass boundary",
                  g_instantSettings);
     int collision = 1;
@@ -1045,8 +1050,10 @@ main(int argc, char* argv[])
         {
             d.txProb = g_txProb;
             d.marginDb = g_marginDb;
-            d.thetaDeg = 90;
+            d.thetaDeg = g_initThetaDeg;
         }
+        g_beaconThetaDeg = g_initThetaDeg;
+        g_pass[0].thetaDeg = g_initThetaDeg;
         if (beacons)
         {
             // Created after every other random variable, so its stream leaves theirs unchanged.
@@ -1100,7 +1107,8 @@ main(int argc, char* argv[])
               << " rxSet=" << rxSet << " scintDb=" << g_ionosphericDb
               << " dopplerLimits=" << leo::g_dopplerLimits << " txProb=" << g_txProb
               << " collision=" << collision << " lockLost=" << LoraInterferenceHelper::s_lockLost
-              << " exploreProb=" << g_exploreProb << " beacons=" << beacons;
+              << " exploreProb=" << g_exploreProb << " beacons=" << beacons
+              << " thetaFixedDeg=" << g_initThetaDeg;
     uint64_t heard = 0;
     uint64_t missed = 0;
     for (const auto& r : g_pass)
