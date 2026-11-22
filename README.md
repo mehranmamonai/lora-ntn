@@ -48,6 +48,7 @@ simulator and controller exactly as they were) and run `scripts/run.sh`.
 | `hindsight-threshold` | `1fd9523` | Fixed SF12 cut-offs 20-80 deg (hindsight-best threshold), controller without exploration, oracle on seeds 26-30 (Table II, Fig. 4, Section VI-C). |
 | `rule-revision` | `2bd2573` | Share rule with tuned share fraction and lowest bin; tuning kept the original rule (Section VI-C). |
 | `ab-cutoff` | `b7a0f35` | Within-pass A/B search over cut-offs between odd and even device addresses (Section VI-C). |
+| `static-cutoff` | `0c1cae7` | Static 40 and 50 deg cut-offs in all 192 scenarios, cut-off chosen on tuning seeds, and per-bin SF12 sent/Doppler-lost/received under link-only (Section VI-C). |
 
 Seeds 16-20 were used only to choose settings; seeds 21-30 are test seeds.
 
