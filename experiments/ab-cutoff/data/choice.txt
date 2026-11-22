@@ -1,0 +1,6 @@
+TUNE ablen=old abdelta=0.0 scenarios=16 target_median=1.0708 worst=0.9927 harmless=True worst_at=C3 R3 low 5dBi N=500
+TUNE ablen=2 abdelta=0.0 scenarios=16 target_median=1.0837 worst=0.9208 harmless=False worst_at=C3 R3 low 5dBi N=100
+TUNE ablen=2 abdelta=0.02 scenarios=16 target_median=1.0785 worst=0.9208 harmless=False worst_at=C3 R3 low 5dBi N=100
+TUNE ablen=4 abdelta=0.0 scenarios=16 target_median=1.1019 worst=0.9384 harmless=False worst_at=C3 R3 low 5dBi N=100
+TUNE ablen=4 abdelta=0.02 scenarios=16 target_median=1.1083 worst=0.9734 harmless=False worst_at=C3 R3 low 5dBi N=100
+CHOSEN ablen=4 abdelta=0.02 harmless=False
