@@ -21,6 +21,10 @@ parser.add_argument("--k", type=float, default=0, help="adaptive: p = min(1, k /
 parser.add_argument("--adapt-margin", type=int, default=0)
 parser.add_argument("--h", type=float, default=0,
                     help="adaptive two-level load rule: p = 1/2 once distinct devices heard so far exceed H; 0 = off")
+parser.add_argument("--share-frac", type=float, default=0.5,
+                    help="adaptive: cut-off at the first bin whose SF12 share falls below this fraction of the reference")
+parser.add_argument("--min-bin", type=int, default=2,
+                    help="adaptive: lowest bin that can set the cut-off; bins below it form the reference band")
 args = parser.parse_args()
 mode = args.mode or ("scripted" if args.p_from or args.margin_from else "constant")
 
@@ -41,13 +45,14 @@ sf12 = [0] * 7
 def learn_theta():
     """Lowest 10-degree bin above 40 deg whose SF12 share of SF11+SF12 receptions falls below half
     of the share at 20-40 deg, given at least 5 such packets; 90 if none."""
-    ref_total = sum(sf11[:2]) + sum(sf12[:2])
+    lo = args.min_bin
+    ref_total = sum(sf11[:lo]) + sum(sf12[:lo])
     if ref_total < 5:
         return 90.0
-    ref = sum(sf12[:2]) / ref_total
-    for b in range(2, 7):
+    ref = sum(sf12[:lo]) / ref_total
+    for b in range(lo, 7):
         total = sf11[b] + sf12[b]
-        if total >= 5 and sf12[b] / total < 0.5 * ref:
+        if total >= 5 and sf12[b] / total < args.share_frac * ref:
             return 20.0 + 10 * b
     return 90.0
 
