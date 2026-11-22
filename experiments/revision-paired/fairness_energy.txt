@@ -1,5 +1,10 @@
-scenarios=36 (36 with SF12 Doppler loss; R4 duplicates R1)
+scenarios=36 (36 with SF12 Doppler loss)
 jain                   significantly_up=20 significantly_down= 0 ratio ctrl/link median=1.035 range=1.001-1.055
 served_share           significantly_up=27 significantly_down= 0 ratio ctrl/link median=1.036 range=1.003-1.066
 air_per_delivered_s    significantly_up= 0 significantly_down=31 ratio ctrl/link median=0.912 range=0.874-0.975
 air_per_device_s       significantly_up= 0 significantly_down=36 ratio ctrl/link median=0.982 range=0.979-0.987
+scenarios=24 (24 distinct (R4 duplicates R1))
+jain                   significantly_up=14 significantly_down= 0 ratio ctrl/link median=1.036 range=1.001-1.055
+served_share           significantly_up=18 significantly_down= 0 ratio ctrl/link median=1.038 range=1.003-1.066
+air_per_delivered_s    significantly_up= 0 significantly_down=20 ratio ctrl/link median=0.912 range=0.874-0.975
+air_per_device_s       significantly_up= 0 significantly_down=24 ratio ctrl/link median=0.982 range=0.979-0.987

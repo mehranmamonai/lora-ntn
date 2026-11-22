@@ -48,17 +48,18 @@ metrics = {
     "air_per_delivered_s": lambda r: float(r["airtimeS"]) / float(r["received"]),
     "air_per_device_s": lambda r: float(r["airtimeS"]) / float(r["n"]),
 }
-keys = [k for k in sorted(ctrl) if k[1] in (1, 5, 3) and k[2] == 7.69 and k[3] == 5]
-print(f"scenarios={len(keys)} (36 with SF12 Doppler loss; R4 duplicates R1)")
-for name, fn in metrics.items():
-    up = down = 0
-    rel = []
-    for k in keys:
-        d = [fn(ctrl[k][s]) - fn(link[k][s]) for s in range(21, 31)]
-        m = st.mean(d)
-        h = stats.t.ppf(0.975, 9) * st.stdev(d) / math.sqrt(10) if st.stdev(d) > 0 else 0
-        up += m - h > 0
-        down += m + h < 0
-        rel.append(st.mean(fn(ctrl[k][s]) for s in range(21, 31)) / st.mean(fn(link[k][s]) for s in range(21, 31)))
-    print(f"{name:22s} significantly_up={up:2d} significantly_down={down:2d} ratio ctrl/link median={st.median(rel):.3f} "
-          f"range={min(rel):.3f}-{max(rel):.3f}")
+for fam, modes in (("36 with SF12 Doppler loss", (1, 5, 3)), ("24 distinct (R4 duplicates R1)", (1, 5))):
+  keys = [k for k in sorted(ctrl) if k[1] in modes and k[2] == 7.69 and k[3] == 5]
+  print(f"scenarios={len(keys)} ({fam})")
+  for name, fn in metrics.items():
+      up = down = 0
+      rel = []
+      for k in keys:
+          d = [fn(ctrl[k][s]) - fn(link[k][s]) for s in range(21, 31)]
+          m = st.mean(d)
+          h = stats.t.ppf(0.975, 9) * st.stdev(d) / math.sqrt(10) if st.stdev(d) > 0 else 0
+          up += m - h > 0
+          down += m + h < 0
+          rel.append(st.mean(fn(ctrl[k][s]) for s in range(21, 31)) / st.mean(fn(link[k][s]) for s in range(21, 31)))
+      print(f"{name:22s} significantly_up={up:2d} significantly_down={down:2d} ratio ctrl/link median={st.median(rel):.3f} "
+            f"range={min(rel):.3f}-{max(rel):.3f}")

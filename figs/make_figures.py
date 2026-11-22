@@ -82,19 +82,16 @@ fig.legend(loc="outside lower center", ncol=3, frameon=False, fontsize=6.5)
 traj = read("trajectory.csv")
 passes = sorted({int(r["pass"]) for r in traj})
 seeds = sorted({int(r["seed"]) for r in traj})
-# C3, R1, 500 devices: Doppler-lost packets = share x sent, per 100 devices.
-grid = [[100 * float(r["doppler_loss_share"]) * float(r["sent"]) / 500
-         for r in [next(x for x in traj if int(x["seed"]) == s and int(x["pass"]) == p)]]
-        for s in seeds for p in passes]
-grid = [grid[i * len(passes):(i + 1) * len(passes)] for i in range(len(seeds))]
-grid = [[v[0] for v in row] for row in grid]
+# C3, R1, 500 devices: Doppler-lost packets per 100 devices.
+grid = [[100 * float(next(x for x in traj if int(x["seed"]) == s and int(x["pass"]) == p)["doppler_lost"]) / 500
+         for p in passes] for s in seeds]
 means, lows, highs = mean_ci(grid)
 ax = axes[2]
-ax.axvspan(-0.5, 1.5, color=MUTED, alpha=0.45, linewidth=0)
+ax.axvspan(-0.5, 2.5, color=MUTED, alpha=0.45, linewidth=0)
 ax.fill_between(passes, lows, highs, color=PALETTE["orange"], alpha=0.22, linewidth=0)
 ax.plot(passes, means, color=PALETTE["orange"], marker="o", ms=2.6, linewidth=1.1)
 top = max(highs) * 1.18
-ax.text(0.5, top * 0.93, "learning", ha="center", va="bottom", fontsize=6, color="black")
+ax.text(1.0, top * 0.93, "learning", ha="center", va="bottom", fontsize=6, color="black")
 ax.text(10.5, top * 0.93, "cut-off 50° in all seeds", ha="center", va="bottom", fontsize=6, color="black")
 ax.set_xlim(-0.5, 19.5)
 ax.set_ylim(0, top)

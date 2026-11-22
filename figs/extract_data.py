@@ -152,9 +152,18 @@ with open(os.path.join(root, "beacon-reach", "data", "summary.txt")) as f, \
                     m[6], m[7], m[4], m[5], f"{o[0]:.4f}", f"{o[1]:.4f}", len(orc[k]),
                     f"{h[0]:.4f}", f"{h[1]:.4f}", th])
 
-# 4. Per-pass trajectory (C3, R1, 500 devices, low latitude, 5 dBi, seeds 21-25), extracted earlier from
-#    the PASS lines of the ae2d1534 case logs.
-with open(os.path.join(root, "dashboard-data", "trajectory.csv")) as f, \
-        open(os.path.join(out, "trajectory.csv"), "w", newline="") as g:
-    g.write(f.read())
+# 4. Per-pass trajectory (C3, R1, 500 devices, low latitude, 5 dBi, seeds 21-30) from the PASS lines of
+#    the ae2d1534 case logs in stage4-revision/data/cases.tar.gz.
+import tarfile  # noqa: E402
+
+with tarfile.open(os.path.join(root, "stage4-revision", "data", "cases.tar.gz")) as tf,         open(os.path.join(out, "trajectory.csv"), "w", newline="") as g:
+    w = csv.writer(g)
+    w.writerow(["seed", "pass", "cutoff_deg", "sent", "received", "doppler_lost", "beacons_heard", "beacons_missed"])
+    for seed in range(21, 31):
+        name = f"cases/test-pol7-c3-m1-n500-s7.69-g5-seed{seed}-k0-a0-e0.1.log"
+        for line in tf.extractfile(name).read().decode().splitlines():
+            if line.startswith("PASS "):
+                d = dict(kv.split("=", 1) for kv in line.split()[1:])
+                w.writerow([seed, d["pass"], d["thetaDeg"], d["sent"], d["received"], d["rejDoppler"],
+                            d["beaconsHeard"], d["beaconsMissed"]])
 print("wrote", sorted(os.listdir(out)))
