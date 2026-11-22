@@ -44,6 +44,10 @@ simulator and controller exactly as they were) and run `scripts/run.sh`.
 | `beacon-reach` | `aed4dc4` | Beacon versus instant setting delivery (controller-limit figure) |
 | `stage5-bandit` | `ad022a8` | Contextual bandit choosing a Doppler-rate threshold (Section VI-C). This commit is on branch `orx/stage-5-contextual-bandit-for-an-sf12-doppler-ra`, not on `main`. |
 | `stage5-offline` | none | `elevation_vs_rate.py`: geometry check, no simulation, giving the 13.3% and 30.0% misclassification of a single elevation threshold (Section VI-C). Run with `python elevation_vs_rate.py`. |
+| `revision-paired` | none | Paired per-seed reanalysis of `stage4-revision` against link-only (`paired.py`), and fairness and energy (`fairness_energy.py`). Run with `python paired.py ../` from that folder (needs `scipy`). |
+| `hindsight-threshold` | `1fd9523` | Fixed SF12 cut-offs 20-80 deg (hindsight-best threshold), controller without exploration, oracle on seeds 26-30 (Table II, Fig. 4, Section VI-C). |
+| `rule-revision` | `2bd2573` | Share rule with tuned share fraction and lowest bin; tuning kept the original rule (Section VI-C). |
+| `ab-cutoff` | `b7a0f35` | Within-pass A/B search over cut-offs between odd and even device addresses (Section VI-C). |
 
 Seeds 16-20 were used only to choose settings; seeds 21-30 are test seeds.
 
