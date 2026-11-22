@@ -1,21 +1,20 @@
-"""A/B-tested SF12 cut-off: choose (comparison length L, margin delta) on seeds 16-20, test on 21-30.
-Usage: summarize.py choose runs.txt <experiments dir>
-       summarize.py final runs.txt <experiments dir>
+"""Re-review (Rev 1): static cut-off safety (N-0), cross-validated fixed cut-off (N-1), share signal (N-3).
+Usage: summarize.py <experiments dir> <new runs.txt>
 
-Choice rule (fixed before the run): link-only and old-rule tuning results come from b055586b
-(experiments/rule-revision, seeds 16-20, same scenarios). Among (L, delta) whose mean delivery is at
-least 0.98 of link-only in every tuning scenario, take the highest median ratio to link-only over the
-R1 and R2 low-latitude 5 dBi tuning scenarios; ties go to the shorter L, then the smaller delta. If none
-is harmless, take the one with the highest worst-case ratio (the test then shows the harm).
-
-Criteria (fixed before the run), seeds 21-30, paired per-seed 95% t-intervals:
-  G0  the old rule (adaptive mode) reproduces ae2d1534 exactly on the two regression runs.
-  G1  in the 36 scenarios with SF12 Doppler loss (low latitude, 5 dBi, R1 R2 R4), the new controller
-      delivers significantly more than the old rule in at least 27, and its median delivery over
-      the 24 distinct scenarios is at least 0.80 of the oracle.
-  G2  the new controller is never significantly below link-only in any of the 192 scenarios.
-  Reported, not gated: share of the gap to the hindsight-best fixed cut-off closed; active scenarios;
-  final cut-off per scenario.
+Criteria and readings fixed before the run; paired per-seed 95% t-intervals on seeds 21-30.
+  K0  fixed 90 deg reproduces link-only exactly on the check pairs.
+  K1  For static 40 and 50 deg: count scenarios of 192 significantly below link-only, by group
+      (low-latitude 5 dBi with SF12 Doppler loss: R1 R2 R4; low-latitude 5 dBi R3; low-latitude 10 dBi;
+      mid-latitude). Reading: if static 40 deg is significantly below link-only in at least one
+      scenario outside the Doppler-loss group, a static cut-off is not safe under an unknown limit and
+      the controller (0 of 192 below link-only) is the safe choice; if in none, a static 40 deg cut-off
+      is harmless in this model and the paper is reframed around the attribution study.
+      Also reported: static 40 deg against the controller, paired, per group.
+  K2  Cross-validated fixed cut-off: per scenario, the cut-off with the highest mean delivery on
+      seeds 16-20, evaluated on 21-30. Median CV/oracle over the 24 distinct scenarios, read with the
+      same thresholds as before (<= 0.80 threshold class is the limit, >= 0.90 the learning rule).
+  K3  Link-only, C3, low latitude 5 dBi, N=500 and 2000, seeds 21-25: SF12 sent, Doppler-lost and
+      received per elevation bin under R1 and R3 (what the share rule sees).
 """
 import math
 import statistics as st
@@ -26,16 +25,22 @@ from pathlib import Path
 T = {1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447, 7: 2.365, 8: 2.306, 9: 2.262}
 READ = {1: "R1", 5: "R2", 2: "R3", 3: "R4"}
 LOCK = {7.69: -2.0, 0.0: 0.0}
+TEST = range(21, 31)
+E = Path(sys.argv[1])
 
 
-def rows(path, default_collision="1"):
+def rows(path, dc="1"):
     out = []
     for line in open(path):
         if line.startswith("RUN "):
             d = dict(kv.split("=", 1) for kv in line.split()[1:])
-            d.setdefault("collision", default_collision)
+            d.setdefault("collision", dc)
             out.append(d)
     return out
+
+
+def key(r):
+    return (int(r["collision"]), int(r["dopplerLimits"]), float(r["scintDb"]), float(r["gain"]), int(r["n"]))
 
 
 def deliv(r):
@@ -43,132 +48,118 @@ def deliv(r):
 
 
 def ci(d):
-    m = st.mean(d)
-    return m, (T[len(d) - 1] * st.stdev(d) / math.sqrt(len(d)) if len(d) > 1 else 0.0)
+    return st.mean(d), (T[len(d) - 1] * st.stdev(d) / math.sqrt(len(d)) if len(d) > 1 else 0.0)
 
 
-def key(r):
-    return (int(r["collision"]), int(r["dopplerLimits"]), float(r["scintDb"]), float(r["gain"]), int(r["n"]))
+def paired(a, b):
+    return ci([deliv(a[s]) - deliv(b[s]) for s in TEST])
 
 
-def name(k):
-    return f"C{k[0]} {READ[k[1]]} {'low' if k[2] == 7.69 else 'mid'} {k[3]:g}dBi N={k[4]}"
+def m(d, seeds=TEST):
+    return st.mean(deliv(d[s]) for s in seeds)
 
 
-if sys.argv[1] == "choose":
-    rs = [r for r in rows(sys.argv[2]) if r["part"] == "tune"]
-    prev = [r for r in rows(Path(sys.argv[3]) / "rule-revision/data/runs.txt") if r["part"] == "tune"]
-    link = defaultdict(dict)
-    combos = defaultdict(lambda: defaultdict(dict))
-    for r in prev:
-        if r["policy"] == "link_only":
-            link[key(r)][r["seed"]] = r
-        elif (r["frac"], r["minbin"]) == ("0.5", "2"):
-            combos[("old", 0.0)][key(r)][r["seed"]] = r
-    for r in rs:
-        combos[(int(r["ablen"]), float(r["abdelta"]))][key(r)][r["seed"]] = r
-    scored = []
-    for c, by in sorted(combos.items(), key=str):
-        ratios = {k: st.mean(deliv(x) for x in v.values()) / st.mean(deliv(x) for x in link[k].values()) for k, v in by.items()}
-        target = [v for k, v in ratios.items() if k[1] in (1, 5) and k[2] == 7.69 and k[3] == 5]
-        worst = min(ratios.values())
-        obj = st.median(target)
-        ok = worst >= 0.98
-        print(f"TUNE ablen={c[0]} abdelta={c[1]} scenarios={len(ratios)} target_median={obj:.4f} worst={worst:.4f} "
-              f"harmless={ok} worst_at={name(min(ratios, key=ratios.get))}")
-        if c[0] != "old":
-            scored.append((ok, round(obj, 6) if ok else round(worst, 6), (-c[0], -c[1]), c))
-    best = max(scored)
-    print(f"CHOSEN ablen={best[3][0]} abdelta={best[3][1]} harmless={best[0]}")
-    sys.exit(0)
+def group(k):
+    if k[2] == 7.69 and k[3] == 5:
+        return "doppler" if k[1] in (1, 5, 3) else "lowlat5_R3"
+    return "lowlat10" if k[2] == 7.69 else "midlat"
+
 
 new = rows(sys.argv[2])
-E = Path(sys.argv[3])
 rev = rows(E / "stage4-revision/data/runs.txt")
 hind = rows(E / "hindsight-threshold/data/runs.txt")
 base_rows = (rows(E / "efficiency-bound/data/runs.txt", "1") + rows(E / "load-control-bound/data/runs.txt", "1")
              + rows(E / "collision-model-gate/data/runs.txt", "2") + rows(E / "collision-locking-gate/data/runs.txt", "3")
              + [r for r in rev if r["part"] == "base"])
-SEEDS = set(range(21, 31))
-link, old, ctl, orc = (defaultdict(dict) for _ in range(4))
-best_fixed = defaultdict(lambda: defaultdict(dict))
+link, ctrl, orc = (defaultdict(dict) for _ in range(3))
+fixed = defaultdict(lambda: defaultdict(dict))
+tune = defaultdict(lambda: defaultdict(dict))
 for r in base_rows:
-    if (r["policy"] == "link_only" and float(r["txProb"]) == 1.0 and int(r["seed"]) in SEEDS
+    if (r["policy"] == "link_only" and float(r["txProb"]) == 1.0 and int(r["seed"]) in TEST
             and float(r["marginDb"]) == LOCK[float(r["scintDb"])] and r.get("part") != "regress"):
         link[key(r)][int(r["seed"])] = r
 for r in rev:
     if r["part"] == "test":
-        old[key(r)][int(r["seed"])] = r
+        ctrl[key(r)][int(r["seed"])] = r
 for r in [x for x in rows(E / "stage4-controller/data/runs.txt") if x["part"] == "oracle"] + \
          [x for x in hind if x["part"] == "oracle"]:
-    if int(r["seed"]) in SEEDS:
+    if int(r["seed"]) in TEST:
         orc[key(r)][int(r["seed"])] = r
-for r in hind:
+for r in hind + new:
     if r["part"] == "fixed":
-        best_fixed[key(r)][int(float(r["thetaFixedDeg"]))][int(r["seed"])] = r
+        fixed[key(r)][int(float(r["thetaFixedDeg"]))][int(r["seed"])] = r
 for r in new:
-    if r["part"] == "test":
-        ctl[key(r)][int(r["seed"])] = r
-chosen = next(((r["ablen"], r["abdelta"]) for r in new if r["part"] == "test"), ("?", "?"))
-print(f"CHOSEN ablen={chosen[0]} abdelta={chosen[1]}")
+    if r["part"] == "cvtune":
+        tune[key(r)][int(float(r["thetaFixedDeg"]))][int(r["seed"])] = r
 
-# G0
+# K0
+chk = defaultdict(dict)
+for r in new:
+    if r["part"] == "check":
+        chk[(r["collision"], r["n"])][r["policy"]] = r
 fields = ["sent", "received", "airtimeS", "rejDoppler", "interfered", "underSens", "noDemod"]
-reg = [r for r in new if r["part"] == "regress"]
-mism = [r["n"] for r in reg if any(r[f] != old[key(r)][21][f] for f in fields)]
-g0 = len(reg) == 2 and not mism
-print(f"G0 regress_runs={len(reg)} mismatches={len(mism)} holds={g0}")
+bad = [k for k, p in chk.items() if len(p) != 2 or any(p["link_only"][f] != p["controlled"][f] for f in fields)]
+print(f"K0 pairs={len(chk)} mismatches={len(bad)} holds={len(chk) == 4 and not bad}")
 
+# K1
+keys = sorted(ctrl)
+print(f"K1 scenarios={len(keys)}")
+groups = ("doppler", "lowlat5_R3", "lowlat10", "midlat")
+outside_harm40 = 0
+for th in (40, 50):
+    for g in groups:
+        ks = [k for k in keys if group(k) == g]
+        below = above = vs_ctrl_below = vs_ctrl_above = 0
+        ratios = []
+        missing = [k for k in ks if len(fixed[k].get(th, {})) != 10 or len(link[k]) != 10]
+        for k in ks:
+            if k in missing:
+                continue
+            d = paired(fixed[k][th], link[k])
+            below += d[0] + d[1] < 0
+            above += d[0] - d[1] > 0
+            c = paired(fixed[k][th], ctrl[k])
+            vs_ctrl_below += c[0] + c[1] < 0
+            vs_ctrl_above += c[0] - c[1] > 0
+            ratios.append(m(fixed[k][th]) / m(link[k]))
+            if d[0] + d[1] < 0:
+                print(f"K1 harm theta={th} {group(k)} C{k[0]} {READ[k[1]]} {'low' if k[2] == 7.69 else 'mid'} "
+                      f"{k[3]:g}dBi N={k[4]} ratio={m(fixed[k][th]) / m(link[k]):.3f} diff={d[0]:+.4f}+-{d[1]:.4f}")
+        if th == 40 and g != "doppler":
+            outside_harm40 += below
+        print(f"K1 theta={th} group={g} scenarios={len(ks)} missing={len(missing)} below_link={below} above_link={above} "
+              f"ratio_to_link median={st.median(ratios) if ratios else float('nan'):.3f} "
+              f"min={min(ratios) if ratios else float('nan'):.3f} below_controller={vs_ctrl_below} above_controller={vs_ctrl_above}")
+print(f"K1 static40_harm_outside_doppler_group={outside_harm40} reading="
+      f"{'static cut-off NOT safe; controller is the safe choice' if outside_harm40 else 'static 40 deg harmless in this model; reframe'}")
 
-def paired(a, b):
-    return ci([deliv(a[s]) - deliv(b[s]) for s in sorted(SEEDS)])
+# K2
+cv_o, cv_c, out = [], [], []
+for k in sorted(tune):
+    if k[1] not in (1, 5):
+        continue
+    th = max(tune[k], key=lambda t: m(tune[k][t], range(16, 21)))
+    cv = m(fixed[k][th])
+    best = max(m(v) for v in fixed[k].values() if len(v) == 10)
+    o = m(orc[k])
+    cv_o.append(cv / o)
+    cv_c.append(cv / m(ctrl[k]))
+    out.append(f"K2 C{k[0]} {READ[k[1]]} N={k[4]} cv_theta={th} cv={cv:.4f} hindsight={best:.4f} oracle={o:.4f} "
+               f"cv/oracle={cv / o:.3f} cv/controller={cv / m(ctrl[k]):.3f}")
+print("\n".join(out))
+med = st.median(cv_o)
+reading = "threshold class is the limit" if med <= 0.80 else "learning rule is the limit" if med >= 0.90 else "both contribute"
+print(f"K2 scenarios={len(cv_o)} median cv/oracle={med:.3f} range={min(cv_o):.3f}-{max(cv_o):.3f} "
+      f"median cv/controller={st.median(cv_c):.3f} reading='{reading}'")
 
-
-def m(d):
-    return st.mean(deliv(r) for r in d.values())
-
-
-missing = [k for k in ctl if len(ctl[k]) != 10 or len(link[k]) != 10 or len(old[k]) != 10]
-print(f"SCENARIOS tested={len(ctl)} incomplete={len(missing)} {[name(k) for k in missing[:3]]}")
-
-# G2 and activity
-harm, active = [], 0
-for k in sorted(ctl):
-    same = all(ctl[k][s]["received"] == link[k][s]["received"] and ctl[k][s]["sent"] == link[k][s]["sent"] for s in SEEDS)
-    active += not same
-    d = paired(ctl[k], link[k])
-    if d[0] + d[1] < 0:
-        harm.append((k, d))
-for k, d in harm:
-    print(f"G2 harm {name(k)} diff={d[0]:+.4f}+-{d[1]:.4f}")
-g2 = not harm and len(ctl) == 192 and not missing
-print(f"G2 scenarios={len(ctl)} significantly_below_link={len(harm)} active={active} holds={g2}")
-
-# G1
-dop36 = [k for k in sorted(ctl) if k[1] in (1, 5, 3) and k[2] == 7.69 and k[3] == 5]
-better = 0
-print("\nPER SCENARIO (Doppler-loss scenarios; delivery packets/device/pass)")
-print(f"{'scenario':30s} {'link':>6s} {'old':>6s} {'new':>6s} {'hind':>6s} {'oracle':>6s} {'new/link':>8s} {'new-old paired':>18s} {'new/O':>6s} {'gapH':>6s}")
-uniq_no, gap_h = [], []
-for k in dop36:
-    L, Oc, N = m(link[k]), m(old[k]), m(ctl[k])
-    d = paired(ctl[k], old[k])
-    better += d[0] - d[1] > 0
-    kk = (k[0], 1 if k[1] == 3 else k[1], k[2], k[3], k[4])
-    O = m(orc[kk]) if len(orc[kk]) == 10 else float("nan")
-    H = max(m(v) for v in best_fixed[kk].values()) if best_fixed[kk] else float("nan")
-    gh = (N - Oc) / (H - Oc) if H != Oc else float("nan")
-    if k[1] in (1, 5):
-        uniq_no.append(N / O)
-        gap_h.append(gh)
-    print(f"{name(k):30s} {L:6.4f} {Oc:6.4f} {N:6.4f} {H:6.4f} {O:6.4f} {N / L:8.3f} {d[0]:+.4f}+-{d[1]:.4f} {N / O:6.3f} {gh:6.2f}")
-need = 27
-med_o = st.median(uniq_no)
-g1 = better >= need and med_o >= 0.80
-print(f"\nG1 doppler_scenarios={len(dop36)} new_significantly_above_old={better} needed={need} "
-      f"median_new_over_oracle={med_o:.3f} (range {min(uniq_no):.3f}-{max(uniq_no):.3f}) holds={g1}")
-rat = [m(ctl[k]) / m(link[k]) for k in dop36]
-up = sum(paired(ctl[k], link[k])[0] - paired(ctl[k], link[k])[1] > 0 for k in dop36)
-print(f"REPORT new/link over 36: median={st.median(rat):.3f} range={min(rat):.3f}-{max(rat):.3f} significantly_above_link={up}")
-print(f"REPORT share of old-to-hindsight gap closed (24 distinct): median={st.median(gap_h):.2f} range={min(gap_h):.2f}-{max(gap_h):.2f}")
-print(f"GATE G0={g0} G1={g1} G2={g2} passes={g0 and g1 and g2}")
+# K3
+acc = defaultdict(lambda: [[0] * 7, [0] * 7, [0] * 7])
+for r in new:
+    if r["part"] == "truth":
+        a = acc[(READ[int(r["dopplerLimits"])], int(r["n"]))]
+        for i, f in enumerate(("sf12SentBin", "sf12DopplerBin", "sf12RecvBin")):
+            for b, v in enumerate(r[f].split(",")):
+                a[i][b] += int(v)
+for (rd, n), (sent, dop, recv) in sorted(acc.items()):
+    cells = " ".join(f"{20 + 10 * b}-{30 + 10 * b}:{recv[b]}/{sent[b]}({dop[b]}dop)" for b in range(7))
+    print(f"K3 {rd} N={n} SF12 received/sent (Doppler-lost) by bin: {cells}")

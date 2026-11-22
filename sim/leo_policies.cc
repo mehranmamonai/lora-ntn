@@ -202,7 +202,14 @@ struct PacketRecord
     int sf = 0;
     int pass = 0;
     double toa = 0;
+    int bin = -1; // 10-degree elevation bin from 20 deg at transmit start (analysis only)
 };
+
+// Ground truth for analysis, never sent to the controller: SF12 packets sent, lost to the Doppler
+// filter and received, by 10-degree elevation bin at transmit start (20-90 deg).
+std::array<uint64_t, 7> g_sf12SentBin{};
+std::array<uint64_t, 7> g_sf12DopplerBin{};
+std::array<uint64_t, 7> g_sf12RecvBin{};
 
 struct Stats
 {
@@ -693,6 +700,16 @@ OnStartSending(Ptr<const Packet> packet, uint32_t nodeId)
     r.sf = sf;
     r.pass = int(t / g_orbitPeriodS);
     r.toa = g_toa[sf];
+    {
+        const auto s = g_orbit->Position(t);
+        const auto& dp = g_devices[i].pos;
+        const double e = ElevationDeg(Vector(s.x, s.y, s.z), Vector(dp.x, dp.y, dp.z));
+        r.bin = e >= 20 ? std::clamp(int((e - 20) / 10), 0, 6) : -1;
+        if (sf == 12 && r.bin >= 0)
+        {
+            ++g_sf12SentBin[r.bin];
+        }
+    }
     g_packets[packet->GetUid()] = r;
     ++g_stats.sent;
     ++g_stats.sentBySf[sf];
@@ -721,6 +738,10 @@ DopplerFilter(Ptr<const Packet> packet, Time duration)
                                         duration.GetSeconds());
     g_stats.rejectedDoppler += !ok;
     g_pass[PassAt(Simulator::Now().GetSeconds())].rejectedDoppler += !ok;
+    if (!ok && r.sf == 12 && r.bin >= 0)
+    {
+        ++g_sf12DopplerBin[r.bin];
+    }
     return ok;
 }
 
@@ -733,6 +754,10 @@ OnReceived(Ptr<const Packet> packet, uint32_t)
         ++g_stats.received;
         ++g_stats.receivedBySf[it->second.sf];
         ++g_receivedByDevice[it->second.device];
+        if (it->second.sf == 12 && it->second.bin >= 0)
+        {
+            ++g_sf12RecvBin[it->second.bin];
+        }
         g_stats.receivedLast5 += it->second.pass >= g_passes - 5;
         PassRecord& p = g_pass[PassAt(Simulator::Now().GetSeconds())];
         ++p.received;
@@ -1124,6 +1149,16 @@ main(int argc, char* argv[])
               << " collision=" << collision << " lockLost=" << LoraInterferenceHelper::s_lockLost
               << " exploreProb=" << g_exploreProb << " beacons=" << beacons
               << " thetaFixedDeg=" << g_initThetaDeg;
+    for (const auto& [name, bins] : {std::make_pair("sf12SentBin", &g_sf12SentBin),
+                                     std::make_pair("sf12DopplerBin", &g_sf12DopplerBin),
+                                     std::make_pair("sf12RecvBin", &g_sf12RecvBin)})
+    {
+        std::cout << " " << name << "=";
+        for (size_t b = 0; b < bins->size(); ++b)
+        {
+            std::cout << (*bins)[b] << (b + 1 < bins->size() ? "," : "");
+        }
+    }
     uint64_t heard = 0;
     uint64_t missed = 0;
     for (const auto& r : g_pass)
