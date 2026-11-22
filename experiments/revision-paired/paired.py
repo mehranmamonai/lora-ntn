@@ -149,3 +149,31 @@ for coll in (1, 2, 3):
     sub = [r for r in recs if r["k"][0] == coll]
     print(f"SUMMARY C{coll} active={len(sub)} CI_above_zero={sum(r['m'] - r['h'] > 0 for r in sub)} "
           f"holm<0.05={sum(r['holm'] < 0.05 for r in sub)}")
+
+# The 36 scenarios with SF12 Doppler loss (R1, R2, R4 at low latitude, 5 dBi) and the 24 unique ones
+# (R4 reproduces R1 exactly in this setting, checked below), with Holm re-applied within each family.
+def family(sub, tag):
+    ps = sorted(r["p"] for r in sub)
+    holm_sig, running = 0, 0.0
+    for rank, p in enumerate(ps):
+        running = max(running, min(1.0, (len(ps) - rank) * p))
+        holm_sig += running < 0.05
+    pos = sum(r["m"] > 0 for r in sub)
+    sp = stats.binomtest(pos, len(sub), 0.5).pvalue
+    rat = [r["ctrl"] / r["link"] for r in sub]
+    print(f"FAMILY {tag} n={len(sub)} CI_above_zero={sum(r['m'] - r['h'] > 0 for r in sub)} "
+          f"CI_below_zero={sum(r['m'] + r['h'] < 0 for r in sub)} holm<0.05={holm_sig} mean_positive={pos} "
+          f"sign_p={sp:.1e} ratio median={st.median(rat):.3f} range={min(rat):.3f}-{max(rat):.3f} "
+          f"dopLost_CI_below={sum(r['ml'] + r['hl'] < 0 for r in sub)}")
+
+
+dop36 = [r for r in recs if r["k"][1] in (1, 5, 3)]
+r1 = {r["k"][:1] + r["k"][2:]: r for r in recs if r["k"][1] == 1}
+r4 = {r["k"][:1] + r["k"][2:]: r for r in recs if r["k"][1] == 3}
+print(f"CHECK R4 equals R1 in every low-latitude 5 dBi scenario: "
+      f"{all(abs(r1[k]['m'] - r4[k]['m']) < 1e-12 and r1[k]['link'] == r4[k]['link'] for k in r1)}")
+family(dop36, "doppler36")
+family([r for r in recs if r["k"][1] in (1, 5)], "unique24")
+family([r for r in recs if r["k"][1] == 2], "R3_false_cutoff")
+for n in (100, 500, 2000, 5000):
+    family([r for r in recs if r["k"][1] in (1, 5) and r["k"][4] == n], f"unique_N{n}")
