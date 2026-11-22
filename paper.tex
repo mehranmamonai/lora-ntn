@@ -175,19 +175,19 @@ The main metric is delivered packets per device per pass. We also report Doppler
 \section{Results}\label{sec:results}
 
 \subsection{Headroom for Doppler-Aware SF Choice}
-We first ask whether knowing the Doppler limit helps at all. Fig.~\ref{fig:headroom} compares the oracle with link-only. The oracle is clearly better in 73 of 192 scenarios and clearly worse in 7, and the split hardly changes across collision models (C1: 25 and 2, C2: 27 and 2, C3: 21 and 3 of 64 each). The Doppler reading decides the size of the gain: the median delivery ratio is 1.08 to 1.17 under R1, 1.09 to 1.19 under R2, 1.03 under R3 and 1.00 under R4. The headroom therefore exists only if the SF12 limit at 868~MHz is as tight as R1 or R2.
+We first ask whether knowing the Doppler limit helps at all. Fig.~\ref{fig:headroom} compares the oracle with link-only. On paired seeds 21--25, the oracle is significantly better in 120 of 192 scenarios and significantly worse in 23, and the split hardly changes across collision models (C1: 42 and 6, C2: 39 and 8, C3: 39 and 9 of 64 each). The Doppler reading decides the size of the gain: the median delivery ratio is 1.08 to 1.17 under R1, 1.09 to 1.19 under R2, 1.03 under R3 and 1.00 under R4. The headroom therefore exists only if the SF12 limit at 868~MHz is as tight as R1 or R2.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figs/fig_headroom.pdf}
-\caption{\textbf{Knowing the Doppler limit helps under every collision model.} Scenarios in which the elevation-aware oracle delivers clearly more, comparably, or clearly less than link-only, out of 64 per collision model (seeds 21--25; ``clearly'' means non-overlapping 95\% intervals).}
+\caption{\textbf{Knowing the Doppler limit helps under every collision model.} Scenarios in which the elevation-aware oracle delivers significantly more, not significantly different, or significantly less than link-only, out of 64 per collision model (paired 95\% interval of the per-seed difference, seeds 21--25).}
 \label{fig:headroom}
 \end{figure}
 
 \subsection{Controller Performance}
 The controller sets a cut-off only at low latitude with 5~dBi, where SF12 is used at high elevation. At mid-latitude with 5~dBi, SF12 is received only between 20$^\circ$ and 30$^\circ$, and at 10~dBi the cut-off is not triggered either; there it stays at 90$^\circ$ and the controller matches link-only exactly. It therefore acts in 45 of the 192 scenarios: the 36 with SF12 Doppler loss (R1, R2 and R4; R4 reproduces R1 exactly in this setting, leaving 24 distinct scenarios) and 9 under R3, discussed below. The remaining 147 give no evidence either way.
 
-Where Doppler loss occurs, the controller learns quickly. In the C3, R1, 500-device scenario, all five seeds run pass~0 without a cut-off, three set one after pass~1, and all hold 50$^\circ$ from pass~2 on (Fig.~\ref{fig:doppler}c). The Doppler-loss share falls from 13.4\% on pass~0 to between 7.5\% and 12\% afterwards.
+Where Doppler loss occurs, the controller learns quickly. In the C3, R1, 500-device scenario, all five seeds run pass~0 without a cut-off, three set one after pass~1, and all hold 50$^\circ$ from pass~2 on (Fig.~\ref{fig:doppler}c). Doppler-lost packets fall from 6.8 per 100 devices on pass~0 to a mean of 4.5 (3.3 to 6.0) per pass afterwards.
 
 In all 36 scenarios with SF12 Doppler loss the controller delivers more than link-only on average, by a median of 7.5\% (range 1.3\% to 12.7\%; sign test $p=3\times10^{-11}$, or $1.2\times10^{-7}$ over the 24 distinct scenarios). The paired gain is significant in 31 of the 36, and in 27 after Holm correction (Table~\ref{tab:c3}). All five exceptions have 100 devices, where the controller withholds only 130 to 170 SF12 attempts per run; at 500 devices and more the gain is significant in every scenario, 4.2\% to 12.7\%. Doppler-lost packets per device per pass fall significantly in all 36 (Fig.~\ref{fig:doppler}a,~b), for example by 0.010 per device per pass in C3, R1 with 100 devices.
 
@@ -196,7 +196,7 @@ Under R3 there is no SF12 Doppler loss, yet the rule sets a cut-off in the 9 sce
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\linewidth]{figs/fig_doppler.pdf}
-\caption{\textbf{The controller lowers Doppler loss at low latitude and learns its cut-off within two passes.} (a, b) Doppler-loss share of link-only and the controller at low latitude and 5~dBi under R1 and R2; mean of 10 seeds with 95\% intervals; open markers overlap link-only. R4 equals R1 in this setting and is omitted; C1 with 5000 devices under R1 was outside the test scope. (c) Doppler-loss share per pass for C3, R1, 500 devices; mean of 5 seeds, band is the 95\% interval; shading marks the passes before all seeds hold 50$^\circ$.}
+\caption{\textbf{The controller lowers Doppler loss at low latitude and learns its cut-off within two passes.} (a, b) Doppler-lost packets per 100 devices per pass for link-only and the controller at low latitude and 5~dBi under R1 and R2; mean of 10 seeds with 95\% intervals; filled markers: the paired per-seed difference is significantly below zero (all 24). R4 equals R1 in this setting and is omitted. (c) Doppler-lost packets per 100 devices per pass for C3, R1, 500 devices; mean of 5 seeds, band is the 95\% interval; shading marks the passes before all seeds hold 50$^\circ$.}
 \label{fig:doppler}
 \end{figure*}
 
@@ -228,7 +228,7 @@ R2 & 100  & 0.044 & 0.044 & 0.074 (20) & 0.072 & 0.5 [$-2.7$, 3.8] \\
 \parbox{\linewidth}{\footnotesize All columns: means of seeds 21--30. Best fixed: hindsight-best fixed cut-off, degrees in parentheses. Paired gain: controller minus link-only on the same seed, mean of 10 differences. Bold: the paired 95\% interval excludes zero; all bold entries except R1 with 100 devices ($p=0.04$) stay significant after Holm correction over the 45 scenarios in which the controller acts. R4 is identical to R1 here.}
 \end{table} Three causes are plausible. Only 43\% of devices hear a beacon at low latitude, so most devices may never learn the cut-off; the rule may learn the wrong cut-off; or one elevation threshold may be too coarse for every rule.
 
-We tested the first cause directly by applying the controller's settings to every device at each pass boundary, with beacons off. With criteria fixed in advance, instant delivery would count as the limit if it was clearly better in at least 27 of the 36 low-latitude 5~dBi scenarios. It was clearly better in none, and closed a median of 1\% of the gap to the oracle (range $-3\%$ to 20\%; Fig.~\ref{fig:limit}). At 10~dBi, where no cut-off is learned, it changed no scenario, as expected.
+We tested the first cause directly by applying the controller's settings to every device at each pass boundary, with beacons off. With criteria fixed in advance, instant delivery would count as the limit if it was clearly better in at least 27 of the 36 low-latitude 5~dBi scenarios. By that pre-registered criterion (non-overlapping 95\% intervals), it was clearly better in none, and closed a median of 1\% of the gap to the oracle (range $-3\%$ to 20\%; Fig.~\ref{fig:limit}). At 10~dBi, where no cut-off is learned, it changed no scenario, as expected.
 
 To separate the other two, we ran every device with a fixed cut-off of 20$^\circ$ to 80$^\circ$ in 10$^\circ$ steps, with no beacons and no exploration, on the same seeds, and took the best cut-off per scenario in hindsight. This is an optimistic bound for any single elevation threshold. We fixed the reading in advance: if the hindsight threshold reached at most 0.80 of the oracle (median over the 24 distinct scenarios), the threshold class would be the limit; at 0.90 or more, the learning rule. It reached a median of 0.89 (range 0.79 to 1.04) and closed a median of 60\% of the gap between controller and oracle (25\% to 110\%). The controller is significantly below the hindsight threshold in all 24 scenarios. By our criterion both causes contribute, with the rule accounting for most of the gap. A fixed setting already shows this: a single cut-off of 40$^\circ$ for all 24 scenarios reaches a mean of 0.89 of the oracle, against 0.70 for the controller.
 
@@ -247,7 +247,7 @@ A learning controller does not fix this from network data alone. A contextual ba
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\linewidth]{figs/fig_limit.pdf}
-\caption{\textbf{Instant delivery of settings gains nothing over beacons; the gap to the oracle remains.} Delivered packets per device per pass for C3 at low latitude and 5~dBi under (a) R1 and (b) R2. Link-only and both controller variants: 10 seeds; oracle: 5 seeds; whiskers are 95\% intervals.}
+\caption{\textbf{Instant delivery of settings gains nothing over beacons; a better fixed cut-off would.} Delivered packets per device per pass for C3 at low latitude and 5~dBi under (a) R1 and (b) R2. All bars: 10 seeds (21--30). Best fixed cut-off: the best of 20$^\circ$ to 80$^\circ$ per scenario in hindsight (40$^\circ$ under R1; 20$^\circ$ under R2 except 40$^\circ$ at 5000 devices). Whiskers are 95\% intervals.}
 \label{fig:limit}
 \end{figure*}
 
