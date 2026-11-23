@@ -30,8 +30,9 @@ is involved.
 
 ## Experiments behind the paper
 
-Each experiment ran at the commit listed. To re-run one, check out that commit (it holds the
-simulator and controller exactly as they were) and run `scripts/run.sh`.
+Each experiment ran at the commit listed, which is also tagged `experiment/<folder>` (for example
+`git checkout experiment/static-cutoff`). That commit holds the simulator and controller exactly as
+they were; run `scripts/run.sh` to repeat the experiment.
 
 | Folder | Commit | Used for |
 |---|---|---|
@@ -42,7 +43,7 @@ simulator and controller exactly as they were) and run `scripts/run.sh`.
 | `stage4-controller` | `436368e` | Elevation-aware oracle (headroom figure) |
 | `stage4-revision` | `a903e7d` | Final controller, 192 scenarios, seeds 21-30 (Doppler-loss figure, results table, per-pass trajectory) |
 | `beacon-reach` | `aed4dc4` | Beacon versus instant setting delivery (controller-limit figure) |
-| `stage5-bandit` | `ad022a8` | Contextual bandit choosing a Doppler-rate threshold (Section VI-C). This commit is on branch `orx/stage-5-contextual-bandit-for-an-sf12-doppler-ra`, not on `main`. |
+| `stage5-bandit` | `ad022a8` | Contextual bandit choosing a Doppler-rate threshold (Section VI-C). |
 | `stage5-offline` | none | `elevation_vs_rate.py`: geometry check, no simulation, giving the 13.3% and 30.0% misclassification of a single elevation threshold (Section VI-C). Run with `python elevation_vs_rate.py`. |
 | `revision-paired` | none | Paired per-seed reanalysis of `stage4-revision` against link-only (`paired.py`), and fairness and energy (`fairness_energy.py`). Run with `python paired.py ../` from that folder (needs `scipy`). |
 | `hindsight-threshold` | `1fd9523` | Fixed SF12 cut-offs 20-80 deg (hindsight-best threshold), controller without exploration, oracle on seeds 26-30 (Table II, Fig. 4, Section VI-C). |
